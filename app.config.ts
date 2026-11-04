@@ -1,0 +1,63 @@
+import type { ExpoConfig } from "expo/config";
+const projectId = process.env.EXPO_PUBLIC_EAS_PROJECT_ID;
+if (process.env.EAS_BUILD_PROFILE === "production") {
+  const required = [
+    projectId,
+    process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+    process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+    process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  ];
+  if (required.some((value) => !value))
+    throw new Error(
+      "Completa las variables de Firebase y Expo/EAS antes de crear un build de producción.",
+    );
+}
+const config: ExpoConfig = {
+  name: "ENTRE DOS",
+  slug: "entre-dos",
+  version: "1.0.0",
+  scheme: "entredos",
+  orientation: "portrait",
+  userInterfaceStyle: "light",
+  icon: "./assets/icon.png",
+  ios: {
+    supportsTablet: true,
+    bundleIdentifier: "com.sevenawesome.entredos",
+    infoPlist: { ITSAppUsesNonExemptEncryption: false },
+  },
+  android: {
+    package: "com.sevenawesome.entredos",
+    adaptiveIcon: {
+      foregroundImage: "./assets/adaptive-icon.png",
+      backgroundColor: "#FFF9F6",
+    },
+  },
+  web: { bundler: "metro", favicon: "./assets/favicon.png" },
+  plugins: [
+    "expo-router",
+    "expo-font",
+    [
+      "expo-notifications",
+      {
+        icon: "./assets/notification-icon.png",
+        color: "#BF385B",
+        defaultChannel: "retos",
+      },
+    ],
+    [
+      "expo-splash-screen",
+      {
+        image: "./assets/splash-icon.png",
+        imageWidth: 320,
+        resizeMode: "contain",
+        backgroundColor: "#FFF9F6",
+      },
+    ],
+  ],
+  experiments: { typedRoutes: true },
+  extra: { ...(projectId ? { eas: { projectId } } : {}) },
+};
+export default config;

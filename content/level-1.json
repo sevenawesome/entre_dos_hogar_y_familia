@@ -1,0 +1,307 @@
+{
+  "id": "nivel-1",
+  "order": 1,
+  "title": "Volver a elegirnos",
+  "subtitle": "30 pequeños pasos para una conexión más grande.",
+  "description": "Un viaje para escucharse, agradecer y encontrar nuevas maneras de cuidarse.",
+  "published": true,
+  "prerequisiteId": null,
+  "challenges": [
+    {
+      "id": "reto-01",
+      "order": 1,
+      "title": "Una bienvenida diferente",
+      "description": "Cuando se reencuentren, detengan lo que hacen durante un minuto. Salúdense con atención, una sonrisa y un abrazo si ambos lo desean.",
+      "reflection": "¿Cómo se sintió recibir toda la atención del otro?",
+      "stage": "Volver a encontrarse",
+      "minutes": 20
+    },
+    {
+      "id": "reto-02",
+      "order": 2,
+      "title": "Diez minutos sin pantallas",
+      "description": "Dedíquense diez minutos a conversar sin teléfonos, televisión ni interrupciones. No hablen de pendientes: cuenten cómo están de verdad.",
+      "reflection": "¿Qué descubrí hoy de ti?",
+      "stage": "Volver a encontrarse",
+      "minutes": 10
+    },
+    {
+      "id": "reto-03",
+      "order": 3,
+      "title": "La pregunta que casi nunca hacemos",
+      "description": "Pregúntense: «¿Qué ha sido lo más bonito y lo más difícil de tu semana?». Escuchen sin corregir ni dar soluciones de inmediato.",
+      "reflection": "¿Qué necesita mi pareja que yo comprenda mejor?",
+      "stage": "Volver a encontrarse",
+      "minutes": 20
+    },
+    {
+      "id": "reto-04",
+      "order": 4,
+      "title": "El gesto inesperado",
+      "description": "Cada uno elija un detalle gratuito para alegrarle el día al otro: una nota, preparar una bebida, ordenar algo o enviar un mensaje cariñoso.",
+      "reflection": "¿Qué gesto me hizo sentir cuidado/a?",
+      "stage": "Volver a encontrarse",
+      "minutes": 20
+    },
+    {
+      "id": "reto-05",
+      "order": 5,
+      "title": "Escucha de tres minutos",
+      "description": "Por turnos, hablen tres minutos sobre algo importante. Quien escucha no interrumpe. Luego resume: «Lo que entiendo es…». Intercambien roles.",
+      "reflection": "¿Me sentí escuchado/a sin juicio?",
+      "stage": "Aprender a escucharse",
+      "minutes": 20
+    },
+    {
+      "id": "reto-06",
+      "order": 6,
+      "title": "Una pregunta profunda",
+      "description": "Elijan una: «¿Qué te preocupa del futuro?», «¿Qué sueño has pospuesto?» o «¿Cuándo te sientes más en paz?». Respondan con calma.",
+      "reflection": "¿Qué nueva parte de tu mundo conocí?",
+      "stage": "Aprender a escucharse",
+      "minutes": 20
+    },
+    {
+      "id": "reto-07",
+      "order": 7,
+      "title": "Tres cosas que admiro de ti",
+      "description": "Escriban tres cualidades concretas que admiran de su pareja. Léanlas en voz alta y expliquen un ejemplo de cada una.",
+      "reflection": "¿Cuál de esas palabras necesitaba escuchar?",
+      "stage": "Reconocer y agradecer",
+      "minutes": 20
+    },
+    {
+      "id": "reto-08",
+      "order": 8,
+      "title": "Gracias por lo cotidiano",
+      "description": "Agradezcan algo que el otro hace habitualmente y que suele pasar inadvertido. Sean específicos, sin añadir críticas o peticiones.",
+      "reflection": "¿Qué esfuerzo cotidiano valoro más ahora?",
+      "stage": "Reconocer y agradecer",
+      "minutes": 20
+    },
+    {
+      "id": "reto-09",
+      "order": 9,
+      "title": "La carta de cinco líneas",
+      "description": "Escriban una carta corta que empiece: «Me alegra compartir mi vida contigo porque…». Entréguenla y dejen tiempo para leerla.",
+      "reflection": "¿Qué frase quisieras conservar?",
+      "stage": "Reconocer y agradecer",
+      "minutes": 20
+    },
+    {
+      "id": "reto-10",
+      "order": 10,
+      "title": "Celebrar una pequeña victoria",
+      "description": "Identifiquen un avance de cada uno, aunque parezca mínimo, y celébrense con un gesto sencillo: una canción, un brindis sin alcohol o un paseo.",
+      "reflection": "¿Cómo puedo celebrar más tus logros?",
+      "stage": "Reconocer y agradecer",
+      "minutes": 20
+    },
+    {
+      "id": "reto-11",
+      "order": 11,
+      "title": "Una cita en casa",
+      "description": "Preparen juntos una merienda o cena sencilla. Pongan la mesa de forma especial y conversen de algo que les haga reír.",
+      "reflection": "¿Qué hizo distinta esta cita?",
+      "stage": "Crear tiempo de calidad",
+      "minutes": 20
+    },
+    {
+      "id": "reto-12",
+      "order": 12,
+      "title": "Caminar y conversar",
+      "description": "Salgan a caminar veinte minutos, si les resulta posible. La meta no es llegar a ningún lugar, sino disfrutar el trayecto juntos.",
+      "reflection": "¿Qué conversación surgió espontáneamente?",
+      "stage": "Crear tiempo de calidad",
+      "minutes": 20
+    },
+    {
+      "id": "reto-13",
+      "order": 13,
+      "title": "Elige tú, elijo yo",
+      "description": "Cada uno proponga una actividad sencilla de quince minutos. Realicen ambas, procurando participar con curiosidad, aunque no sean su primera elección.",
+      "reflection": "¿Qué disfruté del gusto del otro?",
+      "stage": "Crear tiempo de calidad",
+      "minutes": 20
+    },
+    {
+      "id": "reto-14",
+      "order": 14,
+      "title": "Revive un buen recuerdo",
+      "description": "Recreen algo de una experiencia feliz: una canción, una receta, una fotografía o un lugar cercano. Hablen de por qué fue especial.",
+      "reflection": "¿Qué queremos volver a vivir?",
+      "stage": "Crear tiempo de calidad",
+      "minutes": 20
+    },
+    {
+      "id": "reto-15",
+      "order": 15,
+      "title": "Una hora para nosotros",
+      "description": "Reserven una hora, esta semana, sin gestiones ni pantallas. Pueden jugar, cocinar, leer juntos o conversar: lo importante es proteger ese espacio.",
+      "reflection": "¿Qué hábito podemos repetir cada semana?",
+      "stage": "Crear tiempo de calidad",
+      "minutes": 60
+    },
+    {
+      "id": "reto-16",
+      "order": 16,
+      "title": "Cambiar reproches por necesidades",
+      "description": "Cada uno reformule una queja usando: «Cuando ocurre…, me siento… y me ayudaría…». El otro escucha antes de responder.",
+      "reflection": "¿Qué necesidad había detrás de la queja?",
+      "stage": "Cuidar los desacuerdos",
+      "minutes": 20
+    },
+    {
+      "id": "reto-17",
+      "order": 17,
+      "title": "Pausa con regreso",
+      "description": "Acuerden una frase para pausar conversaciones tensas, como «Necesito veinte minutos; volvemos a hablar a las…». Practíquenla sin abandonar el tema.",
+      "reflection": "¿Qué nos ayuda a calmarnos sin desconectarnos?",
+      "stage": "Cuidar los desacuerdos",
+      "minutes": 20
+    },
+    {
+      "id": "reto-18",
+      "order": 18,
+      "title": "Un desacuerdo pequeño",
+      "description": "Elijan un asunto de bajo riesgo y escuchen los dos puntos de vista. Busquen una solución concreta y revisable, no un ganador.",
+      "reflection": "¿Qué parte de la perspectiva del otro entendí?",
+      "stage": "Cuidar los desacuerdos",
+      "minutes": 20
+    },
+    {
+      "id": "reto-19",
+      "order": 19,
+      "title": "Nuestro acuerdo de respeto",
+      "description": "Escriban tres reglas para discutir: por ejemplo, no insultar, no amenazar y no exponer asuntos privados. Ambos deben poder proponer y ajustar reglas.",
+      "reflection": "¿Qué límite nos hace sentir seguros?",
+      "stage": "Cuidar los desacuerdos",
+      "minutes": 20
+    },
+    {
+      "id": "reto-20",
+      "order": 20,
+      "title": "Una carga menos",
+      "description": "Pregunten: «¿Qué tarea te está pesando esta semana?». Si es posible, asuman juntos una parte concreta y definan cuándo la harán.",
+      "reflection": "¿Qué alivio trajo compartir responsabilidades?",
+      "stage": "Ser un equipo",
+      "minutes": 20
+    },
+    {
+      "id": "reto-21",
+      "order": 21,
+      "title": "Reparto justo, sin suposiciones",
+      "description": "Hagan una lista breve de labores del hogar y cargas mentales. Revisen si el reparto es razonable para ambos y ajusten una cosa.",
+      "reflection": "¿Qué trabajo no estaba siendo visible?",
+      "stage": "Ser un equipo",
+      "minutes": 20
+    },
+    {
+      "id": "reto-22",
+      "order": 22,
+      "title": "Apoyar un objetivo personal",
+      "description": "Cada uno comparta una meta propia. La otra persona pregunte qué apoyo sería útil sin intentar controlar el proceso.",
+      "reflection": "¿Cómo puedo animarte sin presionarte?",
+      "stage": "Ser un equipo",
+      "minutes": 20
+    },
+    {
+      "id": "reto-23",
+      "order": 23,
+      "title": "Resolver algo juntos",
+      "description": "Elijan una decisión pequeña pendiente y acuerden cómo tomarla: opciones, prioridades y un próximo paso. Den espacio a ambas voces.",
+      "reflection": "¿Qué hicimos bien colaborando?",
+      "stage": "Ser un equipo",
+      "minutes": 20
+    },
+    {
+      "id": "reto-24",
+      "order": 24,
+      "title": "Mapa del cariño",
+      "description": "Compartan tres formas en las que les gusta recibir afecto: palabras, tiempo, ayuda, detalles o contacto físico. Respeten las preferencias y los límites.",
+      "reflection": "¿Qué demostración de cariño te llega más?",
+      "stage": "Cultivar confianza y cariño",
+      "minutes": 20
+    },
+    {
+      "id": "reto-25",
+      "order": 25,
+      "title": "Espacio personal saludable",
+      "description": "Hablen de una actividad individual que quieren cuidar. Acuerden cómo apoyarla sin interpretarla como rechazo a la relación.",
+      "reflection": "¿Cómo equilibramos cercanía y autonomía?",
+      "stage": "Cultivar confianza y cariño",
+      "minutes": 20
+    },
+    {
+      "id": "reto-26",
+      "order": 26,
+      "title": "La conversación de la confianza",
+      "description": "Completen por turnos: «Me siento seguro/a contigo cuando…» y «Me ayudaría sentir más seguridad si…». Escuchen sin invalidar la respuesta.",
+      "reflection": "¿Qué comportamiento concreto podemos mejorar?",
+      "stage": "Cultivar confianza y cariño",
+      "minutes": 20
+    },
+    {
+      "id": "reto-27",
+      "order": 27,
+      "title": "Soñar sin censura",
+      "description": "Imaginen cómo les gustaría sentirse como pareja dentro de un año. Hablen de experiencias y valores, no solo de metas materiales.",
+      "reflection": "¿Qué visión del futuro compartimos?",
+      "stage": "Mirar hacia adelante",
+      "minutes": 20
+    },
+    {
+      "id": "reto-28",
+      "order": 28,
+      "title": "Un plan sencillo para este mes",
+      "description": "Elijan un objetivo compartido pequeño y medible, como dos paseos o una cita semanal. Anoten cuándo y cómo lo harán.",
+      "reflection": "¿Qué paso podemos empezar hoy?",
+      "stage": "Mirar hacia adelante",
+      "minutes": 20
+    },
+    {
+      "id": "reto-29",
+      "order": 29,
+      "title": "Nuestra caja de recuerdos",
+      "description": "Guarden una nota, foto, frase o entrada que represente un buen momento. Inicien una pequeña colección para revisar cuando lo necesiten.",
+      "reflection": "¿Qué momento de estos retos queremos recordar?",
+      "stage": "Mirar hacia adelante",
+      "minutes": 20
+    },
+    {
+      "id": "reto-30",
+      "order": 30,
+      "title": "Ceremonia de los 30 retos",
+      "description": "Revisen sus desafíos favoritos y agradezcan el esfuerzo mutuo. Elijan tres prácticas para repetir durante el próximo mes y pónganles fecha.",
+      "reflection": "¿Qué cambió en nuestra manera de cuidarnos?",
+      "stage": "Mirar hacia adelante",
+      "minutes": 20
+    }
+  ],
+  "questions": [
+    {
+      "id": "pregunta-1",
+      "label": "Nuestro reto favorito fue…"
+    },
+    {
+      "id": "pregunta-2",
+      "label": "Una cosa nueva que aprendí de ti…"
+    },
+    {
+      "id": "pregunta-3",
+      "label": "Algo que hicimos mejor como equipo…"
+    },
+    {
+      "id": "pregunta-4",
+      "label": "Una costumbre que queremos dejar atrás…"
+    },
+    {
+      "id": "pregunta-5",
+      "label": "Tres retos que repetiremos este mes…"
+    },
+    {
+      "id": "pregunta-6",
+      "label": "Nuestro siguiente encuentro será…"
+    }
+  ]
+}

@@ -1,0 +1,377 @@
+{
+  "version": 1,
+  "tradition": "Tradición popular en español",
+  "note": "Los nombres cambian según el país y la fuente. Este catálogo reúne los años 1 al 50 y los hitos de cinco en cinco hasta 100; los años intermedios sin nombre se celebran por sus años de matrimonio. Las reflexiones son propuestas de ENTRE DOS.",
+  "sources": [
+    {
+      "title": "Notre Livre · Aniversarios por años",
+      "url": "https://notrelivre.com/es/guias/aniversarios-de-boda-lista"
+    },
+    {
+      "title": "Wikipedia · Aniversario de bodas",
+      "url": "https://es.wikipedia.org/wiki/Aniversario_de_bodas"
+    }
+  ],
+  "milestones": [
+    {
+      "year": 1,
+      "material": "Papel",
+      "meaning": "Una página necesita atención antes de convertirse en una historia compartida.",
+      "invitation": "Escriban una carta con algo que desean cuidar en su segundo año."
+    },
+    {
+      "year": 2,
+      "material": "Algodón",
+      "meaning": "Los hilos recuerdan que una vida en común se construye entrelazando decisiones pequeñas.",
+      "invitation": "Elijan un hábito cotidiano que les haga sentir acompañados."
+    },
+    {
+      "year": 3,
+      "material": "Cuero",
+      "meaning": "La capacidad de adaptarse permite atravesar cambios conservando lo que importa a ambos.",
+      "invitation": "Conversen sobre una diferencia que ahora comprenden mejor."
+    },
+    {
+      "year": 4,
+      "material": "Lino",
+      "meaning": "Un tejido cuidado conserva su forma gracias al trabajo de muchas hebras.",
+      "invitation": "Agradezcan una tarea que su pareja suele hacer sin recibir reconocimiento."
+    },
+    {
+      "year": 5,
+      "material": "Madera",
+      "meaning": "Crecer juntos exige atender las raíces y dejar espacio para nuevas ramas.",
+      "invitation": "Recuerden una decisión que les dio estabilidad y un sueño que quieren cultivar."
+    },
+    {
+      "year": 6,
+      "material": "Hierro",
+      "meaning": "La firmeza también consiste en respetar acuerdos cuando llega una dificultad.",
+      "invitation": "Renueven un acuerdo que les ayude a resolver diferencias con respeto."
+    },
+    {
+      "year": 7,
+      "material": "Lana",
+      "meaning": "El abrigo puede representar la tranquilidad de sentirse recibido en casa.",
+      "invitation": "Pregunten qué gesto ayuda al otro a descansar después de un día difícil."
+    },
+    {
+      "year": 8,
+      "material": "Bronce",
+      "meaning": "Dos componentes pueden crear algo nuevo sin perder su aportación propia.",
+      "invitation": "Nombren una fortaleza de cada uno que mejore su trabajo en equipo."
+    },
+    {
+      "year": 9,
+      "material": "Arcilla",
+      "meaning": "Una forma compartida puede revisarse y modelarse con participación de los dos.",
+      "invitation": "Ajusten un plan para que responda mejor a sus necesidades actuales."
+    },
+    {
+      "year": 10,
+      "material": "Aluminio",
+      "meaning": "Una década invita a valorar la adaptación y los momentos que han conservado.",
+      "invitation": "Elijan diez recuerdos, uno por cada año, y compartan por qué importan."
+    },
+    {
+      "year": 11,
+      "material": "Acero",
+      "meaning": "Sostener el compromiso requiere actos consistentes y disposición a reparar.",
+      "invitation": "Mencionen un acuerdo que hayan cumplido y otro que necesiten revisar."
+    },
+    {
+      "year": 12,
+      "material": "Seda",
+      "meaning": "La suavidad recuerda que las palabras también pueden ser una forma de cuidado.",
+      "invitation": "Compartan una petición importante usando un tono amable."
+    },
+    {
+      "year": 13,
+      "material": "Encaje",
+      "meaning": "Los detalles pequeños encuentran su lugar dentro de una historia más amplia.",
+      "invitation": "Agradezcan tres detalles que sigan teniendo valor para ustedes."
+    },
+    {
+      "year": 14,
+      "material": "Marfil",
+      "meaning": "La asociación tradicional invita a apreciar lo valioso sin confundir valor con posesiones.",
+      "invitation": "Escriban qué hace única su relación; celebren con una nota o ilustración."
+    },
+    {
+      "year": 15,
+      "material": "Cristal",
+      "meaning": "Mirarse con claridad requiere hablar con honestidad y escuchar sin humillar.",
+      "invitation": "Digan algo que quieren comprender mejor del presente de su pareja."
+    },
+    {
+      "year": 16,
+      "material": "Hiedra",
+      "meaning": "La imagen de una planta que crece recuerda el apoyo mutuo y el respeto al espacio propio.",
+      "invitation": "Elijan una meta compartida y una individual que deseen apoyar."
+    },
+    {
+      "year": 17,
+      "material": "Alhelí",
+      "meaning": "Una flor puede recordar la atención renovada que necesita lo cotidiano.",
+      "invitation": "Sorprendan a su pareja con un detalle sencillo elegido pensando en ella."
+    },
+    {
+      "year": 18,
+      "material": "Cuarzo",
+      "meaning": "La claridad puede ser una invitación a revisar prioridades y expectativas.",
+      "invitation": "Decidan qué desean simplificar durante este año."
+    },
+    {
+      "year": 19,
+      "material": "Madreselva",
+      "meaning": "Crecer en compañía implica encontrar apoyos sin limitar la autonomía de ninguno.",
+      "invitation": "Pregunten cómo acompañar un cambio personal con respeto."
+    },
+    {
+      "year": 20,
+      "material": "Porcelana",
+      "meaning": "Lo que aprecian merece un lugar en sus rutinas y una forma atenta de tratarse.",
+      "invitation": "Reserven una conversación para reconocer veinte años de aprendizaje."
+    },
+    {
+      "year": 21,
+      "material": "Roble",
+      "meaning": "La continuidad se sostiene con raíces cuidadas y espacio para seguir creciendo.",
+      "invitation": "Compartan qué les da seguridad y qué quieren renovar."
+    },
+    {
+      "year": 22,
+      "material": "Cobre",
+      "meaning": "Una imagen de conexión invita a revisar cómo llega el afecto de uno al otro.",
+      "invitation": "Pregunten qué demostración de cariño prefieren recibir hoy."
+    },
+    {
+      "year": 23,
+      "material": "Agua",
+      "meaning": "Cambiar de camino no tiene que significar perder el rumbo que han elegido juntos.",
+      "invitation": "Busquen una solución flexible para un pendiente pequeño."
+    },
+    {
+      "year": 24,
+      "material": "Granito",
+      "meaning": "Una base compartida reúne decisiones que les permiten confiar en el equipo.",
+      "invitation": "Reconozcan una dificultad que afrontaron respetando ambas voces."
+    },
+    {
+      "year": 25,
+      "material": "Plata",
+      "meaning": "Un cuarto de siglo permite mirar la historia con gratitud y reconocer cuánto han cambiado.",
+      "invitation": "Cuenten qué volverían a elegir de su vida en común."
+    },
+    {
+      "year": 26,
+      "material": "Rosas",
+      "meaning": "Renovar un gesto de cariño puede dar un significado nuevo a una costumbre conocida.",
+      "invitation": "Recuperen una manera de sorprenderse que disfruten los dos."
+    },
+    {
+      "year": 27,
+      "material": "Azabache",
+      "meaning": "La idea de protección puede traducirse en límites y acuerdos que cuiden a ambos.",
+      "invitation": "Revisen un límite que proteja su tiempo de pareja."
+    },
+    {
+      "year": 28,
+      "material": "Ámbar",
+      "meaning": "Los recuerdos conservados ayudan a reconocer experiencias que todavía les dan alegría.",
+      "invitation": "Elijan una fotografía y cuenten qué les hace sentir."
+    },
+    {
+      "year": 29,
+      "material": "Granate",
+      "meaning": "La energía compartida puede expresarse con interés, cercanía y curiosidad renovada.",
+      "invitation": "Propongan una actividad nueva que ambos quieran probar."
+    },
+    {
+      "year": 30,
+      "material": "Perla",
+      "meaning": "Las experiencias acumuladas forman una historia cuyo valor va más allá de un solo momento.",
+      "invitation": "Compartan un aprendizaje de cada década juntos."
+    },
+    {
+      "year": 31,
+      "material": "Ébano",
+      "meaning": "El carácter de una relación se reconoce en las decisiones que siguen siendo importantes.",
+      "invitation": "Conversen sobre un valor que desean seguir practicando."
+    },
+    {
+      "year": 32,
+      "material": "Cobre",
+      "meaning": "Volver a un símbolo puede ayudar a mirar con otros ojos una necesidad que ha cambiado.",
+      "invitation": "Pregunten qué tipo de compañía necesitan en esta etapa."
+    },
+    {
+      "year": 33,
+      "material": "Estaño",
+      "meaning": "La posibilidad de cambiar de forma invita a revisar hábitos que ya no les sirven.",
+      "invitation": "Elijan una costumbre para adaptar durante este mes."
+    },
+    {
+      "year": 34,
+      "material": "Amapola",
+      "meaning": "Una flor recuerda que una celebración puede ser sencilla y seguir teniendo significado.",
+      "invitation": "Disfruten un paseo o una conversación sin pendientes."
+    },
+    {
+      "year": 35,
+      "material": "Coral",
+      "meaning": "Una estructura que crece poco a poco permite pensar en los aportes de cada día.",
+      "invitation": "Reconozcan cinco acciones pequeñas que han cuidado su vínculo."
+    },
+    {
+      "year": 36,
+      "material": "Sílex",
+      "meaning": "Encontrar una chispa puede comenzar con volver a interesarse por el mundo del otro.",
+      "invitation": "Hagan una pregunta que no se hayan hecho antes."
+    },
+    {
+      "year": 37,
+      "material": "Piedra",
+      "meaning": "El tiempo deja marcas que también pueden contar lo que aprendieron a sostener.",
+      "invitation": "Recuerden un lugar que represente su historia."
+    },
+    {
+      "year": 38,
+      "material": "Jade",
+      "meaning": "El equilibrio se trabaja escuchando necesidades que a veces cambian de un año a otro.",
+      "invitation": "Revisen si su reparto de responsabilidades sigue siendo justo."
+    },
+    {
+      "year": 39,
+      "material": "Ágata",
+      "meaning": "Una piedra con distintas capas invita a reconocer etapas diferentes de una misma vida compartida.",
+      "invitation": "Nombren tres etapas de su relación y algo que agradecen de cada una."
+    },
+    {
+      "year": 40,
+      "material": "Rubí",
+      "meaning": "Cuatro décadas pueden celebrarse renovando la atención y la cercanía que ambos desean.",
+      "invitation": "Organicemos una cita que tenga significado para los dos."
+    },
+    {
+      "year": 41,
+      "material": "Topacio",
+      "meaning": "Lo valioso puede encontrarse en la confianza que generan los actos cotidianos.",
+      "invitation": "Agradezcan una forma concreta de lealtad y apoyo."
+    },
+    {
+      "year": 42,
+      "material": "Jaspe",
+      "meaning": "Reconocer lo recorrido permite celebrar el esfuerzo sin olvidar las necesidades del presente.",
+      "invitation": "Pregunten qué carga pueden compartir mejor ahora."
+    },
+    {
+      "year": 43,
+      "material": "Ópalo",
+      "meaning": "Los cambios de luz evocan perspectivas diferentes que merecen ser escuchadas.",
+      "invitation": "Cuenten cómo recuerdan el mismo momento desde sus dos puntos de vista."
+    },
+    {
+      "year": 44,
+      "material": "Turquesa",
+      "meaning": "Un color puede servir como invitación a salir de la rutina y recuperar un momento agradable.",
+      "invitation": "Elijan juntos un lugar o actividad para este mes."
+    },
+    {
+      "year": 45,
+      "material": "Zafiro",
+      "meaning": "La constancia se hace visible en la disposición de seguir cuidándose con respeto.",
+      "invitation": "Compartan un compromiso pequeño para el próximo año."
+    },
+    {
+      "year": 46,
+      "material": "Nácar",
+      "meaning": "La belleza de una historia también aparece en detalles que antes pasaban inadvertidos.",
+      "invitation": "Reconozcan algo que valoran más de su pareja con los años."
+    },
+    {
+      "year": 47,
+      "material": "Amatista",
+      "meaning": "La calma puede significar una manera de acompañarse sin apresurar las respuestas.",
+      "invitation": "Dedíquense un rato de escucha y compañía sin interrupciones."
+    },
+    {
+      "year": 48,
+      "material": "Feldespato",
+      "meaning": "Los elementos discretos también aportan a lo que una pareja construye a largo plazo.",
+      "invitation": "Agradezcan un esfuerzo poco visible dentro de su familia."
+    },
+    {
+      "year": 49,
+      "material": "Circón",
+      "meaning": "Celebrar lo que sigue brillando ayuda a recordar por qué comparten este camino.",
+      "invitation": "Elijan una tradición propia que deseen mantener."
+    },
+    {
+      "year": 50,
+      "material": "Oro",
+      "meaning": "Medio siglo reúne recuerdos, decisiones y una oportunidad de seguir eligiendo cómo acompañarse.",
+      "invitation": "Compartan su historia favorita y un deseo para la etapa que empieza."
+    },
+    {
+      "year": 55,
+      "material": "Esmeralda",
+      "meaning": "Mirar hacia adelante permite celebrar lo vivido y dar lugar a nuevos deseos.",
+      "invitation": "Escriban algo sencillo que todavía les ilusione hacer juntos."
+    },
+    {
+      "year": 60,
+      "material": "Diamante",
+      "meaning": "Seis décadas invitan a honrar lo recorrido sin dar por sentado el cuidado de hoy.",
+      "invitation": "Reúnan mensajes o recuerdos que representen su vida compartida."
+    },
+    {
+      "year": 65,
+      "material": "Platino",
+      "meaning": "Una historia poco común merece tiempo para reconocer a quienes la construyeron.",
+      "invitation": "Escuchen qué representa para cada uno haber llegado hasta aquí."
+    },
+    {
+      "year": 70,
+      "material": "Titanio",
+      "meaning": "La resistencia puede significar adaptarse a nuevas circunstancias con compañía y respeto.",
+      "invitation": "Revisen qué apoyo hace más amable su día a día."
+    },
+    {
+      "year": 75,
+      "material": "Brillantes",
+      "meaning": "Tres cuartos de siglo permiten reconocer el valor de una memoria compartida.",
+      "invitation": "Graben una conversación sobre un recuerdo que quieran conservar."
+    },
+    {
+      "year": 80,
+      "material": "Roble",
+      "meaning": "La imagen de un árbol invita a recordar los vínculos y las experiencias que han acompañado su camino.",
+      "invitation": "Compartan una historia con su familia si ambos lo desean."
+    },
+    {
+      "year": 85,
+      "material": "Mármol",
+      "meaning": "Las huellas del tiempo pueden verse como parte de una obra construida entre dos.",
+      "invitation": "Elijan una frase que resuma lo que han aprendido juntos."
+    },
+    {
+      "year": 90,
+      "material": "Granito",
+      "meaning": "Una historia tan extensa ofrece una ocasión para agradecer la compañía recibida y ofrecida.",
+      "invitation": "Celebren de una forma cómoda y significativa para ambos."
+    },
+    {
+      "year": 95,
+      "material": "Ónix",
+      "meaning": "La continuidad invita a reconocer cada gesto de cuidado que sigue siendo posible hoy.",
+      "invitation": "Dedíquense un mensaje de gratitud y compañía."
+    },
+    {
+      "year": 100,
+      "material": "Hueso",
+      "meaning": "Un siglo es un hito simbólico para honrar una historia y el recuerdo que desean compartir.",
+      "invitation": "Conserven una nota o relato que represente su vínculo."
+    }
+  ]
+}
