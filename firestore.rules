@@ -18,7 +18,7 @@ service cloud.firestore {
    return f.keys().hasAll(['name','partner1','partner2','children','timezone','marriageDate']) && f.keys().hasOnly(['name','partner1','partner2','children','timezone','marriageDate','partner1BirthDate','partner2BirthDate','adminAuditId'])
     && text(f.name,60) && text(f.partner1,40) && text(f.partner2,40) && text(f.timezone,100)
     && f.marriageDate is string && date(f,'marriageDate') && date(f,'partner1BirthDate') && date(f,'partner2BirthDate')
-    && f.children is list && f.children.size()<=10 && childAt(f.children, 0) && childAt(f.children, 1) && childAt(f.children, 2) && childAt(f.children, 3) && childAt(f.children, 4) && childAt(f.children, 5) && childAt(f.children, 6) && childAt(f.children, 7) && childAt(f.children, 8) && childAt(f.children, 9);
+    && f.children is list && f.children.size()<=10 && ((resource!=null && f.children==resource.data.children) || (childAt(f.children, 0) && childAt(f.children, 1) && childAt(f.children, 2) && childAt(f.children, 3) && childAt(f.children, 4) && childAt(f.children, 5) && childAt(f.children, 6) && childAt(f.children, 7) && childAt(f.children, 8) && childAt(f.children, 9)));
   }
   function audited(d,action,target) {
    let a=getAfter(/databases/$(database)/documents/adminAudit/$(d.auditId)).data;
@@ -50,7 +50,7 @@ service cloud.firestore {
       && p.answers==old.answers && p.finishedAt==null && old.finishedAt==null
       && p.lastCompletionAt==request.time && after.lastCompletedAt==request.time
       && after.totalCompleted==t.totalCompleted+1 && after.levelId==id
-      && (t.lastCompletedAt==null || request.time>=t.lastCompletedAt+duration.value(24,'h')))
+      && firstJourneyReady(uid,t))
      || (resource!=null && old.finishedAt==null && text(p.finishedAt,50)
       && n==l.challenges.size() && p.completions==old.completions && p.lastCompletionAt==old.lastCompletionAt
       && p.nextAvailableAt==old.nextAvailableAt
@@ -58,9 +58,9 @@ service cloud.firestore {
       && after.finishedCount==t.finishedCount+1));
   }
   function trackingShape(d,uid) {
-   return d.keys().hasOnly(['uid','familyName','email','joinedAt','lastActivityAt','lastCompletedAt','levelId','levelOrder','completedCount','totalCompleted','finishedCount'])
+   return d.keys().hasOnly(['uid','familyName','email','joinedAt','lastActivityAt','lastCompletedAt','levelId','levelOrder','completedCount','totalCompleted','finishedCount','emailVerified'])
     && d.uid==uid && text(d.familyName,60) && d.familyName==getAfter(/databases/$(database)/documents/families/$(uid)).data.name
-    && d.email==request.auth.token.email && d.lastActivityAt==request.time;
+    && d.email==request.auth.token.email && (d.get('emailVerified',false)==false || (d.get('emailVerified',false)==true && request.auth.token.get('email_verified',false)==true)) && d.lastActivityAt==request.time;
   }
   function trackingUpdate(uid) {
    let d=request.resource.data;
@@ -79,6 +79,57 @@ service cloud.firestore {
       && before.finishedAt==null && p.finishedAt!=null && p.updatedAt==request.time));
   }
   function avatar(v) { return v==null || (v is string && v.size()<=44000 && v.matches('^data:image/jpeg;base64,[A-Za-z0-9+/=]+$')); }
+  function firstJourneyReady(uid,t) {
+   let j=exists(/databases/$(database)/documents/journeys/$(uid)) ? get(/databases/$(database)/documents/journeys/$(uid)).data : null;
+   let anchor=j==null ? 0 : j.startedAt.toMillis()-j.startedAt.toMillis()%60000;
+   let last=t.lastCompletedAt==null ? 0 : t.lastCompletedAt.toMillis();
+   return j==null ? (t.totalCompleted>0 && (t.lastCompletedAt==null || request.time>=t.lastCompletedAt+duration.value(24,'h'))) :
+    (last==0 || request.time.toMillis()>=last-(last-anchor)%86400000+86400000);
+  }
+  function personalPhoto(p) { return p.keys().hasOnly(['dataUri','shareBirthday']) && p.shareBirthday is bool && (p.dataUri==null || (p.dataUri.size()<=16000 && p.dataUri.matches('^data:image/jpeg;base64,[A-Za-z0-9+/=]+$'))); }
+  function photoAt(p,old,k,i) { return i>=k.size() || p[k[i]]==old.get(k[i],null) || (k[i].matches('^[a-zA-Z0-9_-]{1,100}$') && personalPhoto(p[k[i]])); }
+  function publicMember(f,i) {
+   return i==0 ? {'id':'partner-1','name':f.partner1,'birthDate':f.get('partner1BirthDate',null)} : i==1 ? {'id':'partner-2','name':f.partner2,'birthDate':f.get('partner2BirthDate',null)} : f.children[i-2];
+  }
+  function sharedPerson(p,f,photos) {
+   let m=publicMember(f,p.index);
+   let key=p.index<2 ? 'partner-'+string(p.index+1) : m.get('id','child-'+string(p.index-2));
+   let pref=photos[key];
+   return p.keys().hasOnly(['key','index','name','monthDay','avatar']) && p.index is int && p.key==key && p.name==m.name
+    && p.monthDay==m.birthDate.replace('^[0-9]{4}-','') && pref.shareBirthday && p.avatar==pref.dataUri;
+  }
+  function compatible(p,photos) { return photos[p.key].shareBirthday && p.avatar==photos[p.key].dataUri; }
+  function sharedAt(p,old,i,f,photos) { return i>=p.size() || ((p[i] in old && compatible(p[i],photos)) || sharedPerson(p[i],f,photos)); }
+  function validPortraitDoc(uid) {
+   let p=request.resource.data.people;
+   let old=resource==null ? {} : resource.data.people;
+   let k=p.keys();
+   let shared=request.resource.data.get('publicPeople',[]);
+   let before=resource==null ? [] : resource.data.get('publicPeople',[]);
+   let f=getAfter(/databases/$(database)/documents/families/$(uid)).data;
+   let edit=request.resource.data.get('editKey',null);
+   return request.resource.data.keys().hasOnly(['people','publicPeople','updatedAt','editKey']) && request.resource.data.updatedAt==request.time
+    && p is map && p.keys().size()<=12 && (p==old || (request.resource.data.keys().hasAny(['editKey']) ? (p.diff(old).changedKeys().union(p.diff(old).addedKeys()).hasOnly([edit]) && (edit==null || (edit.matches('^[a-zA-Z0-9_-]{1,100}$') && personalPhoto(p[edit])))) : (photoAt(p,old,k,0) && photoAt(p,old,k,1) && photoAt(p,old,k,2) && photoAt(p,old,k,3) && photoAt(p,old,k,4) && photoAt(p,old,k,5) && photoAt(p,old,k,6) && photoAt(p,old,k,7) && photoAt(p,old,k,8) && photoAt(p,old,k,9) && photoAt(p,old,k,10) && photoAt(p,old,k,11))))
+    && shared is list && shared.size()<=12 && ((p==old && shared==before) || (sharedAt(shared,before,0,f,p) && sharedAt(shared,before,1,f,p) && sharedAt(shared,before,2,f,p) && sharedAt(shared,before,3,f,p) && sharedAt(shared,before,4,f,p) && sharedAt(shared,before,5,f,p) && sharedAt(shared,before,6,f,p) && sharedAt(shared,before,7,f,p) && sharedAt(shared,before,8,f,p) && sharedAt(shared,before,9,f,p) && sharedAt(shared,before,10,f,p) && sharedAt(shared,before,11,f,p))) && shareSafe(uid,shared);
+  }
+  function shareSafe(uid,shared) {
+   let c=exists(/databases/$(database)/documents/community/$(uid)) ? getAfter(/databases/$(database)/documents/community/$(uid)).data : null;
+   return c==null || !c.visible || c.get('people',[]).size()==0 || c.people==shared;
+  }
+  match /portraits/{uid} {
+   allow read: if self(uid);
+   allow create,update: if active(uid) && validPortraitDoc(uid);
+   allow delete: if self(uid) && deleting(uid);
+  }
+  match /journeys/{uid} {
+   allow read: if self(uid) || admin();
+   allow create: if active(uid) && request.resource.data.keys().hasOnly(['levelId','startedAt']) && request.resource.data.startedAt==request.time
+    && get(/databases/$(database)/documents/families/$(uid)).data.marriageDate is string
+    && get(/databases/$(database)/documents/tracking/$(uid)).data.totalCompleted==0
+    && get(/databases/$(database)/documents/levels/$(request.resource.data.levelId)).data.published
+    && get(/databases/$(database)/documents/levels/$(request.resource.data.levelId)).data.order==1;
+   allow delete: if self(uid) && deleting(uid);
+  }
   match /families/{uid} {
    allow read: if self(uid) || admin();
    allow create,update: if (active(uid) || (resource!=null && admin() && audited({'auditId':request.resource.data.adminAuditId},'family.profile.update',uid))) && (resource==null || request.resource.data.timezone==resource.data.timezone) && validFamily();
@@ -102,7 +153,7 @@ service cloud.firestore {
     && request.resource.data.levelId=='' && request.resource.data.levelOrder==0 && request.resource.data.completedCount==0
     && request.resource.data.totalCompleted==0 && request.resource.data.finishedCount==0;
    allow update: if active(uid) && trackingShape(request.resource.data,uid)
-    && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['familyName','lastActivityAt']) || trackingUpdate(uid));
+    && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['familyName','lastActivityAt','emailVerified']) || trackingUpdate(uid));
    allow delete: if self(uid) && deleting(uid);
   }
   match /roles/{uid} {
@@ -121,14 +172,17 @@ service cloud.firestore {
   match /community/{uid} {
    allow read: if self(uid) || (signed() && resource.data.visible==true);
    allow create,update: if active(uid)
-    && request.resource.data.keys().hasOnly(['uid','alias','visible','shareAnniversary','shareProgress','marriageDate','timezone','completedCount','finishedCount','avatar','updatedAt'])
+    && request.resource.data.keys().hasOnly(['uid','alias','visible','shareAnniversary','shareProgress','marriageDate','timezone','completedCount','finishedCount','avatar','updatedAt','people'])
     && request.resource.data.uid==uid && text(request.resource.data.alias,60)
+    && request.resource.data.get('people',[]) is list && request.resource.data.get('people',[]).size()<=12
+    && (request.resource.data.visible || request.resource.data.get('people',[]).size()==0)
+    && (request.resource.data.get('people',[]).size()==0 || request.resource.data.people==getAfter(/databases/$(database)/documents/portraits/$(uid)).data.publicPeople)
     && request.resource.data.visible is bool && request.resource.data.shareAnniversary is bool && request.resource.data.shareProgress is bool
-    && request.resource.data.timezone==get(/databases/$(database)/documents/families/$(uid)).data.timezone
+    && request.resource.data.timezone==getAfter(/databases/$(database)/documents/families/$(uid)).data.timezone
     && request.resource.data.updatedAt==request.time && avatar(request.resource.data.avatar)
     && (!request.resource.data.shareAnniversary || request.resource.data.visible)
     && (!request.resource.data.shareProgress || request.resource.data.visible)
-    && request.resource.data.marriageDate==(request.resource.data.shareAnniversary ? get(/databases/$(database)/documents/families/$(uid)).data.get('marriageDate',null) : null)
+    && request.resource.data.marriageDate==(request.resource.data.shareAnniversary ? getAfter(/databases/$(database)/documents/families/$(uid)).data.get('marriageDate',null) : null)
     && request.resource.data.completedCount==(request.resource.data.shareProgress ? get(/databases/$(database)/documents/tracking/$(uid)).data.totalCompleted : 0)
     && request.resource.data.finishedCount==(request.resource.data.shareProgress ? get(/databases/$(database)/documents/tracking/$(uid)).data.finishedCount : 0)
     && (request.resource.data.avatar==null || (request.resource.data.visible && request.resource.data.avatar==getAfter(/databases/$(database)/documents/avatars/$(uid)).data.dataUri));

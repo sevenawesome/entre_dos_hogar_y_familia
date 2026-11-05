@@ -18,6 +18,8 @@ import type {
   AccountRole,
   CommunityProfile,
   FamilyMessage,
+  FamilyPortraits,
+  JourneyStart,
 } from "../domain/types";
 import { defaultSettings } from "../domain/settings";
 
@@ -39,6 +41,12 @@ interface State {
   avatar: string | null;
   communityProfile: CommunityProfile | null;
   inbox: FamilyMessage[];
+  portraits: FamilyPortraits;
+  journey: JourneyStart | null;
+  journeyReady: boolean;
+  email: string | null;
+  emailVerified: boolean;
+  verificationMessage: string | null;
 }
 const initialState: State = {
   ready: false,
@@ -58,6 +66,12 @@ const initialState: State = {
   avatar: null,
   communityProfile: null,
   inbox: [],
+  portraits: {},
+  journey: null,
+  journeyReady: false,
+  email: null,
+  emailVerified: false,
+  verificationMessage: null,
 };
 const slice = createSlice({
   name: "app",
@@ -84,6 +98,12 @@ const slice = createSlice({
       state.avatar = null;
       state.communityProfile = null;
       state.inbox = [];
+      state.portraits = {};
+      state.journey = null;
+      state.journeyReady = false;
+      state.email = null;
+      state.emailVerified = false;
+      state.verificationMessage = null;
     },
     family(state, action: PayloadAction<Family | null>) {
       state.family = action.payload;
@@ -124,6 +144,23 @@ const slice = createSlice({
     inbox(state, action: PayloadAction<FamilyMessage[]>) {
       state.inbox = action.payload;
     },
+    portraits(state, action: PayloadAction<FamilyPortraits>) {
+      state.portraits = action.payload;
+    },
+    journey(state, action: PayloadAction<JourneyStart | null>) {
+      state.journey = action.payload;
+      state.journeyReady = true;
+    },
+    accountEmail(
+      state,
+      action: PayloadAction<{ email: string | null; verified: boolean }>,
+    ) {
+      state.email = action.payload.email;
+      state.emailVerified = action.payload.verified;
+    },
+    verificationMessage(state, action: PayloadAction<string | null>) {
+      state.verificationMessage = action.payload;
+    },
   },
 });
 export const actions = slice.actions;
@@ -139,6 +176,8 @@ export async function startDemo() {
     progress: ProgressMap;
     avatar?: string | null;
     communityProfile?: CommunityProfile | null;
+    portraits?: FamilyPortraits;
+    journey?: JourneyStart | null;
   } = {
     family: null,
     progress: {},
@@ -156,10 +195,20 @@ export async function startDemo() {
   store.dispatch(actions.progress(data.progress));
   store.dispatch(actions.role("owner"));
   store.dispatch(actions.avatar(data.avatar ?? null));
+  store.dispatch(actions.portraits(data.portraits ?? {}));
+  store.dispatch(actions.journey(data.journey ?? null));
+  store.dispatch(
+    actions.accountEmail({ email: "demo@ejemplo.com", verified: true }),
+  );
   store.dispatch(
     actions.communityProfile(
       data.communityProfile && data.family
-        ? publicProjection(data.communityProfile, data.family, data.progress)
+        ? publicProjection(
+            data.communityProfile,
+            data.family,
+            data.progress,
+            data.portraits ?? {},
+          )
         : null,
     ),
   );
@@ -167,14 +216,23 @@ export async function startDemo() {
 let saving = Promise.resolve();
 let lastSerialized = "";
 store.subscribe(() => {
-  const { demo, family, progress, avatar, communityProfile } =
-    store.getState().app;
+  const {
+    demo,
+    family,
+    progress,
+    avatar,
+    communityProfile,
+    portraits,
+    journey,
+  } = store.getState().app;
   if (demo) {
     const serialized = JSON.stringify({
       family,
       progress,
       avatar,
       communityProfile,
+      portraits,
+      journey,
     });
     if (serialized === lastSerialized) return;
     lastSerialized = serialized;

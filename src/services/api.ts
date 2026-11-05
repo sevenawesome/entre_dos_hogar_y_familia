@@ -41,6 +41,28 @@ export function subscribeSettings(
 export function subscribeSocial(uid: string, onError: (e: Error) => void) {
   return [
     onSnapshot(
+      doc(db!, "portraits", uid),
+      (snap) => store.dispatch(actions.portraits(snap.data()?.people ?? {})),
+      onError,
+    ),
+    onSnapshot(
+      doc(db!, "journeys", uid),
+      (snap) => {
+        const time = milliseconds(snap.data()?.startedAt);
+        store.dispatch(
+          actions.journey(
+            time === null
+              ? null
+              : {
+                  startedAt: new Date(time).toISOString(),
+                  levelId: snap.data()!.levelId,
+                },
+          ),
+        );
+      },
+      onError,
+    ),
+    onSnapshot(
       doc(db!, "roles", uid),
       (snap) =>
         store.dispatch(
@@ -147,6 +169,8 @@ export function subscribeProgress(
                 completions: data.completions,
                 answers: data.answers,
                 finishedAt: data.finishedAt,
+                lastCompletionAt:
+                  time === null ? null : new Date(time).toISOString(),
                 nextAvailableAt:
                   time !== null
                     ? new Date(time + DAY_MS).toISOString()

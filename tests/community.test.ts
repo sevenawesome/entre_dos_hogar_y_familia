@@ -1,11 +1,13 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import {
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+const {
   communityDraft,
   publicProjection,
   supportStatus,
   AVATAR_LIMIT,
-} from "../src/domain/community.ts";
+}: typeof import("../src/domain/community") = require("../functions/lib/src/domain/community.js");
 import type { Family, ProgressMap } from "../src/domain/types.ts";
 const family: Family = {
   name: "Familia",

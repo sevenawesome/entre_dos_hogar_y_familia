@@ -1,14 +1,16 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import {
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+const {
   currentChallenge,
   emptyProgress,
   isUnlocked,
   percentage,
   canComplete,
   nextLocalDay,
-} from "../src/domain/progress.ts";
+}: typeof import("../src/domain/progress") = require("../functions/lib/src/domain/progress.js");
 import { nextReminder, validTimezone } from "../functions/src/timing.ts";
 import type { Level } from "../src/domain/types.ts";
 const level: Level = JSON.parse(

@@ -17,13 +17,15 @@ Para Android/iOS usa `npm start` y un development build. La vista web permite re
 
 - Una cuenta por correo/contraseña compartida por la pareja; familia con fecha de matrimonio obligatoria y hasta diez hijos; cumpleaños opcionales.
 - Los 30 retos y seis preguntas reales del documento original; notas y respuestas compartidas solo dentro de la familia.
-- Un reto cada **24 horas**, también al cambiar de nivel. Firestore valida el intervalo con la hora del servidor y confirma progreso/resumen en una transacción. El cuestionario consigue el nivel y desbloquea su prerrequisito.
+- Botón inicial destacado y único por familia. Abre el reto 1 y ancla períodos de **24 horas**, también al cambiar de nivel. Solo permite un completado por período, en orden. Firestore usa la hora del servidor y confirma progreso/resumen en una transacción. Los perfiles anteriores con avances conservan su intervalo de 24 horas tras completar. El cuestionario consigue el nivel y desbloquea su prerrequisito.
 - Catálogo de niveles dinámico: primeros 30 retos, futuros 50 o cualquier cantidad de 1–200. Estados de carga, nivel actual, celebración sin sucesor y nuevo capítulo disponible.
 - Años de matrimonio actuales/próximos, aro de aniversario y 60 categorías tradicionales de bodas con explicaciones y fuentes propias/documentadas.
 - Cumpleaños de pareja e hijos, edades y barras de cuenta regresiva. El 29 de febrero se observa el 28 cuando el año no es bisiesto.
 - Recordatorio general diario local con `expo-notifications`, configurable por teléfono; celebraciones de los próximos dos años, reprogramadas al abrir/sincronizar. Máximo 27 solicitudes con diez hijos y fechas de ambos integrantes.
-- Foto familiar: selección, recorte cuadrado y miniatura JPEG de 192 × 192 con límite de unos 32 KB. Se guarda en documentos separados de Firestore, sin usar Storage ni conservar el original.
-- Comunidad opcional: alias y foto, consentimiento separado para aniversario y contadores de retos/niveles. No publica correos, hijos, cumpleaños, notas o cuestionarios. Páginas de 12 familias, sin clasificación competitiva.
+- Foto familiar: selección, recorte cuadrado y miniatura JPEG de 384 × 384 con límite de unos 32 KB. Se guarda en documentos separados de Firestore, sin usar Storage ni conservar el original.
+- Fotos individuales: miniaturas de 160 × 160, máximo 16.000 caracteres de URI (unos 12 KB). Privadas incluso frente a administradores hasta que la familia autorice ese cumpleaños en Comunidad. Las fotos públicas pueden ampliarse al tocar.
+- Correo compartido obligatorio para la cuenta, verificación al registrarse y reenvío/comprobación en Nosotros. Firebase Spark incluye [hasta 1.000 correos de verificación al día](https://firebase.google.com/docs/auth/limits); no se implementan campañas ni acceso sin contraseña.
+- Comunidad opcional: alias y foto, consentimiento separado para aniversario y contadores de retos/niveles. Permiso adicional por persona para compartir nombre, foto y día/mes de cumpleaños, incluidos hijos. No publica edades, año de nacimiento, correos, notas o cuestionarios. Páginas de 8 familias, sin clasificación competitiva.
 - Pestaña Admin: resúmenes de avance, fechas próximas, acompañamiento tras siete días sin completar, mensajes dirigidos y concesión/revocación de administradores. Páginas de 20 familias; propietario protegido.
 - Bandeja de mensajes familiares, guía de bienvenida, Información permanente y acceso a Recuerdos desde Información.
 - Configuración de mensajes y soporte, pausas de avisos, borradores y publicación de niveles; auditoría de cambios administrativos.
@@ -37,7 +39,7 @@ Cada teléfono programa sus propios avisos. Android/iOS pueden presentarlos con 
 
 Los mensajes administrativos se guardan en la bandeja de la familia. Se reciben al abrir/sincronizar y, con avisos habilitados, se puede presentar una notificación local. **No hay push remoto inmediato con la app cerrada.** Para eso se necesitaría un emisor remoto seguro, aunque existan servicios con cuotas gratuitas. No se incluyen tokens Expo privados ni credenciales Admin en la app.
 
-La base y las notas requieren conexión para confirmar operaciones. No se promete completar retos offline ni sincronización posterior de completados. El intervalo de esta versión es de 24 horas, en lugar de la medianoche de la arquitectura anterior.
+La base y las notas requieren conexión para confirmar operaciones. No se promete completar retos offline ni sincronización posterior de completados. Los períodos de 24 horas comienzan al pulsar el botón inicial; las cuentas anteriores que ya avanzaron conservan la espera de 24 horas tras completar. Cambiar el horario local de avisos no reinicia esos períodos.
 
 ## Activar el proyecto del propietario
 

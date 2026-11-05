@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { Text, View, Switch } from "react-native";
-import { doc, serverTimestamp, writeBatch } from "firebase/firestore";
-import * as ImagePicker from "expo-image-picker";
-import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
+import { pickPhoto, saveFamilySharing } from "../services/photos";
 import { useApp, store, actions } from "../store";
-import { db } from "../services/firebase";
 import {
   communityDraft,
   publicProjection,
@@ -14,7 +11,8 @@ import { Avatar } from "./Avatar";
 import { Card, Button, Field, Notice, s, colors } from "./ui";
 import { friendlyError } from "../services/api";
 export function ProfileSharing() {
-  const { uid, family, demo, avatar, communityProfile, progress } = useApp();
+  const { uid, family, demo, avatar, communityProfile, progress, portraits } =
+    useApp();
   const initial = communityProfile ?? communityDraft(uid!, family!);
   const [alias, setAlias] = useState(initial.alias),
     [visible, setVisible] = useState(initial.visible),
@@ -39,21 +37,16 @@ export function ProfileSharing() {
         },
         family!,
         progress,
+        portraits,
       );
       if (demo) {
         store.dispatch(actions.avatar(photo));
         store.dispatch(actions.communityProfile(profile));
       } else {
-        const batch = writeBatch(db!);
-        batch.set(doc(db!, "avatars", uid!), {
-          dataUri: photo,
-          updatedAt: serverTimestamp(),
-        });
-        batch.set(doc(db!, "community", uid!), {
-          ...profile,
-          updatedAt: serverTimestamp(),
-        });
-        await batch.commit();
+        await saveFamilySharing(
+          { alias, visible, shareAnniversary, shareProgress },
+          photo,
+        );
       }
       setMessage(
         visible
@@ -69,43 +62,9 @@ export function ProfileSharing() {
   async function choosePhoto() {
     setError("");
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
-      if (result.canceled) return;
       setBusy(true);
-      const asset = result.assets[0],
-        edge = Math.min(asset.width, asset.height);
-      const context = ImageManipulator.manipulate(asset.uri);
-      context
-        .crop({
-          originX: Math.round((asset.width - edge) / 2),
-          originY: Math.round((asset.height - edge) / 2),
-          width: edge,
-          height: edge,
-        })
-        .resize({ width: 192, height: 192 });
-      const rendered = await context.renderAsync();
-      let photo: string | null = null;
-      for (const compress of [0.65, 0.45, 0.25]) {
-        const output = await rendered.saveAsync({
-          format: SaveFormat.JPEG,
-          compress,
-          base64: true,
-        });
-        const data = `data:image/jpeg;base64,${output.base64}`;
-        if (output.base64 && data.length <= AVATAR_LIMIT) {
-          photo = data;
-          break;
-        }
-      }
-      if (!photo)
-        throw new Error(
-          "La foto sigue siendo demasiado grande. Elige una imagen más sencilla.",
-        );
+      const photo = await pickPhoto(384, AVATAR_LIMIT);
+      if (!photo) return;
       await save(photo);
     } catch (e) {
       setError(friendlyError(e));
@@ -185,7 +144,10 @@ export function ProfileSharing() {
           <Text style={s.small}>
             Las familias con cuenta podrán ver ese nombre, la foto y los datos
             elegidos. Compartir el aniversario incluye su fecha de matrimonio.
-            No se comparten correos, cumpleaños, hijos, notas ni cuestionarios.
+            Los cumpleaños y fotos individuales solo se muestran si los
+            autorizan por persona en «Cada persona, su foto». Se publica nombre,
+            foto, día y mes; nunca el año de nacimiento. No se comparten
+            correos, notas ni cuestionarios.
           </Text>
         </View>
       )}

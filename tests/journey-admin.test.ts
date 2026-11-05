@@ -4,9 +4,13 @@ import { createRequire } from "node:module";
 import fs from "node:fs";
 import type { Level, Progress, AppSettings } from "../src/domain/types.ts";
 import { getJourney } from "../src/domain/journey.ts";
-import { emptyProgress, canCompleteJourney } from "../src/domain/progress.ts";
+
 import { guideKey, guideSteps, helpSections } from "../src/domain/help.ts";
 const require = createRequire(import.meta.url);
+const {
+  emptyProgress,
+  canCompleteJourney,
+}: typeof import("../src/domain/progress") = require("../functions/lib/src/domain/progress.js");
 const validation: typeof import("../src/domain/admin-validation") = require("../functions/lib/src/domain/admin-validation.js");
 const config: typeof import("../src/domain/settings") = require("../functions/lib/src/domain/settings.js");
 const server = require("../functions/lib/functions/src/index.js");

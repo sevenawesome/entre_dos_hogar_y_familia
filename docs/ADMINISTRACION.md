@@ -19,7 +19,7 @@ El script necesita una cuenta Auth existente y credenciales del propietario, nun
 
 El panel carga 20 familias por página, con nombre, integrantes y resumen de retos/niveles. El progreso administrativo se confirma en la misma transacción que el reto; no se deriva de notas ni de cuestionarios visibles al administrador. Las cifras de cabecera corresponden a las familias cargadas, no al total de toda la base.
 
-Celebraciones muestra aniversarios y cumpleaños de los próximos 30 días de esa página, incluidos hijos si su familia registró esas fechas. Acompañamiento identifica siete días o más sin completar desde el último avance o el registro inicial, mientras queden niveles publicados por conseguir. No penaliza a las familias ni publica una clasificación.
+Celebraciones muestra aniversarios y cumpleaños de los próximos 30 días de esa página, incluidos hijos si su familia registró esas fechas. Acompañamiento identifica siete días o más sin completar desde el último avance o el inicio explícito del recorrido (registro inicial solo para datos anteriores), mientras queden niveles publicados por conseguir. No penaliza a las familias ni publica una clasificación.
 
 ## Mensajes dirigidos
 
@@ -43,10 +43,12 @@ Para la primera carga pulsa Preparar los 30 retos originales del nivel 1, valida
 
 ## Comunidad y fotos
 
-Cada familia decide si participa. El alias y foto solo son públicos al participar, con permisos separados para fecha de matrimonio y contadores. Las fechas de cumpleaños y los datos de hijos nunca pasan al documento comunitario. La miniatura se limita a unos 32 KB; el original no se sube. No se usa Firebase Storage.
+Cada familia decide si participa. El alias y foto solo son públicos al participar, con permisos separados para fecha de matrimonio y contadores. Solo pasan nombre, foto y día/mes de las personas cuyos cumpleaños la familia autorice expresamente, incluidos hijos. Nunca se publican año de nacimiento, edades, correos, notas ni cuestionarios. Las fotos privadas individuales no se muestran a administradores. La miniatura familiar se limita a unos 32 KB y cada individual a unos 12 KB; el original no se sube. No se usa Firebase Storage.
 
 ## Auditoría y límites
 
 `adminAudit` registra actor, acción, destino y fecha de configuración, niveles, ediciones de perfil, pausas, mensajes y permisos. No copia notas ni respuestas. Sus registros son inmutables desde la app; el propietario de Firebase mantiene sus permisos de infraestructura. La asignación inicial desde la consola es una operación del propietario fuera de este flujo.
 
 Las pausas y cambios del catálogo llegan al sincronizar; no cancelan notificaciones locales de un teléfono que permanece cerrado. Las pruebas de reglas usan un emulador demo aislado. Sigue pendiente probar estos flujos con las cuentas reales y ambos teléfonos.
+
+El panel muestra el correo registrado y su estado de verificación. Las cuentas nuevas sin iniciar el recorrido no se marcan atrasadas. El correo puede confirmarse mediante el enlace de Firebase sin cambiar de Spark: hasta 1.000 verificaciones diarias según [las cuotas de Authentication](https://firebase.google.com/docs/auth/limits).

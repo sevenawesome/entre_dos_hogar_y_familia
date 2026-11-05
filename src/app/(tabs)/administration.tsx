@@ -366,6 +366,12 @@ export default function Administration() {
                           {r.summary?.totalCompleted ?? 0} retos en total ·{" "}
                           {r.summary?.finishedCount ?? 0} niveles conseguidos
                         </Text>
+                        <Text selectable style={s.small}>
+                          {r.email} ·{" "}
+                          {r.summary?.emailVerified
+                            ? "Correo verificado"
+                            : "Correo por verificar"}
+                        </Text>
                         <Text
                           style={[
                             s.small,

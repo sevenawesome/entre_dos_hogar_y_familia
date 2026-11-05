@@ -16,6 +16,8 @@ import type { CommunityProfile } from "../../domain/types";
 import { getAnniversary } from "../../domain/anniversary";
 import { useNow } from "../../components/useNow";
 import { Avatar } from "../../components/Avatar";
+import { PhotoViewer } from "../../components/PhotoViewer";
+import { upcomingCommunityBirthdays } from "../../domain/people";
 import {
   Screen,
   Heading,
@@ -89,7 +91,7 @@ export default function Community() {
           collection(db!, "community"),
           where("visible", "==", true),
           ...(append && cursor ? [startAfter(cursor)] : []),
-          limit(12),
+          limit(8),
         ),
       );
       setProfiles((old) =>
@@ -98,7 +100,7 @@ export default function Community() {
           : page.docs.map((d) => d.data() as CommunityProfile),
       );
       setCursor(page.docs.at(-1));
-      setMore(page.size === 12);
+      setMore(page.size === 8);
     } catch (e) {
       setError(friendlyError(e));
     } finally {
@@ -158,7 +160,7 @@ export default function Community() {
             <View
               style={{ flexDirection: "row", gap: 14, alignItems: "center" }}
             >
-              <Avatar uri={profile.avatar} name={profile.alias} />
+              {!profile.avatar && <Avatar name={profile.alias} size={80} />}
               <View style={{ flex: 1, gap: 5 }}>
                 <Text style={s.sectionTitle}>{profile.alias}</Text>
                 <Text style={s.small}>
@@ -168,6 +170,9 @@ export default function Community() {
                 </Text>
               </View>
             </View>
+            {!!profile.avatar && (
+              <PhotoViewer large uri={profile.avatar} name={profile.alias} />
+            )}
             {anniversary ? (
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: 17 }}
@@ -222,6 +227,35 @@ export default function Community() {
                 </Text>
               </View>
             )}
+            {upcomingCommunityBirthdays(
+              profile.people ?? [],
+              profile.timezone,
+              now,
+            ).map((person) => (
+              <View
+                key={person.key}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 14,
+                  backgroundColor: colors.blush,
+                  padding: 14,
+                  borderRadius: 16,
+                }}
+              >
+                <PhotoViewer uri={person.avatar} name={person.name} size={64} />
+                <View style={{ flex: 1, gap: 4 }}>
+                  <Text style={s.label}>{person.name}</Text>
+                  <Text style={s.body}>
+                    {person.isToday
+                      ? "🎂 ¡Hoy cumple años!"
+                      : person.daysRemaining === 1
+                        ? "🎂 Mañana cumple años"
+                        : `🎂 Cumple años en ${person.daysRemaining} días`}
+                  </Text>
+                </View>
+              </View>
+            ))}
           </Card>
         );
       })}

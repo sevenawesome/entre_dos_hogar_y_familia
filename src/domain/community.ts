@@ -3,7 +3,9 @@ import type {
   Family,
   FamilySummary,
   ProgressMap,
+  FamilyPortraits,
 } from "./types";
+import { publicBirthdayPeople } from "./people";
 export const AVATAR_LIMIT = 44000;
 export const DAY_MS = 86400000;
 export function milliseconds(value: unknown): number | null {
@@ -19,7 +21,9 @@ export function milliseconds(value: unknown): number | null {
 }
 export function supportStatus(summary: FamilySummary, now = new Date()) {
   const last =
-    milliseconds(summary.lastCompletedAt) ?? milliseconds(summary.joinedAt);
+    milliseconds(summary.lastCompletedAt) ??
+    milliseconds(summary.startedAt) ??
+    (summary.startedAt === undefined ? milliseconds(summary.joinedAt) : null);
   const days =
     last === null
       ? null
@@ -44,6 +48,26 @@ export function publicProjection(
   profile: CommunityProfile,
   family: Family,
   progress: ProgressMap,
+  portraits: FamilyPortraits = {},
+): CommunityProfile {
+  return publicProjectionFromSummary(
+    profile,
+    family,
+    {
+      totalCompleted: Object.values(progress).reduce(
+        (n, p) => n + p.completions.length,
+        0,
+      ),
+      finishedCount: Object.values(progress).filter((p) => p.finishedAt).length,
+    },
+    portraits,
+  );
+}
+export function publicProjectionFromSummary(
+  profile: CommunityProfile,
+  family: Family,
+  counts: { totalCompleted: number; finishedCount: number },
+  portraits: FamilyPortraits = {},
 ): CommunityProfile {
   if (!profile.alias.trim() || profile.alias.length > 60)
     throw new Error("Escribe un nombre público de hasta 60 caracteres.");
@@ -65,14 +89,11 @@ export function publicProjection(
         : null,
     timezone: family.timezone,
     completedCount:
-      profile.visible && profile.shareProgress
-        ? Object.values(progress).reduce((n, p) => n + p.completions.length, 0)
-        : 0,
+      profile.visible && profile.shareProgress ? counts.totalCompleted : 0,
     finishedCount:
-      profile.visible && profile.shareProgress
-        ? Object.values(progress).filter((p) => p.finishedAt).length
-        : 0,
+      profile.visible && profile.shareProgress ? counts.finishedCount : 0,
     avatar: profile.visible ? profile.avatar : null,
+    people: profile.visible ? publicBirthdayPeople(family, portraits) : [],
   };
 }
 export function summaryFromProgress(

@@ -57,7 +57,7 @@ async function seed(path, data) {
     setDoc(doc(c.firestore(), path), data),
   );
 }
-async function createFamily(uid = "a", profile = family) {
+async function createFamily(uid = "a", profile = family, start = true) {
   const db = ctx(uid),
     batch = writeBatch(db);
   batch.set(doc(db, "families", uid), profile);
@@ -75,6 +75,11 @@ async function createFamily(uid = "a", profile = family) {
     finishedCount: 0,
   });
   await batch.commit();
+  if (start)
+    await setDoc(doc(db, "journeys", uid), {
+      levelId: "nivel-1",
+      startedAt: serverTimestamp(),
+    });
 }
 function complete(db, uid = "a", old = [], total = 0, id = "reto-1") {
   const p = {
@@ -653,7 +658,7 @@ test("thirty final questions stay within the rules execution budget", async () =
     b = writeBatch(db);
   b.update(doc(db, "families", "a", "progress", "nivel-1"), {
     answers: Object.fromEntries(
-      questions.map((q) => [q.id, "Primera l�nea\nSegunda l�nea"]),
+      questions.map((q) => [q.id, "Primera línea\nSegunda línea"]),
     ),
     finishedAt: new Date().toISOString(),
     updatedAt: serverTimestamp(),
@@ -711,4 +716,304 @@ test("final answers reject missing, empty, oversized and non-text values", async
     });
     await assertFails(b.commit());
   }
+});
+
+test("a new family explicitly starts once and cannot reset its daily clock", async () => {
+  await createFamily("a", family, false);
+  const db = ctx("a"),
+    ref = doc(db, "journeys", "a");
+  await assertFails(complete(db));
+  await assertFails(
+    setDoc(ref, {
+      levelId: "nivel-1",
+      startedAt: Timestamp.fromMillis(Date.now() - 86400000),
+    }),
+  );
+  await assertSucceeds(
+    setDoc(ref, { levelId: "nivel-1", startedAt: serverTimestamp() }),
+  );
+  await assertFails(updateDoc(ref, { startedAt: serverTimestamp() }));
+  await assertFails(
+    setDoc(doc(ctx("b"), "journeys", "a"), {
+      levelId: "nivel-1",
+      startedAt: serverTimestamp(),
+    }),
+  );
+  await assertSucceeds(complete(db));
+});
+test("the next daily slot follows the first start instead of resetting on late completion", async () => {
+  await createFamily();
+  await complete(ctx("a"));
+  const anchor = Math.floor((Date.now() - 25 * 3600000) / 60000) * 60000,
+    last = Timestamp.fromMillis(anchor + 23 * 3600000);
+  await seed("journeys/a", {
+    levelId: "nivel-1",
+    startedAt: Timestamp.fromMillis(anchor),
+  });
+  const db = ctx("a"),
+    old = (
+      await getDoc(doc(db, "families", "a", "progress", "nivel-1"))
+    ).data();
+  await seed("families/a/progress/nivel-1", { ...old, lastCompletionAt: last });
+  await seed("tracking/a", {
+    ...(await getDoc(doc(db, "tracking", "a"))).data(),
+    lastCompletedAt: last,
+  });
+  await assertSucceeds(complete(db, "a", old.completions, 1, "reto-2"));
+});
+const jpeg = "data:image/jpeg;base64,/9j/AA==";
+const privatePortrait = (shareBirthday = true) => ({
+  "partner-1": { dataUri: jpeg, shareBirthday },
+});
+function publicProfile(people = []) {
+  return {
+    uid: "a",
+    alias: "Familia A",
+    visible: true,
+    shareAnniversary: false,
+    shareProgress: false,
+    marriageDate: null,
+    timezone: family.timezone,
+    completedCount: 0,
+    finishedCount: 0,
+    avatar: null,
+    people,
+    updatedAt: serverTimestamp(),
+  };
+}
+const person = {
+  key: "partner-1",
+  index: 0,
+  name: family.partner1,
+  monthDay: "11-06",
+  avatar: jpeg,
+};
+async function enableBirthday() {
+  await createFamily("a", { ...family, partner1BirthDate: "1990-11-06" });
+  const db = ctx("a"),
+    batch = writeBatch(db);
+  batch.set(doc(db, "portraits", "a"), {
+    people: privatePortrait(),
+    publicPeople: [person],
+    updatedAt: serverTimestamp(),
+  });
+  batch.set(doc(db, "community", "a"), publicProfile([person]));
+  await assertSucceeds(batch.commit());
+}
+test("personal portraits are private even from administrators", async () => {
+  await createFamily();
+  await assertSucceeds(
+    setDoc(doc(ctx("a"), "portraits", "a"), {
+      people: privatePortrait(false),
+      updatedAt: serverTimestamp(),
+    }),
+  );
+  await assertSucceeds(getDoc(doc(ctx("a"), "portraits", "a")));
+  await assertFails(getDoc(doc(ctx("b"), "portraits", "a")));
+  await assertFails(getDoc(doc(ctx("administrator"), "portraits", "a")));
+  await assertFails(
+    setDoc(doc(ctx("a"), "portraits", "a"), {
+      people: {
+        "partner-1": {
+          dataUri: "data:image/jpeg;base64," + "A".repeat(16000),
+          shareBirthday: false,
+        },
+      },
+      updatedAt: serverTimestamp(),
+    }),
+  );
+});
+test("only individually authorized birthday details and photos can appear in community", async () => {
+  await enableBirthday();
+  await assertSucceeds(getDoc(doc(ctx("b"), "community", "a")));
+  for (const item of [
+    { ...person, name: "Otra persona" },
+    { ...person, monthDay: "11-07" },
+    { ...person, birthDate: "1990-11-06" },
+    { ...person, age: 36 },
+    { ...person, avatar: jpeg + "AA" },
+  ])
+    await assertFails(
+      setDoc(doc(ctx("a"), "community", "a"), publicProfile([item])),
+    );
+});
+test("withdrawing an individual's consent must also remove the public birthday", async () => {
+  await enableBirthday();
+  const db = ctx("a");
+  await assertFails(
+    setDoc(doc(db, "portraits", "a"), {
+      people: privatePortrait(false),
+      updatedAt: serverTimestamp(),
+    }),
+  );
+  const batch = writeBatch(db);
+  batch.set(doc(db, "portraits", "a"), {
+    people: privatePortrait(false),
+    updatedAt: serverTimestamp(),
+  });
+  batch.set(doc(db, "community", "a"), publicProfile());
+  await assertSucceeds(batch.commit());
+  assert.deepEqual(
+    (await getDoc(doc(ctx("b"), "community", "a"))).data().people,
+    [],
+  );
+});
+test("twelve portraits and birthdays support individual activation, photo changes and family edits", async () => {
+  const f = {
+    ...family,
+    partner1BirthDate: "1990-11-06",
+    partner2BirthDate: "1989-11-06",
+    children: Array.from({ length: 10 }, (_, i) => ({
+      id: `child-${i}`,
+      name: `Hijo ${i}`,
+      kind: "hijo",
+      birthDate: "2018-11-06",
+    })),
+  };
+  await createFamily("a", f);
+  const members = [
+    { key: "partner-1", index: 0, name: f.partner1 },
+    { key: "partner-2", index: 1, name: f.partner2 },
+    ...f.children.map((c, i) => ({ key: c.id, index: i + 2, name: c.name })),
+  ];
+  const photos = {};
+  const db = ctx("a"),
+    published = [];
+  for (const member of members) {
+    photos[member.key] = { dataUri: jpeg, shareBirthday: false };
+    await assertSucceeds(
+      setDoc(doc(db, "portraits", "a"), {
+        people: photos,
+        editKey: member.key,
+        publicPeople: [],
+        updatedAt: serverTimestamp(),
+      }),
+    ).catch((e) => {
+      throw new Error(`Foto privada ${member.key}: ${e.message}`);
+    });
+  }
+  for (const m of members) {
+    photos[m.key].shareBirthday = true;
+    published.push({ ...m, monthDay: "11-06", avatar: jpeg });
+    const batch = writeBatch(db);
+    batch.set(doc(db, "portraits", "a"), {
+      people: photos,
+      editKey: m.key,
+      publicPeople: published,
+      updatedAt: serverTimestamp(),
+    });
+    batch.set(doc(db, "community", "a"), publicProfile(published));
+    await assertSucceeds(batch.commit()).catch((e) => {
+      throw new Error(`Compartir ${m.key}: ${e.message}`);
+    });
+  }
+  const changed = jpeg + "AA",
+    rows = published.map((m) => ({
+      ...m,
+      avatar: m.key === "partner-1" ? changed : jpeg,
+    }));
+  const again = writeBatch(db);
+  again.set(doc(db, "portraits", "a"), {
+    people: {
+      ...photos,
+      "partner-1": { dataUri: changed, shareBirthday: true },
+    },
+    editKey: "partner-1",
+    publicPeople: rows,
+    updatedAt: serverTimestamp(),
+  });
+  again.set(doc(db, "community", "a"), publicProfile(rows));
+  await assertSucceeds(again.commit()).catch((e) => {
+    throw new Error(`Cambiar foto: ${e.message}`);
+  });
+  const edited = rows.map((p) =>
+      p.key === "partner-1" ? { ...p, name: "Ana María" } : p,
+    ),
+    edit = writeBatch(db);
+  edit.set(doc(db, "families", "a"), { ...f, partner1: "Ana María" });
+  edit.update(doc(db, "tracking", "a"), { lastActivityAt: serverTimestamp() });
+  edit.set(doc(db, "portraits", "a"), {
+    people: {
+      ...photos,
+      "partner-1": { dataUri: changed, shareBirthday: true },
+    },
+    editKey: null,
+    publicPeople: edited,
+    updatedAt: serverTimestamp(),
+  });
+  edit.set(doc(db, "community", "a"), publicProfile(edited));
+  await assertSucceeds(edit.commit()).catch((e) => {
+    throw new Error(`Editar familia: ${e.message}`);
+  });
+  const withdraw = writeBatch(db);
+  withdraw.set(doc(db, "portraits", "a"), {
+    people: {
+      ...photos,
+      "partner-1": { dataUri: changed, shareBirthday: false },
+    },
+    editKey: "partner-1",
+    publicPeople: edited.slice(1),
+    updatedAt: serverTimestamp(),
+  });
+  withdraw.set(doc(db, "community", "a"), publicProfile(edited.slice(1)));
+  await assertSucceeds(withdraw.commit());
+  assert.equal(
+    (await getDoc(doc(ctx("b"), "community", "a"))).data().people.length,
+    11,
+  );
+});
+test("email verification status must match the authenticated Firebase claim", async () => {
+  await createFamily();
+  await assertFails(
+    updateDoc(doc(ctx("a"), "tracking", "a"), {
+      emailVerified: true,
+      lastActivityAt: serverTimestamp(),
+    }),
+  );
+  const verified = env
+    .authenticatedContext("a", { email: "a@example.com", email_verified: true })
+    .firestore();
+  await assertSucceeds(
+    updateDoc(doc(verified, "tracking", "a"), {
+      emailVerified: true,
+      lastActivityAt: serverTimestamp(),
+    }),
+  );
+});
+
+test("portrait edit metadata cannot bypass size, consent or multi-person validation", async () => {
+  await createFamily();
+  const db = ctx("a"),
+    ref = doc(db, "portraits", "a");
+  for (const input of [
+    { editKey: null, people: privatePortrait(false) },
+    { editKey: "partner-2", people: privatePortrait(false) },
+    {
+      editKey: "partner-1",
+      people: {
+        ...privatePortrait(false),
+        "partner-2": { dataUri: jpeg, shareBirthday: false },
+      },
+    },
+    {
+      editKey: "partner-1",
+      people: {
+        "partner-1": {
+          dataUri: "data:image/jpeg;base64," + "A".repeat(16000),
+          shareBirthday: false,
+        },
+      },
+    },
+  ])
+    await assertFails(
+      setDoc(ref, { ...input, publicPeople: [], updatedAt: serverTimestamp() }),
+    );
+  await assertSucceeds(
+    setDoc(ref, {
+      editKey: "partner-1",
+      people: privatePortrait(false),
+      publicPeople: [],
+      updatedAt: serverTimestamp(),
+    }),
+  );
 });

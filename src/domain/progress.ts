@@ -1,4 +1,5 @@
 import type { Level, Progress, ProgressMap } from "./types";
+import { journeyAvailableAt } from "./journey-timing";
 export function emptyProgress(levelId: string): Progress {
   return {
     levelId,
@@ -27,8 +28,13 @@ export function canComplete(progress: Progress | undefined, now = new Date()) {
     !progress?.nextAvailableAt || new Date(progress.nextAvailableAt) <= now
   );
 }
-export function canCompleteJourney(progress: ProgressMap, now = new Date()) {
-  return Object.values(progress).every((level) => canComplete(level, now));
+export function canCompleteJourney(
+  progress: ProgressMap,
+  now = new Date(),
+  startedAt?: string | null,
+) {
+  const next = journeyAvailableAt(progress, startedAt);
+  return !next || new Date(next) <= now;
 }
 export function nextLocalDay(timezone: string, now = new Date()) {
   const day = new Intl.DateTimeFormat("en-CA", {

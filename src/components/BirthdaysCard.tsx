@@ -1,10 +1,19 @@
 import { Text, View, Pressable } from "react-native";
 import { router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import type { Family } from "../domain/types";
+import type { Family, FamilyPortraits } from "../domain/types";
+import { PhotoViewer } from "./PhotoViewer";
 import { getFamilyBirthdays } from "../domain/birthdays";
 import { Card, s } from "./ui";
-export function BirthdaysCard({ family, now }: { family: Family; now: Date }) {
+export function BirthdaysCard({
+  family,
+  now,
+  portraits = {},
+}: {
+  family: Family;
+  now: Date;
+  portraits?: FamilyPortraits;
+}) {
   const birthdays = getFamilyBirthdays(family, now);
   return (
     <Card style={{ backgroundColor: "#F1F9F5", borderColor: "#CFE7DB" }}>
@@ -50,6 +59,11 @@ export function BirthdaysCard({ family, now }: { family: Family; now: Date }) {
               { justifyContent: "space-between", alignItems: "flex-start" },
             ]}
           >
+            <PhotoViewer
+              uri={portraits[birthday.id]?.dataUri}
+              name={birthday.name}
+              size={56}
+            />
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={s.label}>{birthday.name}</Text>
               <Text style={s.small}>

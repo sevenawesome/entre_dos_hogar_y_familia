@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import { Stack, router, useSegments } from "expo-router";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, onIdTokenChanged } from "firebase/auth";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { store, actions, useApp } from "../store";
@@ -25,6 +25,8 @@ import {
   presentInbox,
 } from "../services/notifications";
 import { AppState } from "react-native";
+import { syncPublicProfile } from "../services/spark";
+import { syncEmailSummary } from "../services/email";
 
 function AppLayout() {
   const {
@@ -40,6 +42,11 @@ function AppLayout() {
     inbox,
     catalogReady,
     progressReady,
+    journey,
+    journeyReady,
+    portraits,
+    communityProfile,
+    emailVerified,
   } = useApp();
   const [familyLoaded, setFamilyLoaded] = useState(false);
   const segments = useSegments();
@@ -54,7 +61,25 @@ function AppLayout() {
       if (!store.getState().app.demo) {
         setFamilyLoaded(false);
         store.dispatch(actions.session({ uid: user?.uid ?? null }));
+        store.dispatch(
+          actions.accountEmail({
+            email: user?.email ?? null,
+            verified: user?.emailVerified ?? false,
+          }),
+        );
       }
+    });
+  }, []);
+  useEffect(() => {
+    if (!auth) return;
+    return onIdTokenChanged(auth, (user) => {
+      if (!store.getState().app.demo)
+        store.dispatch(
+          actions.accountEmail({
+            email: user?.email ?? null,
+            verified: user?.emailVerified ?? false,
+          }),
+        );
     });
   }, []);
   useEffect(() => {
@@ -88,6 +113,27 @@ function AppLayout() {
     ];
     return () => stops.forEach((stop) => stop());
   }, [uid, demo]);
+  useEffect(() => {
+    if (uid && !demo && hasFamily) syncEmailSummary().catch(() => {});
+  }, [uid, demo, hasFamily, emailVerified]);
+  useEffect(() => {
+    if (
+      uid &&
+      !demo &&
+      family &&
+      progressReady &&
+      (communityProfile?.uid || Object.keys(portraits).length > 0)
+    )
+      syncPublicProfile(uid).catch(() => {});
+  }, [
+    uid,
+    demo,
+    family,
+    progress,
+    portraits,
+    progressReady,
+    communityProfile?.uid,
+  ]);
   useEffect(() => {
     if (!ready) return;
     const root = segments[0];
@@ -130,6 +176,8 @@ function AppLayout() {
     family,
     catalogReady,
     progressReady,
+    journey,
+    journeyReady,
     levels: levels.map((l) => l.id),
     progress: Object.values(progress).map((p) => [
       p.levelId,

@@ -10,7 +10,7 @@ export const guideSteps = [
   {
     icon: "heart-outline",
     title: "Un reto, sin prisa",
-    body: "Abránlo en Hoy, hagan la actividad y conversen sobre la pregunta. Pueden guardar una nota. Cuando ambos estén de acuerdo, marquen «Lo hicimos juntos». El próximo se abre 24 horas después.",
+    body: "En Hoy, pulsen una sola vez «Comenzar nuestro primer reto». Ese momento fija los períodos diarios del recorrido. Hagan la actividad y conversen; después marquen «Lo hicimos juntos». Para avanzar deben completar el anterior y esperar el siguiente período.",
   },
   {
     icon: "ribbon-outline",
@@ -31,7 +31,7 @@ export const guideSteps = [
 export const helpSections = [
   {
     title: "Comunidad y privacidad",
-    body: "Participar es opcional. En Nosotros elijan un nombre público, su foto y si desean mostrar aniversario o retos y niveles conseguidos. Compartir el aniversario publica su fecha de matrimonio entre cuentas registradas. No se muestran correos, cumpleaños, datos de hijos, notas ni cuestionarios. Pueden retirar su perfil en cualquier momento; otras personas podrían conservar lo que ya vieron.",
+    body: "Participar es opcional. En Nosotros elijan un nombre público, su foto y si desean mostrar aniversario o retos y niveles conseguidos. Compartir el aniversario publica su fecha de matrimonio entre cuentas registradas. Pueden autorizar por separado el cumpleaños de cada integrante: se muestran nombre, foto, día y mes. El año de nacimiento, la edad, los correos, notas y cuestionarios no se publican. Pueden retirar su perfil en cualquier momento; otras personas podrían conservar lo que ya vieron.",
   },
   {
     title: "Mensajes de acompañamiento",
@@ -39,7 +39,7 @@ export const helpSections = [
   },
   {
     title: "Fotos y consumo gratuito",
-    body: "La foto se convierte en una miniatura JPEG pequeña; no se guarda el original. Se comparte solo si activan Comunidad. La aplicación usa Firebase Spark dentro de sus cuotas, sin Cloud Functions ni Storage. Los datos de comunidad y administración se cargan por páginas para cuidar ese consumo.",
+    body: "Las fotos familiares e individuales se convierten en miniaturas JPEG; no se guarda el original. Toquen una foto para ampliarla. La familiar se comparte al participar en Comunidad; las individuales solo al autorizar el cumpleaños de esa persona. La aplicación usa Firebase Spark dentro de sus cuotas, sin Cloud Functions ni Storage. Los datos de comunidad y administración se cargan por páginas para cuidar ese consumo.",
   },
   {
     title: "Qué encontrarán en cada pestaña",
@@ -51,7 +51,7 @@ export const helpSections = [
   },
   {
     title: "Un día a la vez",
-    body: "Se completa un reto cada 24 horas. El siguiente se habilita 24 horas después del último completado. Firebase valida ese intervalo con la hora del servidor. No se avanza automáticamente por dejar pasar días: el reto pendiente continúa esperándolos. No pierden lo conseguido por tomarse un descanso.",
+    body: "El botón inicial abre el reto 1 y fija el horario del recorrido. Cada 24 horas comienza otro período; pueden completar como máximo un reto por período y deben terminar el anterior para avanzar. Firebase valida los períodos con la hora del servidor. Las familias que ya habían avanzado antes de esta función conservan su intervalo de 24 horas después de completar. No se avanza automáticamente por dejar pasar días: el reto pendiente continúa esperándolos. No pierden lo conseguido por tomarse un descanso.",
   },
   {
     title: "Conseguir niveles y descubrir capítulos",
@@ -59,7 +59,7 @@ export const helpSections = [
   },
   {
     title: "Recordatorios en ambos teléfonos",
-    body: "Cada persona activa el permiso del teléfono y guarda su horario desde Nosotros. El teléfono programa un aviso general diario; no necesita consultar Firebase para presentarlo. La entrega depende de permisos y del sistema del teléfono. Al abrir la app, se sincroniza el reto correcto. Los cambios de otro teléfono, las pausas administrativas y los niveles nuevos se conocen al sincronizar. Al tocar el aviso se abre Hoy. Pueden pausar los avisos o cerrar sesión en ese dispositivo.",
+    body: "Al comenzar el recorrido, se solicita el permiso y se propone la hora de inicio para los avisos. En el segundo teléfono, activen el permiso y guarden su horario desde Nosotros. Pueden cambiarlo después; el horario de los avisos no cambia los períodos del recorrido. El teléfono programa un aviso general diario; no necesita consultar Firebase para presentarlo. La entrega depende de permisos y del sistema del teléfono. Al abrir la app, se sincroniza el reto correcto. Los cambios de otro teléfono, las pausas administrativas y los niveles nuevos se conocen al sincronizar. Al tocar el aviso se abre Hoy. Pueden pausar los avisos o cerrar sesión en ese dispositivo.",
   },
   {
     title: "Aniversario y categorías de bodas",
@@ -67,7 +67,11 @@ export const helpSections = [
   },
   {
     title: "Cumpleaños familiares",
-    body: "Las fechas de nacimiento son opcionales para ambos integrantes y sus hijos. Sirven para calcular las edades, el siguiente cumpleaños y la barra anual. Los saludos de aniversario y cumpleaños pueden continuar después de terminar todos los niveles si los avisos están activos.",
+    body: "Las fechas de nacimiento son opcionales para ambos integrantes y sus hijos. Agreguen una foto individual en Nosotros para reconocer a quien cumple años. En Comunidad aparecen los cumpleaños autorizados de los próximos 30 días, sin edades ni año de nacimiento. Sirven para calcular las edades, el siguiente cumpleaños y la barra anual. Los saludos de aniversario y cumpleaños pueden continuar después de terminar todos los niveles si los avisos están activos.",
+  },
+  {
+    title: "Confirmar el correo de la cuenta",
+    body: "Al registrarse, Firebase envía un enlace de verificación al correo compartido. Ábranlo y pulsen «Ya confirmé mi correo» en Nosotros. También pueden solicitar otro enlace y revisar spam. La verificación no impide comenzar los retos; ayuda a confirmar que tienen acceso a su correo.",
   },
   {
     title: "Una cuenta y datos compartidos",

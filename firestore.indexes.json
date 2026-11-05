@@ -25,6 +25,16 @@
       "collectionGroup": "avatars",
       "fieldPath": "dataUri",
       "indexes": []
+    },
+    {
+      "collectionGroup": "portraits",
+      "fieldPath": "people",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "community",
+      "fieldPath": "people",
+      "indexes": []
     }
   ]
 }

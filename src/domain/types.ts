@@ -52,6 +52,23 @@ export interface Progress {
   answers: Record<string, string>;
   finishedAt: string | null;
   nextAvailableAt: string | null;
+  lastCompletionAt?: string | null;
+}
+export interface JourneyStart {
+  startedAt: string;
+  levelId: string;
+}
+export interface PersonPortrait {
+  dataUri: string | null;
+  shareBirthday: boolean;
+}
+export type FamilyPortraits = Record<string, PersonPortrait>;
+export interface PublicBirthdayPerson {
+  key: string;
+  index: number;
+  name: string;
+  monthDay: string;
+  avatar: string | null;
 }
 export interface DevicePreferences {
   enabled: boolean;
@@ -99,6 +116,8 @@ export interface FamilySummary {
   completedCount: number;
   totalCompleted: number;
   finishedCount: number;
+  emailVerified?: boolean;
+  startedAt?: unknown;
 }
 export interface CommunityProfile {
   uid: string;
@@ -111,6 +130,7 @@ export interface CommunityProfile {
   completedCount: number;
   finishedCount: number;
   avatar: string | null;
+  people?: PublicBirthdayPerson[];
   updatedAt?: unknown;
 }
 export interface FamilyMessage {

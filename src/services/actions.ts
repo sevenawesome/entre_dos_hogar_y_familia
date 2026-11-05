@@ -8,16 +8,39 @@ import {
   canCompleteJourney,
 } from "../domain/progress";
 import { saveFamily } from "./api";
-import { completeSparkChallenge, finishSparkLevel } from "./spark";
+import {
+  completeSparkChallenge,
+  finishSparkLevel,
+  startSparkJourney,
+} from "./spark";
+import { nextJourneySlot, journeyStarted } from "../domain/journey-timing";
 import type { Family } from "../domain/types";
 function syncDemoProfile() {
   const state = store.getState().app;
   if (state.demo && state.family && state.communityProfile)
     store.dispatch(
       actions.communityProfile(
-        publicProjection(state.communityProfile, state.family, state.progress),
+        publicProjection(
+          state.communityProfile,
+          state.family,
+          state.progress,
+          state.portraits,
+        ),
       ),
     );
+}
+export async function beginJourney(levelId: string) {
+  const state = store.getState().app;
+  if (state.demo) {
+    if (!state.journey)
+      store.dispatch(
+        actions.journey({ levelId, startedAt: new Date().toISOString() }),
+      );
+    return store.getState().app.journey!;
+  }
+  const saved = await startSparkJourney(levelId);
+  store.dispatch(actions.journey(saved));
+  return saved;
 }
 export async function updateFamily(family: Family) {
   const state = store.getState().app;
@@ -37,14 +60,18 @@ export async function completeChallenge(
     return;
   }
   const level = state.levels.find((l) => l.id === levelId)!;
+  if (!journeyStarted(state.progress, state.journey))
+    throw new Error("Pulsen primero «Comenzar nuestro primer reto» en Hoy.");
   const previous = state.progress[levelId] ?? emptyProgress(levelId);
   if (previous.completions.some((c) => c.challengeId === challengeId)) return;
   if (
     !isUnlocked(level, state.progress) ||
     currentChallenge(level, previous)?.id !== challengeId ||
-    !canCompleteJourney(state.progress)
+    !canCompleteJourney(state.progress, new Date(), state.journey?.startedAt)
   )
-    throw new Error("El próximo reto se abre 24 horas después del anterior.");
+    throw new Error(
+      "El siguiente reto se abre en el próximo período diario de su recorrido.",
+    );
   store.dispatch(
     actions.progress({
       ...state.progress,
@@ -58,7 +85,10 @@ export async function completeChallenge(
             note: note.trim(),
           },
         ],
-        nextAvailableAt: new Date(Date.now() + 86400000).toISOString(),
+        nextAvailableAt: state.journey
+          ? nextJourneySlot(state.journey.startedAt, Date.now())
+          : new Date(Date.now() + 86400000).toISOString(),
+        lastCompletionAt: new Date().toISOString(),
       },
     }),
   );

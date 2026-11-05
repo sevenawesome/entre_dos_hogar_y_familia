@@ -17,14 +17,22 @@ import {
   emptyProgress,
   isUnlocked,
 } from "../domain/progress";
-import { DAY_MS, milliseconds, publicProjection } from "../domain/community";
+import {
+  DAY_MS,
+  milliseconds,
+  publicProjectionFromSummary,
+} from "../domain/community";
 import { validateFamilyProfile } from "../domain/admin-validation";
+import { validatePortraits, publicBirthdayPeople } from "../domain/people";
+import { nextJourneySlot } from "../domain/journey-timing";
 import type {
   CommunityProfile,
   Family,
   FamilySummary,
   Level,
   Progress,
+  FamilyPortraits,
+  JourneyStart,
 } from "../domain/types";
 
 const database = () => {
@@ -37,13 +45,44 @@ export async function saveSparkFamily(uid: string, family: Family) {
   const databaseRef = database();
   await runTransaction(databaseRef, async (tx) => {
     const summaryRef = doc(databaseRef, "tracking", uid),
-      summary = await tx.get(summaryRef);
+      photoRef = doc(databaseRef, "portraits", uid),
+      profileRef = doc(databaseRef, "community", uid);
+    const [summary, photos, profile] = await Promise.all([
+      tx.get(summaryRef),
+      tx.get(photoRef),
+      tx.get(profileRef),
+    ]);
+    const people = validatePortraits(
+      (photos.data()?.people ?? {}) as FamilyPortraits,
+      family,
+    );
     tx.set(doc(databaseRef, "families", uid), family);
+    if (photos.exists())
+      tx.set(photoRef, {
+        people,
+        editKey: null,
+        publicPeople: publicBirthdayPeople(family, people),
+        updatedAt: serverTimestamp(),
+      });
+    if (profile.exists())
+      tx.set(profileRef, {
+        ...publicProjectionFromSummary(
+          profile.data() as CommunityProfile,
+          family,
+          {
+            totalCompleted: summary.data()?.totalCompleted ?? 0,
+            finishedCount: summary.data()?.finishedCount ?? 0,
+          },
+          people,
+        ),
+        updatedAt: serverTimestamp(),
+      });
     if (!summary.exists())
       tx.set(summaryRef, {
         uid,
         familyName: family.name,
         email: auth!.currentUser!.email ?? "",
+        emailVerified: auth!.currentUser!.emailVerified,
         joinedAt: serverTimestamp(),
         lastActivityAt: serverTimestamp(),
         lastCompletedAt: null,
@@ -57,9 +96,40 @@ export async function saveSparkFamily(uid: string, family: Family) {
       tx.update(summaryRef, {
         familyName: family.name,
         lastActivityAt: serverTimestamp(),
+        emailVerified: auth!.currentUser!.emailVerified,
       });
   });
   await syncPublicProfile(uid).catch(() => {});
+}
+export async function startSparkJourney(
+  levelId: string,
+): Promise<JourneyStart> {
+  const databaseRef = database(),
+    uid = auth!.currentUser!.uid,
+    ref = doc(databaseRef, "journeys", uid);
+  await runTransaction(databaseRef, async (tx) => {
+    const [existing, level, summary] = await Promise.all([
+      tx.get(ref),
+      tx.get(doc(databaseRef, "levels", levelId)),
+      tx.get(doc(databaseRef, "tracking", uid)),
+    ]);
+    if (existing.exists()) return;
+    if (
+      !summary.exists() ||
+      summary.data().totalCompleted !== 0 ||
+      !level.data()?.published ||
+      level.data()?.order !== 1
+    )
+      throw new Error(
+        "El primer nivel todavía no está disponible para iniciar.",
+      );
+    tx.set(ref, { levelId, startedAt: serverTimestamp() });
+  });
+  const saved = (await getDoc(ref)).data()!;
+  return {
+    levelId: saved.levelId,
+    startedAt: new Date(milliseconds(saved.startedAt)!).toISOString(),
+  };
 }
 export async function completeSparkChallenge(
   levelId: string,
@@ -72,10 +142,11 @@ export async function completeSparkChallenge(
     const levelRef = doc(databaseRef, "levels", levelId),
       progressRef = doc(databaseRef, "families", uid, "progress", levelId),
       summaryRef = doc(databaseRef, "tracking", uid);
-    const [levelSnap, previousSnap, summarySnap] = await Promise.all([
+    const [levelSnap, previousSnap, summarySnap, started] = await Promise.all([
       tx.get(levelRef),
       tx.get(progressRef),
       tx.get(summaryRef),
+      tx.get(doc(databaseRef, "journeys", uid)),
     ]);
     if (
       !levelSnap.exists() ||
@@ -107,10 +178,19 @@ export async function completeSparkChallenge(
       throw new Error(
         "Completen primero el reto pendiente y su nivel anterior.",
       );
-    const next = (milliseconds(summary.lastCompletedAt) ?? 0) + DAY_MS;
+    const anchor = milliseconds(started.data()?.startedAt);
+    if (anchor === null && summary.totalCompleted === 0)
+      throw new Error("Pulsen primero «Comenzar nuestro primer reto» en Hoy.");
+    const last = milliseconds(summary.lastCompletedAt);
+    const next =
+      last === null
+        ? 0
+        : anchor === null
+          ? last + DAY_MS
+          : Date.parse(nextJourneySlot(new Date(anchor).toISOString(), last));
     if (Date.now() < next)
       throw new Error(
-        "El siguiente reto se abre 24 horas después del anterior.",
+        "El siguiente reto se abre en el próximo período diario de su recorrido.",
       );
     if (note.length > 2000)
       throw new Error("La nota puede tener hasta 2000 caracteres.");
@@ -121,7 +201,10 @@ export async function completeSparkChallenge(
         ...previous.completions,
         { challengeId, note: note.trim(), completedAt },
       ],
-      nextAvailableAt: new Date(Date.now() + DAY_MS).toISOString(),
+      nextAvailableAt:
+        anchor === null
+          ? new Date(Date.now() + DAY_MS).toISOString()
+          : nextJourneySlot(new Date(anchor).toISOString(), Date.now()),
       lastCompletionAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -132,6 +215,7 @@ export async function completeSparkChallenge(
       levelOrder: level.order,
       completedCount: previous.completions.length + 1,
       totalCompleted: summary.totalCompleted + 1,
+      emailVerified: auth!.currentUser!.emailVerified,
     });
   });
   // The authoritative write has succeeded. A delayed public projection must never report it as failed.
@@ -175,29 +259,64 @@ export async function finishSparkLevel(
     tx.update(summaryRef, {
       lastActivityAt: serverTimestamp(),
       finishedCount: summary.data().finishedCount + 1,
+      emailVerified: auth!.currentUser!.emailVerified,
     });
   });
   await syncPublicProfile(uid).catch(() => {});
 }
+function stable(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(stable);
+  if (value && typeof value === "object")
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => [k, stable(v)]),
+    );
+  return value;
+}
 export async function syncPublicProfile(uid: string) {
   if (!db || auth?.currentUser?.uid !== uid) return;
-  const ref = doc(db, "community", uid),
-    [profile, family, progress] = await Promise.all([
-      getDoc(ref),
-      getDoc(doc(db, "families", uid)),
-      getDocs(collection(db, "families", uid, "progress")),
+  const databaseRef = db;
+  await runTransaction(databaseRef, async (tx) => {
+    const profileRef = doc(databaseRef, "community", uid),
+      photoRef = doc(databaseRef, "portraits", uid);
+    const [profile, family, photos, summary] = await Promise.all([
+      tx.get(profileRef),
+      tx.get(doc(databaseRef, "families", uid)),
+      tx.get(photoRef),
+      tx.get(doc(databaseRef, "tracking", uid)),
     ]);
-  if (!profile.exists() || !family.exists()) return;
-  const map = Object.fromEntries(
-    progress.docs.map((p) => [p.id, p.data() as Progress]),
-  );
-  await setDoc(ref, {
-    ...publicProjection(
-      profile.data() as CommunityProfile,
-      family.data() as Family,
-      map,
-    ),
-    updatedAt: serverTimestamp(),
+    if (!family.exists() || !summary.exists()) return;
+    const f = family.data() as Family,
+      people = validatePortraits(photos.data()?.people ?? {}, f),
+      publicPeople = publicBirthdayPeople(f, people);
+    const same = (a: unknown, b: unknown) =>
+      JSON.stringify(stable(a)) === JSON.stringify(stable(b));
+    if (
+      photos.exists() &&
+      (!same(people, photos.data().people) ||
+        !same(publicPeople, photos.data().publicPeople ?? []))
+    )
+      tx.set(photoRef, {
+        people,
+        editKey: null,
+        publicPeople,
+        updatedAt: serverTimestamp(),
+      });
+    if (profile.exists()) {
+      const projected = publicProjectionFromSummary(
+        profile.data() as CommunityProfile,
+        f,
+        {
+          totalCompleted: summary.data().totalCompleted,
+          finishedCount: summary.data().finishedCount,
+        },
+        people,
+      );
+      const { updatedAt: _updated, ...current } = profile.data();
+      if (!same(projected, current))
+        tx.set(profileRef, { ...projected, updatedAt: serverTimestamp() });
+    }
   });
 }
 export async function deleteSparkAccount() {
@@ -240,6 +359,8 @@ export async function deleteSparkAccount() {
   for (const name of [
     "community",
     "avatars",
+    "portraits",
+    "journeys",
     "tracking",
     "familyControls",
     "families",

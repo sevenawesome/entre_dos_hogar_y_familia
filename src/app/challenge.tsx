@@ -10,6 +10,7 @@ import {
   isUnlocked,
 } from "../domain/progress";
 import { completeChallenge } from "../services/actions";
+import { journeyStarted } from "../domain/journey-timing";
 import { friendlyError } from "../services/api";
 import {
   Screen,
@@ -27,7 +28,7 @@ export default function Challenge() {
     levelId: string;
     challengeId: string;
   }>();
-  const { levels, progress } = useApp();
+  const { levels, progress, journey } = useApp();
   const now = useNow();
   const level = levels.find((l) => l.id === levelId),
     challenge = level?.challenges.find((c) => c.id === challengeId),
@@ -40,9 +41,10 @@ export default function Challenge() {
     [celebrating, setCelebrating] = useState(false);
   const allowed =
     !!level &&
+    journeyStarted(progress, journey) &&
     isUnlocked(level, progress) &&
     currentChallenge(level, p)?.id === challengeId &&
-    canCompleteJourney(progress, now);
+    canCompleteJourney(progress, now, journey?.startedAt);
   async function complete() {
     setBusy(true);
     try {
@@ -56,6 +58,9 @@ export default function Challenge() {
   }
   return (
     <Screen>
+      {!journeyStarted(progress, journey) && (
+        <Notice text="Para empezar y activar el horario diario, pulsen «Comenzar nuestro primer reto» en Hoy." />
+      )}
       <Pressable
         accessibilityLabel="Volver"
         onPress={() => router.back()}

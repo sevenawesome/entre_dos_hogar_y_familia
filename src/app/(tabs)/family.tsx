@@ -11,6 +11,8 @@ import { signOut } from "firebase/auth";
 import { useApp, store, actions } from "../../store";
 import { FamilyForm } from "../../components/FamilyForm";
 import { ProfileSharing } from "../../components/ProfileSharing";
+import { FamilyPortraits } from "../../components/FamilyPortraits";
+import { EmailVerificationCard } from "../../components/EmailVerificationCard";
 import { auth } from "../../services/firebase";
 import {
   disableDevice,
@@ -30,7 +32,8 @@ import {
   colors,
 } from "../../components/ui";
 export default function FamilyScreen() {
-  const { family, demo, uid, settings, controls, communityProfile } = useApp();
+  const { family, demo, uid, settings, controls, communityProfile, portraits } =
+    useApp();
   const now = useNow();
   const { edit } = useLocalSearchParams<{ edit?: string }>();
   const [editingManually, setEditing] = useState(false),
@@ -121,6 +124,7 @@ export default function FamilyScreen() {
       {(!settings.notificationsEnabled || controls.remindersPaused) && (
         <Notice text="La administración ha pausado los avisos. Tu horario se conserva y podrás seguir haciendo retos." />
       )}
+      {!editing && <EmailVerificationCard />}
       {!editing && family && (
         <ProfileSharing key={`${uid}-${!!communityProfile}`} />
       )}
@@ -199,6 +203,7 @@ export default function FamilyScreen() {
           />
         </Card>
       )}
+      {!editing && family && <FamilyPortraits />}
       <Card>
         <View style={[s.row, { justifyContent: "space-between" }]}>
           <View style={[s.row, { flex: 1 }]}>
@@ -236,7 +241,8 @@ export default function FamilyScreen() {
           }
         />
         <Text style={s.small}>
-          {preferences.timezone} · Se envía en los siguientes 15 minutos.
+          {preferences.timezone} · El teléfono presenta los avisos según sus
+          permisos y ajustes.
         </Text>
         <Text style={s.small}>
           Si queda un reto pendiente, volveremos a recordarlo al día siguiente.
@@ -324,7 +330,9 @@ export default function FamilyScreen() {
       <View style={{ alignItems: "center", marginTop: 10 }}>
         <Brand compact />
       </View>
-      {family && !editing && <BirthdaysCard family={family} now={now} />}
+      {family && !editing && (
+        <BirthdaysCard family={family} now={now} portraits={portraits} />
+      )}
       <Text style={[s.small, { textAlign: "center" }]}>
         Entre dos · Versión 1.0.0{"\n"}Hecho para los pequeños momentos.
       </Text>

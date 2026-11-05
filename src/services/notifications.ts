@@ -4,6 +4,7 @@ import type { DevicePreferences, FamilyMessage } from "../domain/types";
 import { store } from "../store";
 import { localReminderPlan } from "../domain/local-reminders";
 import { getJourney } from "../domain/journey";
+import { journeyStarted } from "../domain/journey-timing";
 async function notifications() {
   return Platform.OS === "web" ? null : import("expo-notifications");
 }
@@ -44,7 +45,10 @@ export function registerDevice(
           throw new Error("Los avisos locales se configuran en Android o iOS.");
         return;
       }
-      const prefs = preferences ?? (await loadPreferences()),
+      const prefs = {
+          ...(preferences ?? (await loadPreferences())),
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
         state = store.getState().app;
       if (Platform.OS === "android")
         await n.setNotificationChannelAsync("retos", {
@@ -82,7 +86,9 @@ export function registerDevice(
         for (const item of localReminderPlan(
           state.family,
           prefs,
-          !!journey.current,
+          !!journey.current &&
+            state.journeyReady &&
+            journeyStarted(state.progress, state.journey),
         )) {
           await n.scheduleNotificationAsync({
             content: {
@@ -112,11 +118,7 @@ export function registerDevice(
   return work;
 }
 export async function refreshDevice() {
-  const p = await loadPreferences();
-  await registerDevice({
-    ...p,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  });
+  await registerDevice();
 }
 export async function disableDevice() {
   const p = await loadPreferences();

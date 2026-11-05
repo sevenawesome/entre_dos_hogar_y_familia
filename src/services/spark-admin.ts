@@ -58,16 +58,24 @@ export async function listManagedFamilies(after?: QueryDocumentSnapshot) {
   );
   const rows = await Promise.all(
     page.docs.map(async (f) => {
-      const [s, control, role] = await Promise.all([
+      const [s, control, role, journey] = await Promise.all([
         getDoc(doc(database, "tracking", f.id)),
         getDoc(doc(database, "familyControls", f.id)),
         getDoc(doc(database, "roles", f.id)),
+        getDoc(doc(database, "journeys", f.id)),
       ]);
       return {
         uid: f.id,
         email: s.data()?.email ?? "",
         family: f.data() as Family,
-        summary: s.exists() ? (s.data() as FamilySummary) : null,
+        summary: s.exists()
+          ? ({
+              ...s.data(),
+              startedAt:
+                journey.data()?.startedAt ??
+                (s.data().totalCompleted > 0 ? undefined : null),
+            } as FamilySummary)
+          : null,
         remindersPaused: control.data()?.remindersPaused === true,
         role: role.data()?.role ?? "member",
       } as ManagedFamily;

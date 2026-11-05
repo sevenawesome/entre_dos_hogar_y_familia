@@ -11,7 +11,7 @@ npx firebase-tools@latest login
 npx firebase-tools@latest deploy --only firestore --project entre-dos-db
 ```
 
-La cuenta del propietario ya está registrada con su familia y tiene `roles/UID.role = owner`. La app recibe ese permiso por suscripción. Desde Admin puedes cargar el nivel 1 original, el catálogo de bodas y la configuración inicial. El procedimiento está en [ADMINISTRACION.md](ADMINISTRACION.md). No envíes contraseñas, archivos de cuenta de servicio ni claves privadas.
+La cuenta del propietario ya está registrada con su familia y tiene `roles/UID.role = owner`. La app recibe ese permiso por suscripción. El nivel 1 original (30 retos/seis preguntas), catálogo de bodas y configuración inicial ya están cargados y verificados, con auditoría. Desde Admin puedes gestionar la configuración y publicar los próximos niveles. El procedimiento está en [ADMINISTRACION.md](ADMINISTRACION.md). No envíes contraseñas, archivos de cuenta de servicio ni claves privadas.
 
 ## Expo y teléfonos
 
@@ -23,10 +23,12 @@ Necesitamos Android e iPhone para probar notificaciones locales, selector/compre
 
 Los avisos diarios son generales y se programan por teléfono; los cambios de otro dispositivo y las pausas administrativas se aplican al sincronizar. Cumpleaños/aniversarios se programan para los próximos dos años y se renuevan al usar la app. Los mensajes del administrador llegan a una bandeja al abrir/sincronizar; no hay push remoto inmediato con la app cerrada. Firebase Spark tiene cuotas, supervisadas desde la consola.
 
-La fecha de matrimonio es obligatoria al registrar o editar una familia. Los perfiles anteriores sin fecha deben completarla para continuar, conservando sus datos y progreso. Los cumpleaños siguen siendo opcionales. El progreso admite un reto cada 24 horas validado con la hora del servidor. La familia admite hasta diez hijos para mantener la validación dentro del presupuesto de ejecución de las reglas. Las fotos son miniaturas pequeñas en Firestore; no se guarda el original ni se usa Storage.
+La fecha de matrimonio es obligatoria al registrar o editar una familia. Los perfiles anteriores sin fecha deben completarla para continuar, conservando sus datos y progreso. Los cumpleaños siguen siendo opcionales. El botón de inicio abre el primer reto y fija períodos de 24 horas con un completado máximo por período, validados con la hora del servidor. No se saltan retos pendientes. Los perfiles anteriores con avances conservan su intervalo de 24 horas desde el completado. La familia admite hasta diez hijos para mantener la validación dentro del presupuesto de ejecución de las reglas. Las fotos son miniaturas pequeñas en Firestore; no se guarda el original ni se usa Storage.
 
 ## Publicación
 
 Faltan la identidad legal del responsable, país, correo de soporte/privacidad, política pública y página para solicitar eliminación; confirmar el contenido y modelo gratuito de la primera versión. Se necesitan Google Play Console y Apple Developer, correos de probadores y cuentas de firma. Las tiendas tienen requisitos/costos separados de Firebase Spark.
 
 No se han enviado builds a las tiendas. Las reglas de Firestore están desplegadas y el primer propietario real está habilitado y auditado. La comunidad y el panel de demostración muestran datos ficticios y no contactan a nadie.
+
+Fotos: familiar ampliable y fotos individuales privadas de ambos integrantes e hijos. La familia puede publicar por persona nombre/foto/día/mes de cumpleaños, nunca edad o año. Verificación gratuita del correo mediante Firebase Authentication (límite Spark de 1.000 mensajes diarios); se solicita al registrarse y puede repetirse desde Nosotros. No bloquea los retos.

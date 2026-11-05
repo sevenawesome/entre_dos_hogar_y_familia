@@ -10,6 +10,12 @@ import { AnniversaryCard } from "../../components/AnniversaryCard";
 import { BirthdaysCard } from "../../components/BirthdaysCard";
 import { CreatorFooter } from "../../components/CreatorFooter";
 import { JourneyBanner } from "../../components/JourneyBanner";
+import { StartJourneyCard } from "../../components/StartJourneyCard";
+import { EmailVerificationCard } from "../../components/EmailVerificationCard";
+import {
+  journeyStarted,
+  journeyAvailableAt,
+} from "../../domain/journey-timing";
 import { getJourney } from "../../domain/journey";
 import {
   canCompleteJourney,
@@ -38,13 +44,28 @@ export default function Today() {
     catalogReady,
     progressReady,
     avatar,
+    portraits,
+    journey: started,
+    journeyReady,
+    emailVerified,
   } = useApp();
   const now = useNow();
   const journey = getJourney(levels, progress, catalogReady && progressReady);
   const level = journey.current;
   const p = level ? progress[level.id] : undefined;
   const challenge = level ? currentChallenge(level, p) : undefined;
-  const waiting = !canCompleteJourney(progress, now);
+  const waiting = !canCompleteJourney(progress, now, started?.startedAt);
+  const needsStart =
+    journeyReady && progressReady && !journeyStarted(progress, started);
+  const availableAt = journeyAvailableAt(progress, started?.startedAt);
+  const nextText = availableAt
+    ? new Intl.DateTimeFormat("es", {
+        day: "numeric",
+        month: "long",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(new Date(availableAt))
+    : "el próximo período diario";
   const total = Object.values(progress).reduce(
     (sum, item) => sum + item.completions.length,
     0,
@@ -91,11 +112,13 @@ export default function Today() {
         <Text style={s.body}>Hoy también es un buen día para elegirse.</Text>
       </View>
       {!!settings.announcement && <Notice text={settings.announcement} />}
+      {needsStart && level && <StartJourneyCard level={level} />}
+      {!emailVerified && <EmailVerificationCard />}
       {(!settings.notificationsEnabled || controls.remindersPaused) && (
         <Notice text="Los recordatorios están pausados por la administración. Pueden seguir completando sus retos." />
       )}
       <JourneyBanner />
-      {level && (
+      {level && !needsStart && journeyReady && (
         <View style={{ gap: 15 }}>
           <View
             style={[s.row, { justifyContent: "space-between", marginTop: 6 }]}
@@ -174,7 +197,7 @@ export default function Today() {
             <Text style={[s.body, { color: "#6F4E68" }]}>
               {challenge
                 ? waiting
-                  ? "Ya completaron su reto anterior. El siguiente se abre 24 horas después del último."
+                  ? `Ya completaron su reto anterior. El siguiente se abre el ${nextText}.`
                   : challenge.description
                 : "Cierren este capítulo con una reflexión juntos para conseguir el nivel."}
             </Text>
@@ -208,7 +231,9 @@ export default function Today() {
         </View>
       )}
       {family && <AnniversaryCard family={family} now={now} />}
-      {family && <BirthdaysCard family={family} now={now} />}
+      {family && (
+        <BirthdaysCard family={family} now={now} portraits={portraits} />
+      )}
       <View>
         <SectionTitle right="Cada paso cuenta">Así vamos juntos</SectionTitle>
         <Card>

@@ -16,10 +16,12 @@ export default function Privacy() {
         <Text style={s.body}>
           El correo de acceso, los nombres o apodos de la familia, la fecha de
           matrimonio y los cumpleaños que agreguen, sus retos completados, las
-          notas y la reflexión final, una miniatura de perfil si la eligen y los
-          mensajes del equipo de acompañamiento. El horario de los recordatorios
-          se guarda en cada teléfono. La fecha de matrimonio es obligatoria para
-          registrar la familia; las fechas de cumpleaños son opcionales.
+          notas y la reflexión final, miniaturas familiares e individuales si
+          las eligen, el estado de verificación del correo, el inicio del
+          recorrido y los mensajes del equipo de acompañamiento. El horario de
+          los recordatorios se guarda en cada teléfono. La fecha de matrimonio
+          es obligatoria para registrar la familia; las fechas de cumpleaños son
+          opcionales.
         </Text>
         <Text style={s.sectionTitle}>Una cuenta para los dos</Text>
         <Text style={s.body}>
@@ -48,17 +50,21 @@ export default function Privacy() {
           enviar mensajes, pausar avisos y administrar permisos de otras
           cuentas. Los cambios se registran. Las pausas de avisos se aplican al
           sincronizar. El panel administrativo no muestra las notas ni las
-          respuestas de pareja.
+          respuestas de pareja ni las fotos individuales privadas.
         </Text>
         <Text style={s.sectionTitle}>Comunidad y foto</Text>
         <Text style={s.body}>
           Participar es opcional y está desactivado inicialmente. Pueden
           compartir un alias, su foto y, por separado, el aniversario o
           contadores de retos y niveles. Compartir el aniversario publica la
-          fecha de matrimonio entre las cuentas registradas. Los cumpleaños,
-          datos de hijos, correos, notas y cuestionarios no se publican. La foto
-          se reduce a una miniatura; no guardamos el original. Pueden retirar su
-          perfil, aunque otras personas podrían conservar lo que ya vieron.
+          fecha de matrimonio entre las cuentas registradas. Cada integrante
+          tiene un permiso independiente para mostrar su cumpleaños: al
+          autorizarlo se publican su nombre, foto, día y mes, incluidos los
+          hijos que decidan compartir. El año de nacimiento, las edades,
+          correos, notas y cuestionarios no se publican. Sin ese permiso, las
+          fotos individuales quedan en la cuenta familiar. Las fotos se reducen
+          a miniaturas; no guardamos los originales. Pueden retirar su perfil,
+          aunque otras personas podrían conservar lo que ya vieron.
         </Text>
         <Text style={s.sectionTitle}>Eliminar la cuenta</Text>
         <Text style={s.body}>

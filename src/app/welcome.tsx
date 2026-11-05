@@ -8,7 +8,8 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth, firebaseConfigured } from "../services/firebase";
-import { startDemo } from "../store";
+import { startDemo, store, actions } from "../store";
+import { requestEmailVerification } from "../services/email";
 import { friendlyError } from "../services/api";
 import { Brand, BrandMark } from "../components/Brand";
 import { CreatorFooter } from "../components/CreatorFooter";
@@ -37,9 +38,22 @@ export default function Welcome() {
     }
     setBusy(true);
     try {
-      if (signup)
-        await createUserWithEmailAndPassword(auth!, email.trim(), password);
-      else await signInWithEmailAndPassword(auth!, email.trim(), password);
+      if (signup) {
+        const credential = await createUserWithEmailAndPassword(
+          auth!,
+          email.trim(),
+          password,
+        );
+        try {
+          await requestEmailVerification(credential.user);
+        } catch (e) {
+          store.dispatch(
+            actions.verificationMessage(
+              `La cuenta se creó. Puedes volver a solicitar la verificación desde Hoy o Nosotros. ${friendlyError(e)}`,
+            ),
+          );
+        }
+      } else await signInWithEmailAndPassword(auth!, email.trim(), password);
     } catch (e) {
       setError(friendlyError(e));
     } finally {
