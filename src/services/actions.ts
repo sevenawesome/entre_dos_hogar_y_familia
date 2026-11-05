@@ -3,7 +3,7 @@ import {
   currentChallenge,
   emptyProgress,
   isUnlocked,
-  canComplete,
+  canCompleteJourney,
   nextLocalDay,
 } from "../domain/progress";
 import { callBackend, saveFamily } from "./api";
@@ -29,7 +29,7 @@ export async function completeChallenge(
   if (
     !isUnlocked(level, state.progress) ||
     currentChallenge(level, previous)?.id !== challengeId ||
-    !canComplete(previous)
+    !canCompleteJourney(state.progress)
   )
     throw new Error("El próximo reto estará disponible mañana.");
   store.dispatch(

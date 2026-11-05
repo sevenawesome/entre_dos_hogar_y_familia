@@ -2,6 +2,8 @@ import { View, Text, Pressable } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
 import { useApp } from "../../store";
+import { getJourney } from "../../domain/journey";
+import { JourneyBanner } from "../../components/JourneyBanner";
 import {
   currentChallenge,
   isUnlocked,
@@ -18,7 +20,8 @@ import {
   s,
 } from "../../components/ui";
 export default function Levels() {
-  const { levels, progress } = useApp();
+  const { levels, progress, catalogReady, progressReady } = useApp();
+  const journey = getJourney(levels, progress, catalogReady && progressReady);
   return (
     <Screen>
       <Heading
@@ -26,7 +29,9 @@ export default function Levels() {
         title="Nuestro camino"
         subtitle="No se trata de ir rápido. Se trata de seguir eligiéndose."
       />
+      {journey.state !== "active" && <JourneyBanner />}
       {levels.map((level) => {
+        const isCurrent = journey.current?.id === level.id;
         const unlocked = isUnlocked(level, progress),
           p = progress[level.id],
           finished = !!p?.finishedAt,
@@ -36,18 +41,36 @@ export default function Levels() {
             <Card
               style={{
                 opacity: unlocked ? 1 : 0.7,
-                borderColor: finished ? "#ACB99F" : colors.line,
+                borderColor: isCurrent
+                  ? colors.violet
+                  : finished
+                    ? "#ACB99F"
+                    : colors.line,
+                borderWidth: isCurrent ? 2 : 1,
+                backgroundColor: isCurrent ? colors.lavender : colors.white,
               }}
             >
               <View style={[s.row, { justifyContent: "space-between" }]}>
-                <Text style={s.tag}>
-                  {finished
-                    ? "CONSEGUIDO"
-                    : !unlocked
-                      ? "POR DESBLOQUEAR"
-                      : p?.completions.length
-                        ? "EN CAMINO"
-                        : "NUEVO CAPÍTULO"}
+                <Text
+                  style={[
+                    s.tag,
+                    isCurrent && {
+                      backgroundColor: colors.violet,
+                      color: "#FFFFFF",
+                    },
+                  ]}
+                >
+                  {isCurrent
+                    ? journey.state === "new"
+                      ? "NUEVO · NIVEL DISPONIBLE"
+                      : "ESTÁN AQUÍ · NIVEL ACTUAL"
+                    : finished
+                      ? "CONSEGUIDO"
+                      : !unlocked
+                        ? "POR DESBLOQUEAR"
+                        : p?.completions.length
+                          ? "EN CAMINO"
+                          : "NUEVO CAPÍTULO"}
                 </Text>
                 <Ionicons
                   name={

@@ -12,6 +12,7 @@ export interface Question {
   label: string;
 }
 export interface Level {
+  publishedAt?: string;
   id: string;
   order: number;
   title: string;
@@ -70,4 +71,17 @@ export interface AnniversaryCatalog {
   note: string;
   sources: { title: string; url: string }[];
   milestones: AnniversaryMilestone[];
+}
+export interface AppSettings {
+  version: number;
+  announcement: string;
+  endTitle: string;
+  endMessage: string;
+  newLevelTitle: string;
+  supportEmail: string;
+  supportUrl: string;
+  notificationsEnabled: boolean;
+}
+export interface FamilyControls {
+  remindersPaused: boolean;
 }

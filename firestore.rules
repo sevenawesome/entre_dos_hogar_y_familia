@@ -24,6 +24,8 @@ service cloud.firestore {
     }
     match /levels/{levelId} { allow read: if request.auth != null && resource.data.published == true; }
     match /catalogs/anniversaries { allow read: if request.auth != null; }
+    match /config/app { allow read: if request.auth != null; }
+    match /familyControls/{uid} { allow read: if owner(uid); }
     // Content, device registrations, completions and deletion are server controlled.
     match /{document=**} { allow read, write: if false; }
   }

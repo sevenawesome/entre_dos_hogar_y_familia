@@ -15,11 +15,20 @@ import {
   currentChallenge,
   nextLocalDay,
   canComplete,
+  canCompleteJourney,
 } from "../../src/domain/progress";
 import type { Level, Progress, Family } from "../../src/domain/types";
 import { getFamilyBirthdays } from "../../src/domain/birthdays";
 import { nextReminder, validTimezone } from "./timing";
 import { getAnniversary, reminderContent } from "../../src/domain/anniversary";
+export {
+  adminBootstrap,
+  adminSaveSettings,
+  adminSaveLevel,
+  adminFindFamily,
+  adminUpdateFamily,
+  adminSetFamilyReminders,
+} from "./admin";
 
 initializeApp();
 const db = getFirestore();
@@ -50,12 +59,14 @@ export const completeChallenge = onCall({ region }, async (request) => {
     levelRef = db.doc(`levels/${levelId}`),
     progressRef = familyRef.collection("progress").doc(levelId);
   await db.runTransaction(async (tx) => {
-    const [familySnap, levelSnap, progressSnap, deletion] = await tx.getAll(
-      familyRef,
-      levelRef,
-      progressRef,
-      db.doc(`deletedAccounts/${uid}`),
-    );
+    const [familySnap, levelSnap, progressSnap, deletion, daily] =
+      await tx.getAll(
+        familyRef,
+        levelRef,
+        progressRef,
+        db.doc(`deletedAccounts/${uid}`),
+        familyRef.collection("state").doc("daily"),
+      );
     if (deletion.exists)
       throw new HttpsError(
         "permission-denied",
@@ -87,7 +98,15 @@ export const completeChallenge = onCall({ region }, async (request) => {
         "failed-precondition",
         "Completen primero el reto pendiente.",
       );
-    if (!canComplete(progress))
+    const allProgress = await tx.get(familyRef.collection("progress"));
+    if (
+      !canCompleteJourney(
+        Object.fromEntries(
+          allProgress.docs.map((d) => [d.id, d.data() as Progress]),
+        ),
+      ) ||
+      !canComplete(daily.exists ? (daily.data() as Progress) : undefined)
+    )
       throw new HttpsError(
         "failed-precondition",
         "El siguiente reto estará disponible mañana.",
@@ -99,6 +118,10 @@ export const completeChallenge = onCall({ region }, async (request) => {
         "Revisa la zona horaria de la familia.",
       );
     const now = new Date();
+    tx.set(familyRef.collection("state").doc("daily"), {
+      nextAvailableAt: nextLocalDay(timezone, now),
+      completedAt: now.toISOString(),
+    });
     tx.set(progressRef, {
       ...progress,
       completions: [
@@ -237,6 +260,7 @@ export const deleteFamilyAccount = onCall({ region }, async (request) => {
   await getAuth().revokeRefreshTokens(uid);
   try {
     await db.recursiveDelete(db.doc(`families/${uid}`));
+    await db.doc(`familyControls/${uid}`).delete();
     const pendingReceipts = await db
       .collection("pushReceipts")
       .where("familyUid", "==", uid)
@@ -269,6 +293,8 @@ export const sendDailyReminders = onSchedule(
   },
   async () => {
     const expo = new Expo({ accessToken: expoAccessToken.value() });
+    const globalConfig = await db.doc("config/app").get();
+    if (globalConfig.data()?.notificationsEnabled === false) return;
     const now = Timestamp.now();
     // Bounded batches keep a large backlog from exhausting one invocation.
     for (let batch = 0; batch < 10; batch++) {
@@ -298,7 +324,7 @@ export const sendDailyReminders = onSchedule(
         if (!claimed) continue;
         try {
           const familyRef = device.ref.parent.parent!;
-          const [family, levelsSnap, progressSnap, deletion] =
+          const [family, levelsSnap, progressSnap, deletion, controls] =
             await Promise.all([
               familyRef.get(),
               db
@@ -308,6 +334,7 @@ export const sendDailyReminders = onSchedule(
                 .get(),
               familyRef.collection("progress").get(),
               db.doc(`deletedAccounts/${familyRef.id}`).get(),
+              db.doc(`familyControls/${familyRef.id}`).get(),
             ]);
           const progress = Object.fromEntries(
             progressSnap.docs.map((d) => [d.id, d.data() as Progress]),
@@ -348,7 +375,7 @@ export const sendDailyReminders = onSchedule(
             lastAnniversaryKey: claimed.lastAnniversaryKey,
             levelId: level?.id,
             challengeTitle: challenge?.title,
-            challengeReady: !!level && canComplete(progress[level.id]),
+            challengeReady: !!level && canCompleteJourney(progress),
             birthdays: birthdayEvents.map((b) => ({
               name: b.name,
               age: b.nextAge,
@@ -356,7 +383,12 @@ export const sendDailyReminders = onSchedule(
             })),
             lastBirthdayKeys: claimed.lastBirthdayKeys,
           });
-          if (!family.exists || deletion.exists || !content) {
+          if (
+            !family.exists ||
+            deletion.exists ||
+            controls.data()?.remindersPaused ||
+            !content
+          ) {
             await device.ref.update({
               nextReminderAt: Timestamp.fromDate(
                 nextReminder(claimed.timezone, claimed.hour, claimed.minute),

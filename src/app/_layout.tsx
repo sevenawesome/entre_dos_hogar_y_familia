@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import { Stack, router, useSegments } from "expo-router";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, onIdTokenChanged } from "firebase/auth";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { store, actions, useApp } from "../store";
@@ -12,7 +12,10 @@ import {
   subscribeProgress,
   friendlyError,
   subscribeAnniversaries,
+  subscribeSettings,
+  subscribeControls,
 } from "../services/api";
+import { FirstVisitGuide } from "../components/FirstVisitGuide";
 import { colors, Notice } from "../components/ui";
 import {
   notificationResponseListener,
@@ -39,6 +42,20 @@ function AppLayout() {
     });
   }, []);
   useEffect(() => {
+    if (!auth) return;
+    return onIdTokenChanged(auth, async (user) => {
+      if (!user || store.getState().app.demo) return;
+      try {
+        const token = await user.getIdTokenResult();
+        if (store.getState().app.uid === user.uid)
+          store.dispatch(actions.admin(token.claims.admin === true));
+      } catch {
+        if (store.getState().app.uid === user.uid)
+          store.dispatch(actions.admin(false));
+      }
+    });
+  }, []);
+  useEffect(() => {
     if (!uid || demo) return;
     const fail = (e: Error) => store.dispatch(actions.error(friendlyError(e)));
     const stops = [
@@ -54,6 +71,15 @@ function AppLayout() {
       subscribeCatalog((l) => store.dispatch(actions.levels(l)), fail),
       subscribeAnniversaries(
         (c) => store.dispatch(actions.anniversaryCatalog(c)),
+        fail,
+      ),
+      subscribeSettings(
+        (settings) => store.dispatch(actions.settings(settings)),
+        fail,
+      ),
+      subscribeControls(
+        uid,
+        (controls) => store.dispatch(actions.controls(controls)),
         fail,
       ),
     ];
@@ -90,6 +116,7 @@ function AppLayout() {
   return (
     <>
       <StatusBar style="dark" />
+      <FirstVisitGuide />
       {!!error && <Notice error text={error} />}
       <Stack
         screenOptions={{
@@ -100,6 +127,11 @@ function AppLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="challenge" options={{ presentation: "modal" }} />
         <Stack.Screen name="anniversary" options={{ presentation: "modal" }} />
+        <Stack.Screen
+          name="guide"
+          options={{ presentation: "modal", gestureEnabled: false }}
+        />
+        <Stack.Screen name="admin" options={{ presentation: "modal" }} />
         <Stack.Screen
           name="questionnaire"
           options={{ presentation: "modal" }}

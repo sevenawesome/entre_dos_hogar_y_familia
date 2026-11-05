@@ -4,7 +4,11 @@ import { router, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useApp } from "../store";
 import { useNow } from "../components/useNow";
-import { canComplete, currentChallenge, isUnlocked } from "../domain/progress";
+import {
+  canCompleteJourney,
+  currentChallenge,
+  isUnlocked,
+} from "../domain/progress";
 import { completeChallenge } from "../services/actions";
 import { friendlyError } from "../services/api";
 import {
@@ -38,7 +42,7 @@ export default function Challenge() {
     !!level &&
     isUnlocked(level, progress) &&
     currentChallenge(level, p)?.id === challengeId &&
-    canComplete(p, now);
+    canCompleteJourney(progress, now);
   async function complete() {
     setBusy(true);
     try {

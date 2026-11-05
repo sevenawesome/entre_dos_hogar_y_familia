@@ -40,6 +40,13 @@ export default function Privacy() {
           notificaciones pasan por Expo y los servicios de Apple o Google. La
           demostración guarda su progreso únicamente en este dispositivo.
         </Text>
+        <Text style={s.sectionTitle}>Administración y soporte</Text>
+        <Text style={s.body}>
+          El personal autorizado puede consultar y corregir el perfil básico de
+          una familia, revisar cuántos retos ha completado y pausar sus avisos.
+          Esas acciones se registran. El panel administrativo no muestra las
+          notas ni las respuestas de pareja.
+        </Text>
         <Text style={s.sectionTitle}>Eliminar la cuenta</Text>
         <Text style={s.body}>
           En Nosotros pueden eliminar la cuenta y sus datos compartidos. La

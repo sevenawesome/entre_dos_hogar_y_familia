@@ -29,7 +29,7 @@ import {
   colors,
 } from "../../components/ui";
 export default function FamilyScreen() {
-  const { family, demo, uid } = useApp();
+  const { family, demo, uid, settings, controls } = useApp();
   const now = useNow();
   const { edit } = useLocalSearchParams<{ edit?: string }>();
   const [editingManually, setEditing] = useState(false),
@@ -116,6 +116,9 @@ export default function FamilyScreen() {
       />
       {demo && (
         <Notice text="Están explorando una demostración local. Para compartir el progreso, usen una cuenta con Firebase configurado." />
+      )}
+      {(!settings.notificationsEnabled || controls.remindersPaused) && (
+        <Notice text="La administración ha pausado los avisos. Tu horario se conserva y podrás seguir haciendo retos." />
       )}
       {editing ? (
         <Card>

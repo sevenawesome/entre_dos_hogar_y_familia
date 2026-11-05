@@ -17,3 +17,11 @@ for (const [script, filename] of [
     break;
   }
 }
+if (!process.exitCode) {
+  const result = spawnSync(
+    process.execPath,
+    [path.join(__dirname, "seed-settings.cjs")],
+    { stdio: "inherit" },
+  );
+  if (result.status !== 0) process.exitCode = result.status ?? 1;
+}

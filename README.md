@@ -35,6 +35,9 @@ Los avisos push se prueban con un development build instalado en un teléfono, n
 - Progreso sincronizado con Firestore y transacciones en el servidor para evitar completar dos veces desde ambos teléfonos.
 - Notas opcionales, historial de momentos y lectura de reflexiones finales.
 - Niveles dinámicos, con cantidad variable de retos y prerrequisito. Se consiguen tras completar retos **y** cuestionario.
+- Nivel actual destacado, celebración al conseguir el último disponible y anuncio de un nuevo capítulo desbloqueado. El límite de un reto diario también se conserva al cambiar de nivel.
+- Bienvenida guiada de cinco pasos en la primera visita de cada cuenta en cada teléfono, con acceso posterior desde la pestaña Información y ayuda detallada.
+- Panel administrativo protegido en Información: configuración de mensajes y soporte, borradores/publicación de niveles, consulta y edición básica de familias y pausa de avisos. Auditoría de acciones y vista previa de solo lectura en demostración.
 - Recordatorios diarios mediante Cloud Scheduler, Cloud Functions y Expo Push; preferencias independientes por teléfono y zona horaria. Comprobación de recibos y desactivación de tokens inválidos.
 - Saludo de aniversario en el horario de recordatorios de cada teléfono, incluso si ya consiguieron todos los niveles. Si también corresponde un reto, se incluyen ambos en un solo aviso. El saludo confirmado se registra por dispositivo y aniversario para no repetirlo en reintentos normales.
 - Saludos de cumpleaños con nombre y edad, combinados con el aniversario y el reto cuando coinciden. Para varias celebraciones se muestra un resumen y la lista completa permanece en la app; los avisos siguen sujetos a permisos y configuración.
@@ -44,7 +47,7 @@ Los avisos push se prueban con un development build instalado en un teléfono, n
 
 ## Conectar Firebase
 
-1. Crea un proyecto en Firebase, registra una aplicación **web** para obtener la configuración del SDK JS y habilita Authentication → Email/Password.
+1. El proyecto del propietario es **entre-dos-db** y está seleccionado en `.firebaserc`. Registra una aplicación **web** para obtener el bloque `firebaseConfig` del SDK JS y habilita Authentication → Email/Password. Todavía falta completar esa configuración en el entorno local.
 2. Crea Firestore. Para las funciones programadas debes habilitar facturación en el plan **Blaze**. Configura alertas de presupuesto según el uso previsto.
 3. Copia `.env.example` a `.env` y completa sus valores `EXPO_PUBLIC_FIREBASE_*`. Son identificadores públicos del cliente; el acceso se controla con reglas y autenticación. **Nunca coloques credenciales Admin o archivos de cuenta de servicio en variables EXPO_PUBLIC.**
 4. Instala las dependencias de servidor y autentícate:
@@ -83,10 +86,10 @@ npm run seed
 
 ```powershell
 npx eas-cli@latest login
-npx eas-cli@latest init
+npx eas-cli@latest project:info
 ```
 
-Copia el ID del proyecto a `EXPO_PUBLIC_EAS_PROJECT_ID` en `.env` y configura las mismas variables en el entorno de Expo usado para los builds. La configuración dinámica lee ese ID desde el entorno; no necesita escribirlo a mano en `app.config.ts`.
+El ID del proyecto existente, **f9af2154-9d1b-49d6-bae8-588d83ce3ad7**, ya está en `.env.example` y como valor predeterminado en `app.config.ts`. La variable `EXPO_PUBLIC_EAS_PROJECT_ID` permite cambiarlo por entorno. Configura también las variables de Firebase en el entorno de Expo usado para los builds. Después de iniciar sesión, verifica el propietario y slug del proyecto con `project:info` y ajusta la configuración al proyecto existente; aún no se han podido consultar sin sesión local EAS. No crees un segundo proyecto.
 
 Antes del primer build, confirma los identificadores de aplicación en `app.config.ts`: `com.sevenawesome.entredos` es provisional. Configura las credenciales de notificaciones con `npx eas-cli@latest credentials`: FCM v1 para Android y APNs para iOS.
 
@@ -108,6 +111,8 @@ npx eas-cli@latest submit --platform ios
 Se necesitan las cuentas de Google Play Console y Apple Developer, las fichas de tienda, capturas, política de privacidad pública y declaraciones de datos revisadas por el responsable de la app. El texto de privacidad dentro de la app es una base funcional; completa la identidad y el contacto del responsable antes de publicar. La app **no se ha desplegado ni enviado a ninguna tienda** con este repositorio.
 
 ## Agregar niveles sin publicar una nueva app
+
+El panel **Información → Administración → Niveles** permite preparar borradores, validar y publicar el catálogo desde la app. La cuenta debe tener el custom claim `admin: true`; la asignación inicial la hace el propietario con el script seguro. La configuración, permisos, edición de familias y auditoría están explicados en [docs/ADMINISTRACION.md](docs/ADMINISTRACION.md). También está disponible la alternativa por CLI siguiente.
 
 Duplica `content/level-1.json` en otro archivo y modifica:
 
@@ -154,9 +159,13 @@ Las fechas de cumpleaños se guardan en la familia (`partner1BirthDate`, `partne
 | Ruta                                | Contenido                                           | Escritura                                |
 | ----------------------------------- | --------------------------------------------------- | ---------------------------------------- |
 | `levels/{levelId}`                  | Retos, preguntas y prerrequisito                    | Publicador con Admin SDK                 |
+| `config/app`                        | Mensajes, soporte y pausa global                    | Función administrativa con versión       |
+| `familyControls/{uid}`              | Pausa administrativa de una familia                 | Función administrativa                   |
+| `adminAudit/{id}`                   | Actor, acción, destino y fecha                      | Servidor y script de rol del propietario |
 | `families/{auth.uid}`               | Pareja, familia y zona horaria                      | Su cuenta, con validación de reglas      |
 | `catalogs/anniversaries`            | Categorías de bodas, reflexiones, versión y fuentes | Publicador con Admin SDK                 |
 | `families/{uid}/progress/{levelId}` | Retos, notas, próximo día y respuestas              | Funciones autenticadas con transacciones |
+| `families/{uid}/state/daily`        | Bloqueo diario entre todos los niveles              | Servidor; transacción de completado      |
 | `families/{uid}/devices/{deviceId}` | Token, horario y próxima notificación               | Función `saveDevice`                     |
 | `pushReceipts/{receiptId}`          | Comprobación temporal de entrega                    | Servidor; TTL de un día                  |
 | `deletedAccounts/{uid}`             | Bloqueo temporal de tokens tras eliminar cuenta     | Servidor; TTL de dos horas               |
@@ -176,7 +185,7 @@ npm run export:web
 npx expo-doctor
 ```
 
-Las pruebas cubren contenido, orden de retos, avance, cuestionario como condición de desbloqueo, zonas horarias, cambios de horario y aniversarios, incluidos años bisiestos y recordatorios sin retos pendientes. La lista de comprobaciones reales en dos teléfonos y para las tiendas está en [docs/VALIDACION.md](docs/VALIDACION.md). Los datos y accesos que faltan para publicar están en [docs/PARA_TERMINAR.md](docs/PARA_TERMINAR.md).
+Las 69 pruebas cubren contenido, orden y límite diario entre niveles, cuestionario como condición de desbloqueo, estados del recorrido, validaciones administrativas y rechazo de peticiones sin rol, guía, zonas horarias, cambios de horario y aniversarios, incluidos años bisiestos y recordatorios sin retos pendientes. La lista de comprobaciones reales en dos teléfonos y para las tiendas está en [docs/VALIDACION.md](docs/VALIDACION.md). Los datos y accesos que faltan para publicar están en [docs/PARA_TERMINAR.md](docs/PARA_TERMINAR.md).
 
 ## Estructura
 

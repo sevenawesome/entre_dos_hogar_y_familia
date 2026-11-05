@@ -31,7 +31,7 @@ export default function Questionnaire() {
     setBusy(true);
     try {
       await finishLevel(levelId, answers);
-      router.back();
+      router.replace("/(tabs)");
     } catch (e) {
       setError(friendlyError(e));
     } finally {

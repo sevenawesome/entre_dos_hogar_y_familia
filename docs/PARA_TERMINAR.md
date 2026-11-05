@@ -4,15 +4,21 @@ La app se puede revisar en demostración. Para ponerla en funcionamiento con dat
 
 ## Firebase
 
-Crear el proyecto, habilitar Authentication por correo/contraseña y Firestore, y activar Blaze para las funciones programadas. Compartir el ID del proyecto y la configuración pública de una app web: `apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`. Esos valores completan `.env.example`.
+El proyecto **entre-dos-db** ya existe y quedó seleccionado en `.firebaserc`. Falta la configuración pública de una app web: `apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`. En Firebase: Configuración del proyecto → General → Tus apps → Agregar app web (`</>`) → registrar → copiar el bloque completo `firebaseConfig`. Esos valores completan `.env.example`; no hace falta enviar contraseñas ni claves privadas.
+
+Habilitar Authentication por correo/contraseña y crear Firestore. La captura muestra el plan Spark; el propietario debe activar Blaze para desplegar las funciones programadas. No se ha modificado la facturación.
 
 Para desplegar el backend, el propietario inicia sesión con Firebase CLI en su computadora. Las credenciales de administrador y secretos se configuran localmente y en Secret Manager; no se publican en el código ni se envían por chat. Después se despliegan reglas, índices y funciones y se carga el catálogo.
 
 ## Expo y notificaciones
 
-Crear una cuenta y proyecto de Expo, facilitar el nombre de usuario u organización y el ID del proyecto EAS. Iniciar sesión localmente para crear builds. Configurar FCM v1 y APNs con las cuentas propietarias de Firebase y Apple. El secreto de Expo Push se guarda mediante Firebase CLI.
+La cuenta y proyecto de Expo ya existen. Se incorporó el ID **f9af2154-9d1b-49d6-bae8-588d83ce3ad7** en la configuración. Falta iniciar sesión localmente con EAS y verificar el propietario y slug del proyecto existente antes del primer build; `project:info` no pudo consultarlos porque no hay sesión de Expo en esta computadora. El enlace al proyecto en Expo permite contrastar esos datos sin compartir credenciales.
 
-Los pasos y comandos están en el README. Si estos servicios todavía no existen, el primer paso es crearlos bajo la cuenta de la organización.
+Configurar FCM v1 y APNs con las cuentas propietarias de Firebase y Apple. El secreto de Expo Push se guarda mediante Firebase CLI. Los pasos y comandos están en el README.
+
+## Administrador
+
+El propietario ya indicó el correo que usará. Una vez conectado Firebase, debe registrarse en ENTRE DOS con ese correo; después se le asigna el permiso administrativo con el script del propietario. El correo por sí solo no concede permisos. El panel vive en **Información → Administración**, con una vista previa de solo lectura disponible en demostración. Instrucciones en [ADMINISTRACION.md](ADMINISTRACION.md).
 
 ## Identidad de publicación
 

@@ -12,7 +12,10 @@ import type {
   Level,
   ProgressMap,
   AnniversaryCatalog,
+  AppSettings,
+  FamilyControls,
 } from "../domain/types";
+import { defaultSettings } from "../domain/settings";
 
 interface State {
   ready: boolean;
@@ -23,6 +26,11 @@ interface State {
   progress: ProgressMap;
   error: string | null;
   anniversaryCatalog: AnniversaryCatalog;
+  settings: AppSettings;
+  controls: FamilyControls;
+  isAdmin: boolean;
+  catalogReady: boolean;
+  progressReady: boolean;
 }
 const initialState: State = {
   ready: false,
@@ -33,6 +41,11 @@ const initialState: State = {
   progress: {},
   error: null,
   anniversaryCatalog: bundledAnniversaries,
+  settings: defaultSettings,
+  controls: { remindersPaused: false },
+  isAdmin: false,
+  catalogReady: false,
+  progressReady: false,
 };
 const slice = createSlice({
   name: "app",
@@ -50,21 +63,37 @@ const slice = createSlice({
       state.levels = [];
       state.error = null;
       state.anniversaryCatalog = bundledAnniversaries;
+      state.settings = defaultSettings;
+      state.controls = { remindersPaused: false };
+      state.isAdmin = false;
+      state.catalogReady = false;
+      state.progressReady = false;
     },
     family(state, action: PayloadAction<Family | null>) {
       state.family = action.payload;
     },
     levels(state, action: PayloadAction<Level[]>) {
       state.levels = action.payload;
+      state.catalogReady = true;
     },
     progress(state, action: PayloadAction<ProgressMap>) {
       state.progress = action.payload;
+      state.progressReady = true;
     },
     error(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
     },
     anniversaryCatalog(state, action: PayloadAction<AnniversaryCatalog>) {
       state.anniversaryCatalog = action.payload;
+    },
+    settings(state, action: PayloadAction<AppSettings>) {
+      state.settings = action.payload;
+    },
+    controls(state, action: PayloadAction<FamilyControls>) {
+      state.controls = action.payload;
+    },
+    admin(state, action: PayloadAction<boolean>) {
+      state.isAdmin = action.payload;
     },
   },
 });

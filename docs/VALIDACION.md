@@ -3,13 +3,15 @@
 ## Comprobaciones realizadas en desarrollo
 
 - TypeScript y lint sin errores.
-- 40 pruebas automatizadas aprobadas: avance de retos, fechas, años de matrimonio cumplidos, catálogo, cumpleaños y avisos combinados, incluidos años bisiestos.
+- 69 pruebas automatizadas aprobadas: avance diario también entre niveles, estados del recorrido, validación de administración, protección de las seis funciones administrativas, guía, fechas, catálogo y avisos combinados, incluidos años bisiestos.
 - Expo Doctor: 20 de 20 comprobaciones aprobadas.
 - Exportación de bundles Android, iOS y web completada. Esto verifica el empaquetado; no equivale a ejecutar un binario nativo.
-- Backend TypeScript compilado y sus seis funciones cargadas localmente.
+- Backend TypeScript compilado y sus doce funciones cargadas localmente. Las pruebas invocan los seis handlers administrativos para verificar rechazo de peticiones anónimas o de usuarios normales; las escrituras autorizadas aún requieren Firebase real o emuladores.
 - Interfaz revisada en navegador de 390 × 844: registro familiar, primer reto, confirmación de participación, nota guardada, historial y siguiente reto bloqueado hasta mañana.
 - Demostración conserva la familia al volver a entrar.
-- Captura de la interfaz en `preview-hoy.jpg` con datos ficticios de prueba.
+- Guía automática de cinco pasos recorrida hasta el final, regreso a Hoy y ayuda permanente revisados en navegador móvil de 390 × 844. Vista previa administrativa comprobada: nivel actual, final sin sucesor y nuevo nivel con 50 retos ficticios, sin publicar datos.
+- Capturas con datos ficticios: `preview-nivel.jpg`, `preview-guia.jpg`, `preview-informacion.jpg`, `preview-nivel-completo.jpg` y `preview-nivel-nuevo.jpg`.
+- Firebase `entre-dos-db` y el ID de Expo están preparados en los archivos de configuración. Aún no hay bloque `firebaseConfig` ni sesión local EAS: no se ha confirmado propietario/slug ni conectado el backend.
 - Auditoría npm del backend: 0 vulnerabilidades. En el cliente no quedan alertas altas o críticas; `npm audit --omit=dev` informa 5 moderadas en la cadena de herramientas de Expo (`expo`, `@expo/cli`, `@expo/fingerprint`, `glob`, `minimatch`). Se conservan las versiones compatibles con SDK 58 y se deben revisar al actualizar Expo; no se aplicaron cambios mayores forzados a sus dependencias.
 
 No se han ejecutado pruebas con Firebase real, emuladores de Firebase, dispositivos físicos, credenciales push ni envíos a tiendas. Las comprobaciones siguientes permanecen pendientes de esos entornos.
@@ -31,6 +33,12 @@ No se han ejecutado pruebas con Firebase real, emuladores de Firebase, dispositi
 - [ ] El cuestionario se habilita tras todos los retos; conseguir el nivel requiere todas sus respuestas.
 - [ ] Publicar un nivel nuevo con Admin lo muestra en ambos sin actualizar la app.
 - [ ] Nivel nuevo bloqueado hasta finalizar el cuestionario del anterior.
+- [ ] Finalizar el último nivel muestra celebración y conserva recuerdos; publicar otro cambia el aviso en ambos teléfonos.
+- [ ] Una cuenta con custom claim `admin: true` puede configurar mensajes, guardar un borrador y publicar un nivel válido.
+- [ ] Revocar el rol impide usar las funciones incluso con un token anterior.
+- [ ] Borradores no aparecen a las familias; editar retos/preguntas de un nivel publicado se rechaza.
+- [ ] Cambios administrativos de familia y pausa quedan auditados; las notas y respuestas no se muestran en el panel.
+- [ ] La guía aparece en la primera visita de cada cuenta en cada teléfono y puede reabrirse desde Información.
 
 ## Notificaciones en Android e iOS
 
@@ -42,6 +50,7 @@ No se han ejecutado pruebas con Firebase real, emuladores de Firebase, dispositi
 - [ ] Tras completar en A, el siguiente aviso de B corresponde al progreso compartido.
 - [ ] Denegar permisos explica cómo activarlos; guardar no indica éxito.
 - [ ] Pausar o cerrar sesión en A detiene sus avisos y conserva los de B.
+- [ ] La pausa global y la pausa administrativa de una familia detienen sus avisos; reactivarlas conserva preferencias por teléfono.
 - [ ] Tras terminar retos y cuestionario, cesan los avisos; un nivel nuevo los reactiva.
 - [ ] Con todos los niveles conseguidos, el aniversario sigue enviando un saludo a ambos teléfonos en sus horarios elegidos.
 - [ ] El aviso del aniversario incluye el reto si hay uno pendiente; no incluye notas privadas.

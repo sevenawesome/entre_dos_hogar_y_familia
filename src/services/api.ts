@@ -13,8 +13,38 @@ import type {
   Level,
   ProgressMap,
   AnniversaryCatalog,
+  AppSettings,
+  FamilyControls,
 } from "../domain/types";
+import { defaultSettings } from "../domain/settings";
 import { bundledAnniversaries } from "../data/anniversaries";
+export function subscribeSettings(
+  callback: (settings: AppSettings) => void,
+  onError: (error: Error) => void,
+) {
+  return onSnapshot(
+    doc(db!, "config", "app"),
+    (snap) =>
+      callback(
+        snap.exists()
+          ? ({ ...defaultSettings, ...snap.data() } as AppSettings)
+          : defaultSettings,
+      ),
+    onError,
+  );
+}
+export function subscribeControls(
+  uid: string,
+  callback: (controls: FamilyControls) => void,
+  onError: (error: Error) => void,
+) {
+  return onSnapshot(
+    doc(db!, "familyControls", uid),
+    (snap) =>
+      callback({ remindersPaused: snap.data()?.remindersPaused === true }),
+    onError,
+  );
+}
 export function subscribeAnniversaries(
   callback: (catalog: AnniversaryCatalog) => void,
   onError: (error: Error) => void,

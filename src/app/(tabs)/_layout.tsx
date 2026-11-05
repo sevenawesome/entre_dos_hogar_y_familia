@@ -15,7 +15,7 @@ export default function TabLayout() {
           paddingTop: 10,
           paddingBottom: 16,
         },
-        tabBarLabelStyle: { fontSize: 10, fontWeight: "600", marginTop: 3 },
+        tabBarLabelStyle: { fontSize: 9, fontWeight: "600", marginTop: 3 },
       }}
     >
       <Tabs.Screen
@@ -64,6 +64,19 @@ export default function TabLayout() {
           tabBarIcon: ({ focused, size }) => (
             <Ionicons
               name="people-outline"
+              size={size}
+              color={focused ? colors.rose : colors.muted}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="information"
+        options={{
+          title: "Información",
+          tabBarIcon: ({ focused, size }) => (
+            <Ionicons
+              name="information-circle-outline"
               size={size}
               color={focused ? colors.rose : colors.muted}
             />

@@ -13,9 +13,11 @@ const childId = () =>
 export function FamilyForm({
   initial,
   onSaved,
+  onSave = updateFamily,
 }: {
   initial?: Family | null;
   onSaved: () => void;
+  onSave?: (family: Family) => Promise<void>;
 }) {
   const [name, setName] = useState(initial?.name ?? ""),
     [partner1, setPartner1] = useState(initial?.partner1 ?? ""),
@@ -77,7 +79,7 @@ export function FamilyForm({
     }
     setBusy(true);
     try {
-      await updateFamily({
+      await onSave({
         name: name.trim(),
         partner1: partner1.trim(),
         partner2: partner2.trim(),

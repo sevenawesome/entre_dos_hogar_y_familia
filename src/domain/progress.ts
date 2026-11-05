@@ -27,6 +27,9 @@ export function canComplete(progress: Progress | undefined, now = new Date()) {
     !progress?.nextAvailableAt || new Date(progress.nextAvailableAt) <= now
   );
 }
+export function canCompleteJourney(progress: ProgressMap, now = new Date()) {
+  return Object.values(progress).every((level) => canComplete(level, now));
+}
 export function nextLocalDay(timezone: string, now = new Date()) {
   const day = new Intl.DateTimeFormat("en-CA", {
     timeZone: timezone,

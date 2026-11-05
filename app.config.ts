@@ -1,5 +1,7 @@
 import type { ExpoConfig } from "expo/config";
-const projectId = process.env.EXPO_PUBLIC_EAS_PROJECT_ID;
+const projectId =
+  process.env.EXPO_PUBLIC_EAS_PROJECT_ID ||
+  "f9af2154-9d1b-49d6-bae8-588d83ce3ad7";
 if (process.env.EAS_BUILD_PROFILE === "production") {
   const required = [
     projectId,

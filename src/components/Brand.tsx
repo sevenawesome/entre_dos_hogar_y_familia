@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { Text, View } from "react-native";
 import Svg, {
   Defs,
@@ -8,15 +9,16 @@ import Svg, {
 } from "react-native-svg";
 import { colors, serif } from "./ui";
 export function BrandMark({ size = 48 }: { size?: number }) {
+  const gradientId = `brand-${useId().replace(/:/g, "")}`;
   return (
-    <Svg width={size} height={size} viewBox="0 0 100 100" accessible={false}>
+    <Svg width={size} height={size} viewBox="0 0 100 100">
       <Defs>
-        <LinearGradient id="brand-gradient" x1="0" y1="0" x2="1" y2="1">
+        <LinearGradient id={gradientId} x1="0" y1="0" x2="100%" y2="100%">
           <Stop offset="0" stopColor="#FF7864" />
           <Stop offset="1" stopColor="#C12968" />
         </LinearGradient>
       </Defs>
-      <Circle cx="50" cy="50" r="48" fill="url(#brand-gradient)" />
+      <Circle cx="50" cy="50" r="48" fill={`url(#${gradientId})`} />
       <Path
         d="M50 73 C37 64 22 54 22 41 C22 25 43 25 50 38 C57 25 78 25 78 41 C78 54 63 64 50 73Z"
         fill="none"

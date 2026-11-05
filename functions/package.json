@@ -6,6 +6,7 @@
     "node": "22"
   },
   "scripts": {
+    "admin": "node scripts/set-admin.cjs",
     "build": "tsc",
     "seed": "node scripts/seed.cjs",
     "publish-anniversaries": "node scripts/publish-anniversaries.cjs",

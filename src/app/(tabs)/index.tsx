@@ -8,10 +8,11 @@ import { Brand } from "../../components/Brand";
 import { AnniversaryCard } from "../../components/AnniversaryCard";
 import { BirthdaysCard } from "../../components/BirthdaysCard";
 import { CreatorFooter } from "../../components/CreatorFooter";
+import { JourneyBanner } from "../../components/JourneyBanner";
+import { getJourney } from "../../domain/journey";
 import {
-  canComplete,
+  canCompleteJourney,
   currentChallenge,
-  isUnlocked,
   percentage,
 } from "../../domain/progress";
 import {
@@ -26,14 +27,22 @@ import {
   serif,
 } from "../../components/ui";
 export default function Today() {
-  const { family, levels, progress, demo } = useApp();
+  const {
+    family,
+    levels,
+    progress,
+    demo,
+    settings,
+    controls,
+    catalogReady,
+    progressReady,
+  } = useApp();
   const now = useNow();
-  const level = levels.find(
-    (l) => isUnlocked(l, progress) && !progress[l.id]?.finishedAt,
-  );
+  const journey = getJourney(levels, progress, catalogReady && progressReady);
+  const level = journey.current;
   const p = level ? progress[level.id] : undefined;
   const challenge = level ? currentChallenge(level, p) : undefined;
-  const waiting = !canComplete(p, now);
+  const waiting = !canCompleteJourney(progress, now);
   const total = Object.values(progress).reduce(
     (sum, item) => sum + item.completions.length,
     0,
@@ -82,6 +91,11 @@ export default function Today() {
         </Text>
         <Text style={s.body}>Hoy también es un buen día para elegirse.</Text>
       </View>
+      {!!settings.announcement && <Notice text={settings.announcement} />}
+      {(!settings.notificationsEnabled || controls.remindersPaused) && (
+        <Notice text="Los recordatorios están pausados por la administración. Pueden seguir completando sus retos." />
+      )}
+      <JourneyBanner />
       {level && (
         <View style={{ gap: 15 }}>
           <View
@@ -89,7 +103,7 @@ export default function Today() {
           >
             <Text style={s.eyebrow}>SU MOMENTO DE HOY</Text>
             <Text style={s.small}>
-              Nivel {level.order} · {p?.completions.length ?? 0}/
+              NIVEL {level.order} · {p?.completions.length ?? 0}/
               {level.challenges.length}
             </Text>
           </View>
@@ -145,7 +159,7 @@ export default function Today() {
             <Text style={s.eyebrow}>
               {challenge
                 ? `RETO ${String(challenge.order).padStart(2, "0")} · ${challenge.stage}`
-                : "30 MOMENTOS, UNA HISTORIA"}
+                : `${level.challenges.length} MOMENTOS, UNA HISTORIA`}
             </Text>
             <Text
               style={{
@@ -194,26 +208,6 @@ export default function Today() {
           </LinearGradient>
         </View>
       )}
-      {!level && (
-        <Card>
-          <Ionicons name="ribbon-outline" size={40} color={colors.gold} />
-          <Text style={s.sectionTitle}>
-            {levels.length
-              ? "¡Lo están construyendo juntos!"
-              : "Su camino está por comenzar"}
-          </Text>
-          <Text style={s.body}>
-            {levels.length
-              ? "Han completado todos los niveles disponibles. Los nuevos capítulos aparecerán aquí cuando se publiquen."
-              : "Estamos preparando los niveles. Si el catálogo sigue vacío, verifica que se haya cargado en Firebase."}
-          </Text>
-          <Button
-            title="Ver nuestro camino"
-            secondary
-            onPress={() => router.push("/(tabs)/levels")}
-          />
-        </Card>
-      )}
       {family && <AnniversaryCard family={family} now={now} />}
       {family && <BirthdaysCard family={family} now={now} />}
       <View>
@@ -221,7 +215,13 @@ export default function Today() {
         <Card>
           <View style={s.row}>
             <Ring
-              value={level ? percentage(level, p) : levels.length ? 100 : 0}
+              value={
+                level
+                  ? percentage(level, p)
+                  : journey.state === "completed"
+                    ? 100
+                    : 0
+              }
               label="DEL NIVEL"
             />
             <View style={{ flex: 1, gap: 7 }}>
