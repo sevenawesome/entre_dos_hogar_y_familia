@@ -47,7 +47,7 @@ Los avisos push se prueban con un development build instalado en un teléfono, n
 
 ## Conectar Firebase
 
-1. El proyecto del propietario es **entre-dos-db** y está seleccionado en `.firebaserc`. Registra una aplicación **web** para obtener el bloque `firebaseConfig` del SDK JS y habilita Authentication → Email/Password. Todavía falta completar esa configuración en el entorno local.
+1. El proyecto del propietario es **entre-dos-db** y está seleccionado en `.firebaserc`. El bloque `firebaseConfig` recibido ya está guardado en `.env` local, excluido de Git. En otra computadora, copia `.env.example` y completa los seis valores públicos de Firebase. Habilita Authentication → Email/Password en el proyecto.
 2. Crea Firestore. Para las funciones programadas debes habilitar facturación en el plan **Blaze**. Configura alertas de presupuesto según el uso previsto.
 3. Copia `.env.example` a `.env` y completa sus valores `EXPO_PUBLIC_FIREBASE_*`. Son identificadores públicos del cliente; el acceso se controla con reglas y autenticación. **Nunca coloques credenciales Admin o archivos de cuenta de servicio en variables EXPO_PUBLIC.**
 4. Instala las dependencias de servidor y autentícate:

@@ -11,10 +11,10 @@
 - Demostración conserva la familia al volver a entrar.
 - Guía automática de cinco pasos recorrida hasta el final, regreso a Hoy y ayuda permanente revisados en navegador móvil de 390 × 844. Vista previa administrativa comprobada: nivel actual, final sin sucesor y nuevo nivel con 50 retos ficticios, sin publicar datos.
 - Capturas con datos ficticios: `preview-nivel.jpg`, `preview-guia.jpg`, `preview-informacion.jpg`, `preview-nivel-completo.jpg` y `preview-nivel-nuevo.jpg`.
-- Firebase `entre-dos-db` y el ID de Expo están preparados en los archivos de configuración. Aún no hay bloque `firebaseConfig` ni sesión local EAS: no se ha confirmado propietario/slug ni conectado el backend.
+- Firebase `entre-dos-db` configurado en `.env` local con el bloque recibido; archivo excluido de Git. Comprobación real de solo lectura: Authentication devuelve `CONFIGURATION_NOT_FOUND` y Firestore informa API no habilitada/no usada. No hay cuentas en Firebase CLI ni credenciales ADC locales; despliegue y catálogo pendientes. El ID de Expo está preparado, pero falta sesión EAS para confirmar propietario/slug.
 - Auditoría npm del backend: 0 vulnerabilidades. En el cliente no quedan alertas altas o críticas; `npm audit --omit=dev` informa 5 moderadas en la cadena de herramientas de Expo (`expo`, `@expo/cli`, `@expo/fingerprint`, `glob`, `minimatch`). Se conservan las versiones compatibles con SDK 58 y se deben revisar al actualizar Expo; no se aplicaron cambios mayores forzados a sus dependencias.
 
-No se han ejecutado pruebas con Firebase real, emuladores de Firebase, dispositivos físicos, credenciales push ni envíos a tiendas. Las comprobaciones siguientes permanecen pendientes de esos entornos.
+Solo se consultaron los servicios reales para diagnosticar su configuración; no se crearon cuentas, documentos ni datos de prueba remotos. Aún no se han ejecutado flujos completos con Firebase real, emuladores, dispositivos físicos, credenciales push ni envíos a tiendas. Las comprobaciones siguientes permanecen pendientes de esos entornos.
 
 ## Cuentas y datos
 

@@ -4,11 +4,16 @@ La app se puede revisar en demostración. Para ponerla en funcionamiento con dat
 
 ## Firebase
 
-El proyecto **entre-dos-db** ya existe y quedó seleccionado en `.firebaserc`. Falta la configuración pública de una app web: `apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`. En Firebase: Configuración del proyecto → General → Tus apps → Agregar app web (`</>`) → registrar → copiar el bloque completo `firebaseConfig`. Esos valores completan `.env.example`; no hace falta enviar contraseñas ni claves privadas.
+El proyecto **entre-dos-db** ya existe y quedó seleccionado en `.firebaserc`. El bloque `firebaseConfig` recibido está configurado en `.env` local con los seis valores que usa el SDK. Este archivo está excluido de Git. No hace falta volver a enviar la configuración. El fragmento `getAnalytics` de la consola no se incorpora: la app usa Authentication, Firestore y Functions y no necesita Analytics para su funcionamiento.
 
-Habilitar Authentication por correo/contraseña y crear Firestore. La captura muestra el plan Spark; el propietario debe activar Blaze para desplegar las funciones programadas. No se ha modificado la facturación.
+La comprobación de solo lectura al servicio real detectó dos pendientes:
 
-Para desplegar el backend, el propietario inicia sesión con Firebase CLI en su computadora. Las credenciales de administrador y secretos se configuran localmente y en Secret Manager; no se publican en el código ni se envían por chat. Después se despliegan reglas, índices y funciones y se carga el catálogo.
+- Authentication respondió HTTP 400 `CONFIGURATION_NOT_FOUND`. En [Authentication](https://console.firebase.google.com/project/entre-dos-db/authentication/providers), pulsa Comenzar y habilita **Correo electrónico/contraseña**.
+- Firestore respondió HTTP 403 indicando que su API no está habilitada o no se ha usado. En [Firestore](https://console.firebase.google.com/project/entre-dos-db/firestore), crea la base `(default)` en **modo producción**. Elige una ubicación teniendo en cuenta a los usuarios; `us-central1` es la región ya preparada para las funciones del servidor. Luego desplegaremos las reglas del repositorio antes de guardar datos.
+
+La captura muestra el plan Spark; el propietario debe activar Blaze para desplegar las funciones programadas. No se ha modificado la facturación.
+
+Para desplegar el backend, el propietario inicia sesión con Firebase CLI en su computadora: `npx firebase-tools@latest login`. La comprobación `login:list --json` no devolvió cuentas registradas y no hay credenciales ADC locales. Para los scripts de catálogo y asignación de administrador también hace falta autenticar ADC, según el README. Las credenciales de administrador y secretos se configuran localmente y en Secret Manager; no se publican en el código ni se envían por chat. Después se despliegan reglas, índices y funciones y se carga el catálogo.
 
 ## Expo y notificaciones
 
