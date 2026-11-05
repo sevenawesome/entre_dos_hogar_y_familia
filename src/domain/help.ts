@@ -5,7 +5,7 @@ export const guideSteps = [
   {
     icon: "people-outline",
     title: "Un espacio para los dos",
-    body: "Creen una cuenta familiar y usen el mismo correo y contraseña en ambos teléfonos. Lo que escriban, sus fechas y sus avances será compartido.",
+    body: "Creen una cuenta familiar y usen el mismo correo y contraseña en ambos teléfonos. Registren la fecha de su matrimonio; los cumpleaños son opcionales. Lo que escriban, sus fechas y sus avances será compartido.",
   },
   {
     icon: "heart-outline",
@@ -20,7 +20,7 @@ export const guideSteps = [
   {
     icon: "notifications-outline",
     title: "Háganle espacio a su momento",
-    body: "En Nosotros, cada teléfono puede activar sus recordatorios y elegir un horario. Si un reto queda pendiente, volveremos a recordarlo. El aniversario y los cumpleaños son ayudas opcionales.",
+    body: "En Nosotros, cada teléfono puede activar sus recordatorios y elegir un horario. Si un reto queda pendiente, volveremos a recordarlo. También recibirán saludos para su aniversario y los cumpleaños que registren.",
   },
   {
     icon: "book-outline",
@@ -63,7 +63,7 @@ export const helpSections = [
   },
   {
     title: "Aniversario y categorías de bodas",
-    body: "La fecha de matrimonio permite calcular los años ya cumplidos, el siguiente aniversario y su aro de cuenta regresiva. Toquen las bodas actuales o próximas para conocer el significado y una propuesta para celebrarlas. Los nombres varían por tradición y las fuentes están en el catálogo. Para fechas del 29 de febrero, se usa el 28 en años no bisiestos.",
+    body: "La fecha de matrimonio es obligatoria al registrar o editar la familia. Permite calcular los años ya cumplidos, el siguiente aniversario y su aro de cuenta regresiva. Toquen las bodas actuales o próximas para conocer el significado y una propuesta para celebrarlas. Los nombres varían por tradición y las fuentes están en el catálogo. Para fechas del 29 de febrero, se usa el 28 en años no bisiestos.",
   },
   {
     title: "Cumpleaños familiares",

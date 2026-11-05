@@ -46,6 +46,12 @@ export function FamilyForm({
     const parsedMarriageDate = marriageDate.trim()
       ? parseMarriageDate(marriageDate, timezone)
       : null;
+    if (!marriageDate.trim()) {
+      setError(
+        "La fecha de matrimonio es obligatoria para registrar su familia.",
+      );
+      return;
+    }
     const birthdayFields = [
       partner1Birthday,
       partner2Birthday,
@@ -61,7 +67,7 @@ export function FamilyForm({
       );
       return;
     }
-    if (marriageDate.trim() && !parsedMarriageDate) {
+    if (!parsedMarriageDate) {
       setError(
         "Escribe una fecha de matrimonio válida en formato DD/MM/AAAA. No puede ser una fecha futura.",
       );
@@ -168,25 +174,16 @@ export function FamilyForm({
             El día que empezó su historia
           </Text>
         </View>
-        <Field
-          label="Fecha de matrimonio · opcional"
+        <DateField
+          label="Fecha de matrimonio · obligatoria"
           value={marriageDate}
-          placeholder="DD/MM/AAAA"
-          maxLength={10}
-          keyboardType="number-pad"
-          onChangeText={(value) => {
-            const digits = value.replace(/\D/g, "").slice(0, 8);
-            setMarriageDate(
-              [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)]
-                .filter(Boolean)
-                .join("/"),
-            );
-          }}
+          onChange={setMarriageDate}
         />
         <Text style={s.small}>
-          Verán la cuenta regresiva y recibirán un saludo el día de su
-          aniversario al activar los recordatorios. Para bodas del 29 de
-          febrero, celebramos el 28 en años no bisiestos.
+          Esta fecha es necesaria para registrar su matrimonio. Verán la cuenta
+          regresiva y recibirán un saludo el día de su aniversario al activar
+          los recordatorios. Para bodas del 29 de febrero, celebramos el 28 en
+          años no bisiestos.
         </Text>
       </View>
       <View style={{ gap: 12 }}>

@@ -15,7 +15,7 @@ Para Android/iOS usa `npm start` y un development build. La vista web permite re
 
 ## Qué incluye
 
-- Una cuenta por correo/contraseña compartida por la pareja; familia y hasta diez hijos con fechas opcionales.
+- Una cuenta por correo/contraseña compartida por la pareja; familia con fecha de matrimonio obligatoria y hasta diez hijos; cumpleaños opcionales.
 - Los 30 retos y seis preguntas reales del documento original; notas y respuestas compartidas solo dentro de la familia.
 - Un reto cada **24 horas**, también al cambiar de nivel. Firestore valida el intervalo con la hora del servidor y confirma progreso/resumen en una transacción. El cuestionario consigue el nivel y desbloquea su prerrequisito.
 - Catálogo de niveles dinámico: primeros 30 retos, futuros 50 o cualquier cantidad de 1–200. Estados de carga, nivel actual, celebración sin sucesor y nuevo capítulo disponible.

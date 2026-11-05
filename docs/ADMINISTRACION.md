@@ -29,7 +29,7 @@ La familia recibe el mensaje al abrir/sincronizar. Con recordatorios y permisos 
 
 ## Administradores
 
-En Administradores selecciona otra cuenta registrada y revisa la concesión o retirada. El diálogo explica el acceso y exige marcar la confirmación. El cambio y su auditoría se escriben atómicamente. Nadie puede modificar su propio rol ni el de un propietario. La revocación bloquea las siguientes operaciones según las reglas, aun si la interfaz de otro dispositivo todavía no actualizó el tab. No revoca copias que una persona hubiera visto o guardado antes.
+En Administradores selecciona otra cuenta registrada y revisa la concesión o retirada. El diálogo explica el acceso y exige marcar la confirmación. La persona debe crear su cuenta y registrar su familia primero. En Admin → Administradores → Revisar permiso de administrador, marca la confirmación y pulsa Aplicar cambio de permiso. Para retirarlo usa Revisar retiro de permiso. El permiso corresponde a la cuenta familiar: si ambos integrantes la comparten, ambos tienen ese acceso. El cambio y su auditoría se escriben atómicamente. Nadie puede modificar su propio rol ni el de un propietario. La revocación bloquea las siguientes operaciones según las reglas, aun si la interfaz de otro dispositivo todavía no actualizó el tab. No revoca copias que una persona hubiera visto o guardado antes.
 
 ## Configuración, niveles y datos familiares
 
@@ -37,7 +37,7 @@ El botón Configurar mensajes, niveles y perfiles abre la herramienta completa:
 
 - Aplicación: aviso general, cierre del recorrido, anuncio de nuevo nivel, contacto de soporte y pausa global. El número de versión evita sobrescribir cambios de otro administrador.
 - Niveles: borradores, JSON de capítulos con 1–200 retos y 1–30 preguntas, validación, confirmación y publicación. Los publicados conservan retos, preguntas, orden y prerrequisito; las correcciones de presentación sí se permiten.
-- Familias: búsqueda exacta por correo del perfil registrado o UID, edición de nombres y fechas y pausa familiar. La zona horaria original se conserva.
+- Familias: búsqueda exacta por correo del perfil registrado o UID, edición de nombres y fechas y pausa familiar. La zona horaria original se conserva. La fecha de matrimonio es obligatoria, también para las ediciones administrativas; los cumpleaños siguen siendo opcionales.
 
 Para la primera carga pulsa Preparar los 30 retos originales del nivel 1, valida y confirma la publicación. Cargar catálogo inicial de bodas crea el documento solo si no existe, conservando cambios posteriores. No hace falta instalar gcloud para esas acciones; los scripts ADC son una alternativa del propietario.
 

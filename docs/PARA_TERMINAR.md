@@ -23,7 +23,7 @@ Necesitamos Android e iPhone para probar notificaciones locales, selector/compre
 
 Los avisos diarios son generales y se programan por teléfono; los cambios de otro dispositivo y las pausas administrativas se aplican al sincronizar. Cumpleaños/aniversarios se programan para los próximos dos años y se renuevan al usar la app. Los mensajes del administrador llegan a una bandeja al abrir/sincronizar; no hay push remoto inmediato con la app cerrada. Firebase Spark tiene cuotas, supervisadas desde la consola.
 
-El progreso admite un reto cada 24 horas validado con la hora del servidor. La familia admite hasta diez hijos para mantener la validación dentro del presupuesto de ejecución de las reglas. Las fotos son miniaturas pequeñas en Firestore; no se guarda el original ni se usa Storage.
+La fecha de matrimonio es obligatoria al registrar o editar una familia. Los perfiles anteriores sin fecha deben completarla para continuar, conservando sus datos y progreso. Los cumpleaños siguen siendo opcionales. El progreso admite un reto cada 24 horas validado con la hora del servidor. La familia admite hasta diez hijos para mantener la validación dentro del presupuesto de ejecución de las reglas. Las fotos son miniaturas pequeñas en Firestore; no se guarda el original ni se usa Storage.
 
 ## Publicación
 

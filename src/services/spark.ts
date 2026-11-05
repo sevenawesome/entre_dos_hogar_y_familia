@@ -18,6 +18,7 @@ import {
   isUnlocked,
 } from "../domain/progress";
 import { DAY_MS, milliseconds, publicProjection } from "../domain/community";
+import { validateFamilyProfile } from "../domain/admin-validation";
 import type {
   CommunityProfile,
   Family,
@@ -32,6 +33,7 @@ const database = () => {
   return db;
 };
 export async function saveSparkFamily(uid: string, family: Family) {
+  family = validateFamilyProfile(family);
   const databaseRef = database();
   await runTransaction(databaseRef, async (tx) => {
     const summaryRef = doc(databaseRef, "tracking", uid),

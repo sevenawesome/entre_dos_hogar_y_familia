@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { before, after, beforeEach, test } from "node:test";
+import assert from "node:assert/strict";
 import {
   initializeTestEnvironment,
   assertFails,
@@ -13,6 +14,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  deleteField,
   writeBatch,
   serverTimestamp,
   Timestamp,
@@ -55,10 +57,10 @@ async function seed(path, data) {
     setDoc(doc(c.firestore(), path), data),
   );
 }
-async function createFamily(uid = "a") {
+async function createFamily(uid = "a", profile = family) {
   const db = ctx(uid),
     batch = writeBatch(db);
-  batch.set(doc(db, "families", uid), family);
+  batch.set(doc(db, "families", uid), profile);
   batch.set(doc(db, "tracking", uid), {
     uid,
     familyName: family.name,
@@ -147,6 +149,52 @@ test("family and server-timestamp summary are created atomically", async () => {
 });
 test("first completion succeeds with a paired authoritative summary", async () => {
   await createFamily();
+  await assertSucceeds(complete(ctx("a")));
+});
+test("family registration requires a marriage date, while birthdays stay optional", async () => {
+  const { marriageDate: _marriageDate, ...missing } = family;
+  const invalid = [
+    missing,
+    { ...family, marriageDate: null },
+    { ...family, marriageDate: "" },
+    { ...family, marriageDate: 123 },
+  ];
+  for (const [i, profile] of invalid.entries())
+    await assertFails(createFamily(`missing-${i}`, profile));
+  await assertSucceeds(createFamily());
+});
+test("members and administrators cannot clear an existing marriage date", async () => {
+  await createFamily();
+  for (const marriageDate of [null, "", deleteField()])
+    await assertFails(
+      updateDoc(doc(ctx("a"), "families", "a"), { marriageDate }),
+    );
+  const db = ctx("administrator"),
+    audit = doc(collection(db, "adminAudit")),
+    batch = writeBatch(db);
+  batch.set(doc(db, "families", "a"), {
+    ...family,
+    marriageDate: null,
+    adminAuditId: audit.id,
+  });
+  batch.set(audit, {
+    actorUid: "administrator",
+    action: "family.profile.update",
+    target: "a",
+    at: serverTimestamp(),
+  });
+  await assertFails(batch.commit());
+  assert.equal(
+    (await getDoc(doc(ctx("a"), "families", "a"))).data().marriageDate,
+    family.marriageDate,
+  );
+});
+test("legacy families must complete their marriage date before advancing", async () => {
+  await createFamily();
+  const { marriageDate: _marriageDate, ...legacy } = family;
+  await seed("families/a", legacy);
+  await assertFails(complete(ctx("a")));
+  await assertSucceeds(setDoc(doc(ctx("a"), "families", "a"), family));
   await assertSucceeds(complete(ctx("a")));
 });
 test("another family cannot read private notes or profile", async () => {

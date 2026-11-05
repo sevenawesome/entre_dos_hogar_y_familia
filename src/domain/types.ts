@@ -35,6 +35,7 @@ export interface Family {
   partner2: string;
   children: Child[];
   timezone: string;
+  /** Optional only while reading legacy profiles; every saved family requires a marriage date. */
   marriageDate?: string | null;
   partner1BirthDate?: string | null;
   partner2BirthDate?: string | null;

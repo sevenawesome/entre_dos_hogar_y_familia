@@ -157,6 +157,7 @@ describe("Configuración y publicación administrativa", () => {
       partner2: "Luis",
       children: [],
       timezone: "America/La_Paz",
+      marriageDate: "2016-11-08",
       admin: true,
     };
     const result = validation.validateFamilyProfile(family);
@@ -167,6 +168,30 @@ describe("Configuración y publicación administrativa", () => {
         marriageDate: "2099-01-01",
       }),
     );
+  });
+  it("exige una fecha de matrimonio real y pasada, manteniendo los cumpleaños opcionales", () => {
+    const family = {
+      name: "Familia",
+      partner1: "Ana",
+      partner2: "Luis",
+      children: [],
+      timezone: "America/La_Paz",
+      marriageDate: "2016-11-08",
+    };
+    for (const marriageDate of [
+      undefined,
+      null,
+      "",
+      "2020-02-30",
+      "2099-01-01",
+    ])
+      assert.throws(() =>
+        validation.validateFamilyProfile({ ...family, marriageDate }),
+      );
+    const result = validation.validateFamilyProfile(family);
+    assert.equal(result.marriageDate, "2016-11-08");
+    assert.equal(result.partner1BirthDate, null);
+    assert.equal(result.partner2BirthDate, null);
   });
   it("un texto true o un correo no concede permisos administrativos", () => {
     assert.equal(validation.hasAdminClaim({ admin: "true" }), false);

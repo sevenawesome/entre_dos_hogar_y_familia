@@ -15,9 +15,9 @@ service cloud.firestore {
   function childAt(c,i) { return i>=c.size() || validChild(c[i]); }
   function validFamily() {
    let f=request.resource.data;
-   return f.keys().hasAll(['name','partner1','partner2','children','timezone']) && f.keys().hasOnly(['name','partner1','partner2','children','timezone','marriageDate','partner1BirthDate','partner2BirthDate','adminAuditId'])
+   return f.keys().hasAll(['name','partner1','partner2','children','timezone','marriageDate']) && f.keys().hasOnly(['name','partner1','partner2','children','timezone','marriageDate','partner1BirthDate','partner2BirthDate','adminAuditId'])
     && text(f.name,60) && text(f.partner1,40) && text(f.partner2,40) && text(f.timezone,100)
-    && date(f,'marriageDate') && date(f,'partner1BirthDate') && date(f,'partner2BirthDate')
+    && f.marriageDate is string && date(f,'marriageDate') && date(f,'partner1BirthDate') && date(f,'partner2BirthDate')
     && f.children is list && f.children.size()<=10 && childAt(f.children, 0) && childAt(f.children, 1) && childAt(f.children, 2) && childAt(f.children, 3) && childAt(f.children, 4) && childAt(f.children, 5) && childAt(f.children, 6) && childAt(f.children, 7) && childAt(f.children, 8) && childAt(f.children, 9);
   }
   function audited(d,action,target) {
@@ -32,13 +32,14 @@ service cloud.firestore {
     && (p.nextAvailableAt==null || (p.nextAvailableAt is string && p.nextAvailableAt.size()<=50));
   }
   function validProgress(uid,id) {
+   let f=get(/databases/$(database)/documents/families/$(uid)).data;
    let l=get(/databases/$(database)/documents/levels/$(id)).data;
    let p=request.resource.data;
    let old=resource==null ? emptyProgress() : resource.data;
    let t=get(/databases/$(database)/documents/tracking/$(uid)).data;
    let after=getAfter(/databases/$(database)/documents/tracking/$(uid)).data;
    let n=old.completions.size();
-   return l.published && progressShape(p,id) &&
+   return f.marriageDate is string && date(f,'marriageDate') && l.published && progressShape(p,id) &&
     (l.prerequisiteId==null || get(/databases/$(database)/documents/families/$(uid)/progress/$(l.prerequisiteId)).data.finishedAt!=null) &&
     ((n<l.challenges.size() && p.completions.size()==n+1
       && p.completions==old.completions.concat([p.completions[n]])

@@ -44,6 +44,7 @@ function AppLayout() {
   const [familyLoaded, setFamilyLoaded] = useState(false);
   const segments = useSegments();
   const hasFamily = !!family;
+  const needsMarriageDate = !!family && !family.marriageDate;
   useEffect(() => {
     if (!auth) {
       store.dispatch(actions.session({ uid: null }));
@@ -92,15 +93,22 @@ function AppLayout() {
     const root = segments[0];
     if (!uid && root !== "welcome" && root !== "privacy")
       router.replace("/welcome");
-    else if (uid && (demo || familyLoaded) && !family && root !== "onboarding")
+    else if (
+      uid &&
+      (demo || familyLoaded) &&
+      (!family || needsMarriageDate) &&
+      root !== "onboarding" &&
+      root !== "privacy"
+    )
       router.replace("/onboarding");
     else if (
       uid &&
       family &&
+      !needsMarriageDate &&
       (root === "welcome" || root === "onboarding" || !root)
     )
       router.replace("/(tabs)");
-  }, [ready, uid, family, demo, familyLoaded, segments]);
+  }, [ready, uid, family, demo, familyLoaded, needsMarriageDate, segments]);
   useEffect(() => {
     if (!uid || demo || !hasFamily) return;
     registerDevice().catch((e) =>

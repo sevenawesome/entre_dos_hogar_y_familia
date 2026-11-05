@@ -18,7 +18,8 @@ export default function Privacy() {
           matrimonio y los cumpleaños que agreguen, sus retos completados, las
           notas y la reflexión final, una miniatura de perfil si la eligen y los
           mensajes del equipo de acompañamiento. El horario de los recordatorios
-          se guarda en cada teléfono.
+          se guarda en cada teléfono. La fecha de matrimonio es obligatoria para
+          registrar la familia; las fechas de cumpleaños son opcionales.
         </Text>
         <Text style={s.sectionTitle}>Una cuenta para los dos</Text>
         <Text style={s.body}>

@@ -460,7 +460,8 @@ export default function Administration() {
           <Text style={s.body}>
             Un administrador puede ver perfiles y fechas familiares, revisar
             resúmenes de progreso, enviar mensajes y administrar permisos de
-            otras cuentas. Las notas y respuestas siguen privadas.
+            otras cuentas. Si la pareja comparte esta cuenta, ambos tendrán el
+            mismo permiso. Las notas y respuestas siguen privadas.
           </Text>
           <Pressable
             accessibilityRole="checkbox"

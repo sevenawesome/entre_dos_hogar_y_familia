@@ -1,5 +1,6 @@
 import { store, actions } from "../store";
 import { publicProjection } from "../domain/community";
+import { validateFamilyProfile } from "../domain/admin-validation";
 import {
   currentChallenge,
   emptyProgress,
@@ -21,7 +22,7 @@ function syncDemoProfile() {
 export async function updateFamily(family: Family) {
   const state = store.getState().app;
   if (state.demo) {
-    store.dispatch(actions.family(family));
+    store.dispatch(actions.family(validateFamilyProfile(family)));
     syncDemoProfile();
   } else await saveFamily(state.uid!, family);
 }

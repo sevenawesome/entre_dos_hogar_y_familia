@@ -146,12 +146,17 @@ export function validateFamilyProfile(family: Family) {
       throw new Error("Fecha familiar inválida o futura.");
     return value;
   };
+  if (!family.marriageDate)
+    throw new Error(
+      "La fecha de matrimonio es obligatoria para registrar su familia.",
+    );
+  const marriageDate = date(family.marriageDate)!;
   return {
     name: family.name.trim(),
     partner1: family.partner1.trim(),
     partner2: family.partner2.trim(),
     timezone: family.timezone,
-    marriageDate: date(family.marriageDate),
+    marriageDate,
     partner1BirthDate: date(family.partner1BirthDate),
     partner2BirthDate: date(family.partner2BirthDate),
     children: family.children.map((c) => ({
