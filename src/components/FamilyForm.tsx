@@ -149,7 +149,8 @@ export function FamilyForm({
           onChange={setPartner2Birthday}
         />
         <Text style={s.small}>
-          El año nos permite mostrar la edad. Estas fechas son compartidas con
+          El año nos permite mostrar la edad. El equipo administrador puede
+          consultar estas fechas para acompañarlos. También son compartidas con
           la cuenta familiar y se usan para sus recordatorios.
         </Text>
       </View>
@@ -267,7 +268,7 @@ export function FamilyForm({
             </View>
           </View>
         ))}
-        {children.length < 15 && (
+        {children.length < 10 && (
           <Button
             title="Agregar hijo o hija"
             secondary

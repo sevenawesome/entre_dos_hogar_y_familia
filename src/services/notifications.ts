@@ -1,11 +1,9 @@
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
-import type { DevicePreferences } from "../domain/types";
-import { callBackend } from "./api";
+import type { DevicePreferences, FamilyMessage } from "../domain/types";
 import { store } from "../store";
-
-// Keep native notification modules out of web preview initialization.
+import { localReminderPlan } from "../domain/local-reminders";
+import { getJourney } from "../domain/journey";
 async function notifications() {
   return Platform.OS === "web" ? null : import("expo-notifications");
 }
@@ -18,9 +16,7 @@ export async function deviceId() {
   }
   return id;
 }
-function prefKey() {
-  return `@entre-dos/reminders-${store.getState().app.uid}`;
-}
+const prefKey = () => `@entre-dos/reminders-${store.getState().app.uid}`;
 export async function loadPreferences(): Promise<DevicePreferences> {
   const saved = await AsyncStorage.getItem(prefKey());
   return saved
@@ -32,29 +28,113 @@ export async function loadPreferences(): Promise<DevicePreferences> {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       };
 }
-export async function registerDevice(
+let pending = Promise.resolve();
+export function registerDevice(
   preferences?: DevicePreferences,
   askPermission = false,
 ) {
-  const n = await notifications();
-  if (!n) {
-    if (askPermission)
-      throw new Error(
-        "Los recordatorios del teléfono se configuran en la app para Android o iOS.",
-      );
-    return;
-  }
-  if (store.getState().app.demo)
-    throw new Error(
-      "Los avisos compartidos requieren conectar Firebase e iniciar sesión en una cuenta real.",
-    );
-  const prefs = preferences ?? (await loadPreferences());
-  if (Platform.OS === "android")
-    await n.setNotificationChannelAsync("retos", {
-      name: "Retos y fechas familiares",
-      importance: n.AndroidImportance.DEFAULT,
-      sound: "default",
+  const uid = store.getState().app.uid;
+  const work = pending
+    .catch(() => {})
+    .then(async () => {
+      if (uid !== store.getState().app.uid) return;
+      const n = await notifications();
+      if (!n) {
+        if (askPermission)
+          throw new Error("Los avisos locales se configuran en Android o iOS.");
+        return;
+      }
+      const prefs = preferences ?? (await loadPreferences()),
+        state = store.getState().app;
+      if (Platform.OS === "android")
+        await n.setNotificationChannelAsync("retos", {
+          name: "Retos y fechas familiares",
+          importance: n.AndroidImportance.DEFAULT,
+          sound: "default",
+        });
+      n.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowBanner: true,
+          shouldShowList: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        }),
+      });
+      let permission = await n.getPermissionsAsync();
+      if (askPermission && prefs.enabled && permission.status !== "granted")
+        permission = await n.requestPermissionsAsync();
+      if (prefs.enabled && permission.status !== "granted")
+        throw new Error(
+          "Activa las notificaciones en los ajustes del teléfono.",
+        );
+      if (uid !== store.getState().app.uid) return;
+      await n.cancelAllScheduledNotificationsAsync();
+      const enabled =
+        prefs.enabled &&
+        state.settings.notificationsEnabled &&
+        !state.controls.remindersPaused;
+      if (enabled && state.family) {
+        const journey = getJourney(
+          state.levels,
+          state.progress,
+          state.catalogReady && state.progressReady,
+        );
+        for (const item of localReminderPlan(
+          state.family,
+          prefs,
+          !!journey.current,
+        )) {
+          await n.scheduleNotificationAsync({
+            content: {
+              title: item.title,
+              body: item.body,
+              sound: "default",
+              data: { screen: "today" },
+            },
+            trigger: item.daily
+              ? {
+                  type: n.SchedulableTriggerInputTypes.DAILY,
+                  hour: prefs.hour,
+                  minute: prefs.minute,
+                  channelId: "retos",
+                }
+              : {
+                  type: n.SchedulableTriggerInputTypes.DATE,
+                  date: item.date!,
+                  channelId: "retos",
+                },
+          });
+        }
+      }
+      await AsyncStorage.setItem(prefKey(), JSON.stringify(prefs));
     });
+  pending = work;
+  return work;
+}
+export async function refreshDevice() {
+  const p = await loadPreferences();
+  await registerDevice({
+    ...p,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  });
+}
+export async function disableDevice() {
+  const p = await loadPreferences();
+  await registerDevice({ ...p, enabled: false });
+}
+export async function presentInbox(messages: FamilyMessage[]) {
+  const state = store.getState().app,
+    prefs = await loadPreferences(),
+    n = await notifications();
+  if (
+    !n ||
+    !state.uid ||
+    !prefs.enabled ||
+    !messages.length ||
+    !state.settings.notificationsEnabled ||
+    state.controls.remindersPaused
+  )
+    return;
   n.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: true,
@@ -63,57 +143,48 @@ export async function registerDevice(
       shouldSetBadge: false,
     }),
   });
-  let permission = await n.getPermissionsAsync();
-  if (askPermission && prefs.enabled && permission.status !== "granted")
-    permission = await n.requestPermissionsAsync();
-  if (prefs.enabled && permission.status !== "granted")
-    throw new Error(
-      "Activa el permiso de notificaciones en los ajustes de tu teléfono.",
-    );
-  const projectId =
-    Constants.easConfig?.projectId ??
-    Constants.expoConfig?.extra?.eas?.projectId;
-  if (prefs.enabled && !projectId)
-    throw new Error(
-      "Falta vincular este proyecto a Expo/EAS para activar las notificaciones.",
-    );
-  const token = prefs.enabled
-    ? (await n.getExpoPushTokenAsync({ projectId })).data
-    : null;
-  await callBackend("saveDevice", {
-    deviceId: await deviceId(),
-    token,
-    platform: Platform.OS,
-    ...prefs,
-  });
-  await AsyncStorage.setItem(prefKey(), JSON.stringify(prefs));
-}
-export async function refreshDevice() {
-  const prefs = await loadPreferences();
-  await registerDevice({
-    ...prefs,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  });
-}
-export async function disableDevice() {
-  if (Platform.OS === "web" || store.getState().app.demo) return;
-  const prefs = await loadPreferences();
-  await registerDevice({ ...prefs, enabled: false });
+  const latest = messages[0],
+    key = `@entre-dos/message-notified/${state.uid}`;
+  if (!latest.createdAt || (await AsyncStorage.getItem(key)) === latest.id)
+    return;
+  if ((await n.getPermissionsAsync()).status !== "granted") return;
+  if (
+    latest.createdAt &&
+    Date.now() - Date.parse(String(latest.createdAt)) < 86400000
+  )
+    await n.scheduleNotificationAsync({
+      content: {
+        title: latest.title,
+        body: latest.body,
+        data: { screen: "inbox" },
+        sound: "default",
+      },
+      trigger: null,
+    });
+  await AsyncStorage.setItem(key, latest.id);
 }
 export function notificationResponseListener(
-  onTap: () => void,
-): { remove(): void } | null {
+  onTap: (screen?: string) => void,
+): { remove(): void } {
   let removed = false;
   let subscription: { remove(): void } | undefined;
-  notifications().then(async (n) => {
-    if (!n || removed) return;
-    subscription = n.addNotificationResponseReceivedListener(onTap);
-    const last = await n.getLastNotificationResponseAsync();
-    if (last && !removed) {
-      onTap();
-      await n.clearLastNotificationResponseAsync();
-    }
-  });
+  notifications()
+    .then(async (n) => {
+      if (!n || removed) return;
+      subscription = n.addNotificationResponseReceivedListener((response) =>
+        onTap(
+          String(response.notification.request.content.data?.screen ?? "today"),
+        ),
+      );
+      const last = await n.getLastNotificationResponseAsync();
+      if (last && !removed) {
+        onTap(
+          String(last.notification.request.content.data?.screen ?? "today"),
+        );
+        await n.clearLastNotificationResponseAsync();
+      }
+    })
+    .catch(() => {});
   return {
     remove() {
       removed = true;

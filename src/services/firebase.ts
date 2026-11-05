@@ -1,7 +1,6 @@
 import { initializeApp, getApps } from "firebase/app";
 import { initializeAuth, getAuth, type Auth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getFunctions } from "firebase/functions";
 import { persistence } from "./persistence";
 
 const config = {
@@ -26,9 +25,3 @@ function createAuth(): Auth | null {
 }
 export const auth = createAuth();
 export const db = app ? getFirestore(app) : null;
-export const cloud = app
-  ? getFunctions(
-      app,
-      process.env.EXPO_PUBLIC_FIREBASE_FUNCTIONS_REGION || "us-central1",
-    )
-  : null;

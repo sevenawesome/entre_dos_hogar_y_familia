@@ -8,6 +8,7 @@ import { validateLevel } from "../domain/admin-validation";
 import type { AppSettings, Family, Level } from "../domain/types";
 import { FamilyForm } from "../components/FamilyForm";
 import { AdminJourneyPreview } from "../components/AdminJourneyPreview";
+import { bundledLevels } from "../data/catalog";
 import {
   Screen,
   Heading,
@@ -113,7 +114,7 @@ export default function Admin() {
     return (
       <Screen>
         <Heading title="Administración" />
-        <Notice text="Este espacio requiere una cuenta con rol de administrador. El propietario asigna el acceso desde Firebase Admin." />
+        <Notice text="Este espacio requiere una cuenta con rol de administrador. El propietario asigna el primer acceso por UID en Firestore; después se administra desde la pestaña Admin." />
         <Button secondary title="Volver" onPress={() => router.back()} />
       </Screen>
     );
@@ -125,7 +126,7 @@ export default function Admin() {
         style={[s.row, { minHeight: 40 }]}
       >
         <Ionicons name="arrow-back" size={23} color={colors.ink} />
-        <Text style={s.label}>Información</Text>
+        <Text style={s.label}>Volver</Text>
       </Pressable>
       <Heading
         eyebrow={
@@ -135,7 +136,7 @@ export default function Admin() {
         subtitle="La app, los capítulos y el acompañamiento a las familias."
       />
       {app.demo && (
-        <Notice text="Esta vista permite revisar la administración. Para guardar cambios reales, conecta Firebase y asigna el rol al correo del administrador. La vista previa no modifica datos de otras cuentas." />
+        <Notice text="Esta vista permite revisar la administración. Para guardar cambios reales, activa las reglas y asigna el primer rol propietario al UID de la cuenta en Firestore. La vista previa no modifica datos de otras cuentas." />
       )}
       <View style={[s.row, { flexWrap: "wrap" }]}>
         {(["app", "levels", "families"] as const).map((key) => (
@@ -217,7 +218,7 @@ export default function Admin() {
           />
           <View style={s.row}>
             <Text style={[s.label, { flex: 1 }]}>
-              Enviar recordatorios a las familias
+              Permitir recordatorios en los teléfonos
             </Text>
             <Switch
               accessibilityLabel="Activar notificaciones globales"
@@ -305,6 +306,36 @@ export default function Admin() {
               title="Preparar otro nivel"
               icon="add"
               onPress={newDraft}
+            />
+            {!levels.some((level) => level.id === bundledLevels[0].id) && (
+              <Button
+                secondary
+                title="Preparar los 30 retos originales del nivel 1"
+                onPress={() => {
+                  setJson(JSON.stringify(bundledLevels[0], null, 2));
+                  setPreview(null);
+                  setConfirmed(false);
+                }}
+              />
+            )}
+            <Button
+              secondary
+              title="Cargar catálogo inicial de bodas"
+              disabled={!canEdit}
+              busy={busy}
+              onPress={() =>
+                run(async () => {
+                  const response = await callBackend(
+                    "adminLoadAnniversaries",
+                    {},
+                  );
+                  setMessage(
+                    (response.data as { already?: boolean }).already
+                      ? "El catálogo ya existe y se conservaron sus cambios."
+                      : "Catálogo de bodas guardado en Firebase.",
+                  );
+                })
+              }
             />
           </Card>
           <Card>

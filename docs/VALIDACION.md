@@ -1,71 +1,67 @@
-# Validación previa a producción
+# Validación de la versión Firebase Spark
 
-## Comprobaciones realizadas en desarrollo
+Verificado el 5 de noviembre de 2026. No se han escrito cuentas, roles, mensajes ni contenido de prueba en `entre-dos-db`.
+
+## Comprobado localmente
 
 - TypeScript y lint sin errores.
-- 69 pruebas automatizadas aprobadas: avance diario también entre niveles, estados del recorrido, validación de administración, protección de las seis funciones administrativas, guía, fechas, catálogo y avisos combinados, incluidos años bisiestos.
-- Expo Doctor: 20 de 20 comprobaciones aprobadas.
-- Exportación de bundles Android, iOS y web completada. Esto verifica el empaquetado; no equivale a ejecutar un binario nativo.
-- Backend TypeScript compilado y sus doce funciones cargadas localmente. Las pruebas invocan los seis handlers administrativos para verificar rechazo de peticiones anónimas o de usuarios normales; las escrituras autorizadas aún requieren Firebase real o emuladores.
-- Interfaz revisada en navegador de 390 × 844: registro familiar, primer reto, confirmación de participación, nota guardada, historial y siguiente reto bloqueado hasta mañana.
-- Demostración conserva la familia al volver a entrar.
-- Guía automática de cinco pasos recorrida hasta el final, regreso a Hoy y ayuda permanente revisados en navegador móvil de 390 × 844. Vista previa administrativa comprobada: nivel actual, final sin sucesor y nuevo nivel con 50 retos ficticios, sin publicar datos.
-- Capturas con datos ficticios: `preview-nivel.jpg`, `preview-guia.jpg`, `preview-informacion.jpg`, `preview-nivel-completo.jpg` y `preview-nivel-nuevo.jpg`.
-- Firebase `entre-dos-db` configurado en `.env` local con el bloque recibido; archivo excluido de Git. Comprobación real de solo lectura: Authentication devuelve `CONFIGURATION_NOT_FOUND` y Firestore informa API no habilitada/no usada. No hay cuentas en Firebase CLI ni credenciales ADC locales; despliegue y catálogo pendientes. El ID de Expo está preparado, pero falta sesión EAS para confirmar propietario/slug.
-- Auditoría npm del backend: 0 vulnerabilidades. En el cliente no quedan alertas altas o críticas; `npm audit --omit=dev` informa 5 moderadas en la cadena de herramientas de Expo (`expo`, `@expo/cli`, `@expo/fingerprint`, `glob`, `minimatch`). Se conservan las versiones compatibles con SDK 58 y se deben revisar al actualizar Expo; no se aplicaron cambios mayores forzados a sus dependencias.
+- 82 pruebas de dominio y regresión aprobadas, incluidas privacidad de la proyección pública, fotos, acompañamiento y programación local de celebraciones.
+- 26 pruebas de seguridad aprobadas contra Firestore Emulator, en el proyecto aislado `demo-entre-dos-rules`. Comprueban creación atómica de familia/resumen, aislamiento entre familias, privacidad de notas incluso frente a administradores, secuencia de retos, intervalo de 24 horas con hora del servidor, cuestionario completo y bloqueo de respuestas inválidas.
+- Casos positivos de límites: nivel de 50 retos, cuestionario de 30 respuestas multilínea y familia con diez hijos. También se probaron concesión/revocación de administradores, protección del propietario, auditoría, bandeja privada, consentimiento público, contadores no falsificables, miniaturas y marcador de eliminación.
+- Expo Doctor: 20/20 comprobaciones aprobadas.
+- Exportación de bundles Android, iOS y web completada. Esto comprueba el empaquetado; no equivale a ejecutar un binario nativo.
+- Navegador de 390 × 844: demostración persistente, foto elegida y comprimida desde el selector, consentimiento independiente para aniversario/progreso y perfil en Comunidad; completar el primer reto guarda la nota y bloquea el siguiente por 24 horas; panel Admin con progreso proporcional al tamaño real del nivel, fechas próximas, mensajes y revisión de permisos. Las acciones de administración están deshabilitadas en demostración.
+- Capturas nuevas con datos ficticios: `preview-comunidad.jpg`, `preview-admin.jpg` y `preview-celebraciones.jpg`. Las capturas anteriores conservan evidencia de guía, niveles, final sin sucesor y nuevo nivel.
+- Configuración Firebase recibida en `.env` local excluido de Git. Las capturas del propietario muestran Authentication por correo habilitado y Firestore creado. Sin sesión Firebase CLI/ADC para desplegar; el rol propietario real y la carga inicial siguen pendientes.
+- Auditoría npm del cliente en producción: 0 altas/críticas, 5 moderadas en la cadena de herramientas de Expo. Se mantienen versiones compatibles con SDK 58, sin forzar actualizaciones mayores.
 
-Solo se consultaron los servicios reales para diagnosticar su configuración; no se crearon cuentas, documentos ni datos de prueba remotos. Aún no se han ejecutado flujos completos con Firebase real, emuladores, dispositivos físicos, credenciales push ni envíos a tiendas. Las comprobaciones siguientes permanecen pendientes de esos entornos.
+Las fuentes antiguas de Cloud Functions se compilan como regresión, pero no están conectadas al cliente ni se despliegan con `firebase.json`. El funcionamiento actual depende de transacciones del cliente y reglas de Firestore.
 
-## Cuentas y datos
+## Repetir comprobaciones
 
-- [ ] Registro y recuperación de contraseña con Firebase real.
-- [ ] Pareja registrada en A; acceso con la misma cuenta en B conserva familia y progreso.
-- [ ] Editar hijos/apodos se refleja en ambos.
-- [ ] Guardar o editar matrimonio en A actualiza la fecha y el aro en B; las cuentas anteriores sin fecha siguen funcionando.
-- [ ] Guardar cumpleaños de ambos integrantes y de hijos en A actualiza edades y barras en B.
-- [ ] Eliminar un cumpleaños dejando vacío el campo detiene sus saludos posteriores.
-- [ ] Publicar una versión nueva del catálogo actualiza nombres y significados sin recompilar.
-- [ ] Una segunda familia no puede leer ni escribir datos de la primera.
-- [ ] Escritura directa de progreso o catálogo desde el cliente es rechazada.
-- [ ] Completar simultáneamente en A y B produce una sola finalización.
-- [ ] Sin conexión, completar muestra error y no indica éxito.
-- [ ] El próximo reto se abre al día siguiente de la zona horaria familiar.
-- [ ] El cuestionario se habilita tras todos los retos; conseguir el nivel requiere todas sus respuestas.
-- [ ] Publicar un nivel nuevo con Admin lo muestra en ambos sin actualizar la app.
-- [ ] Nivel nuevo bloqueado hasta finalizar el cuestionario del anterior.
-- [ ] Finalizar el último nivel muestra celebración y conserva recuerdos; publicar otro cambia el aviso en ambos teléfonos.
-- [ ] Una cuenta con custom claim `admin: true` puede configurar mensajes, guardar un borrador y publicar un nivel válido.
-- [ ] Revocar el rol impide usar las funciones incluso con un token anterior.
-- [ ] Borradores no aparecen a las familias; editar retos/preguntas de un nivel publicado se rechaza.
-- [ ] Cambios administrativos de familia y pausa quedan auditados; las notas y respuestas no se muestran en el panel.
-- [ ] La guía aparece en la primera visita de cada cuenta en cada teléfono y puede reabrirse desde Información.
+```powershell
+npm run check
+npx expo export --platform all
+npx expo-doctor
+```
 
-## Notificaciones en Android e iOS
+Con Java 21 instalado:
 
-- [ ] Build con ID EAS válido, credenciales FCM v1/APNs y funciones desplegadas.
-- [ ] Guardar horarios distintos en ambos teléfonos registra dos dispositivos.
-- [ ] Con la app cerrada, llega el aviso dentro de la siguiente ventana del programador.
-- [ ] Al tocar el aviso se abre Hoy.
-- [ ] Si no completan el reto, se recuerda al día siguiente.
-- [ ] Tras completar en A, el siguiente aviso de B corresponde al progreso compartido.
-- [ ] Denegar permisos explica cómo activarlos; guardar no indica éxito.
-- [ ] Pausar o cerrar sesión en A detiene sus avisos y conserva los de B.
-- [ ] La pausa global y la pausa administrativa de una familia detienen sus avisos; reactivarlas conserva preferencias por teléfono.
-- [ ] Tras terminar retos y cuestionario, cesan los avisos; un nivel nuevo los reactiva.
-- [ ] Con todos los niveles conseguidos, el aniversario sigue enviando un saludo a ambos teléfonos en sus horarios elegidos.
-- [ ] El aviso del aniversario incluye el reto si hay uno pendiente; no incluye notas privadas.
-- [ ] Saludo registrado por dispositivo y aniversario; pausar avisos lo desactiva también.
-- [ ] Dos cumpleaños simultáneos incluyen ambas personas; aniversario y reto también permanecen en el aviso cuando corresponden.
-- [ ] Revisar logs de recibos y eliminación de tokens inválidos.
-- [ ] Comprobar comportamiento al cambiar zona horaria del teléfono y al reinstalar.
+```powershell
+npx firebase-tools@latest emulators:exec --only firestore --project demo-entre-dos "npm run test:rules"
+```
 
-## Tiendas y dispositivos
+`test:rules` necesita el emulador de Firestore en `127.0.0.1:8080`; inicializa y limpia únicamente la base demo indicada en el test.
 
-- [ ] Revisar teclado, texto grande, lector de pantalla, teléfono pequeño y tablet.
-- [ ] Probar iconos, splash y apertura desde push en builds release.
-- [ ] Revisar política de privacidad pública, contacto y declaraciones de datos.
-- [ ] Eliminación requiere sesión reciente; borra Auth y datos en ambos dispositivos.
-- [ ] Usuarios de otra familia conservan sus datos después de esa eliminación.
-- [ ] Confirmar identificadores de app, versión y cuentas propietarias antes de enviar.
+## Pendiente con el proyecto real
 
-Estas comprobaciones requieren los proyectos y teléfonos del propietario. No se consideran realizadas solo por aprobar typecheck, lint o las pruebas locales.
+- [ ] Desplegar solo las reglas e índices de Firestore; registrar la primera familia y asignar `roles/UID.role = owner` desde la consola del propietario.
+- [ ] Cargar los 30 retos originales, catálogo de bodas y configuración desde Admin.
+- [ ] Registro, recuperación de contraseña y acceso simultáneo a una cuenta desde dos teléfonos.
+- [ ] Edición de matrimonio/cumpleaños, edades, catálogo remoto y sincronización entre ambos teléfonos.
+- [ ] Completar simultáneamente el mismo reto desde A y B genera un único avance; errores de conexión no se anuncian como éxito.
+- [ ] El siguiente reto abre a las 24 horas del anterior, también entre niveles; el cuestionario consigue el nivel.
+- [ ] Publicar un nivel futuro de 50 retos cambia el estado de recorrido terminado a capítulo nuevo sin recompilar.
+- [ ] Conceder/revocar roles con dos sesiones reales. Las notas y cuestionarios permanecen inaccesibles al administrador.
+- [ ] Mensaje de Admin aparece solo en la bandeja destinataria al sincronizar; confirmar el guardado no promete entrega/lectura.
+- [ ] Desactivar Comunidad retira el perfil de consultas posteriores. Los datos públicos previamente vistos no pueden recuperarse de copias ajenas.
+- [ ] Foto desde Android/iOS, orientación, recorte, compresión, reemplazo y retirada.
+- [ ] Eliminación con sesión reciente, reintento tras interrupción y bloqueo de escrituras con tokens antiguos. El propietario transfiere su rol antes de eliminarse.
+
+## Notificaciones locales en Android e iOS
+
+- [ ] Development builds con el módulo de fotos actualizado; no se necesitan FCM/APNs de envío remoto.
+- [ ] Permisos y horarios diferentes por teléfono; aviso diario general con la app cerrada y apertura de Hoy al tocarlo.
+- [ ] Cumpleaños y aniversarios de los próximos dos años, incluidos años bisiestos y varias celebraciones el mismo día.
+- [ ] Completar todo elimina el diario al sincronizar y conserva celebraciones. Un nivel nuevo lo reactiva después de abrir/sincronizar.
+- [ ] Pausa global/familiar, cambio de zona horaria y cambios hechos en el otro teléfono se aplican después de sincronizar; un teléfono cerrado conserva su programación anterior.
+- [ ] Mensaje recién sincronizado presenta aviso local si los permisos están activos; al tocarlo abre la bandeja y no lo repite.
+- [ ] Cierre de sesión cancela avisos propios; denegar permisos explica cómo activarlos.
+- [ ] Comprobar restricciones de batería y comportamiento del sistema en builds release. No se promete hora exacta ni push remoto inmediato con la app cerrada.
+
+## Publicación
+
+- [ ] Confirmar propietario/slug EAS, identificadores finales y variables del entorno de builds.
+- [ ] Teléfono pequeño, texto grande, lector de pantalla, teclado, iconos y splash en Android/iPhone.
+- [ ] Política de privacidad pública, contacto, eliminación y declaraciones de datos de ambas tiendas.
+- [ ] Cuentas de tiendas y binarios firmados. No se ha enviado ninguna versión a Google Play o App Store.

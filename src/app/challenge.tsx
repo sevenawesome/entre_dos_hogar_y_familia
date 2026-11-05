@@ -172,7 +172,7 @@ export default function Challenge() {
                   text={
                     isUnlocked(level, progress) &&
                     currentChallenge(level, p)?.id === challenge.id
-                      ? "Su próximo reto estará disponible mañana. Hoy pueden descansar y disfrutar lo compartido."
+                      ? "Su próximo reto se abre 24 horas después del anterior. Disfruten lo que ya compartieron."
                       : "Completen primero los retos anteriores para llegar a este momento."
                   }
                 />

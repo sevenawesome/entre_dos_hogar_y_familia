@@ -1,17 +1,29 @@
 import { store, actions } from "../store";
+import { publicProjection } from "../domain/community";
 import {
   currentChallenge,
   emptyProgress,
   isUnlocked,
   canCompleteJourney,
-  nextLocalDay,
 } from "../domain/progress";
-import { callBackend, saveFamily } from "./api";
+import { saveFamily } from "./api";
+import { completeSparkChallenge, finishSparkLevel } from "./spark";
 import type { Family } from "../domain/types";
+function syncDemoProfile() {
+  const state = store.getState().app;
+  if (state.demo && state.family && state.communityProfile)
+    store.dispatch(
+      actions.communityProfile(
+        publicProjection(state.communityProfile, state.family, state.progress),
+      ),
+    );
+}
 export async function updateFamily(family: Family) {
   const state = store.getState().app;
-  if (state.demo) store.dispatch(actions.family(family));
-  else await saveFamily(state.uid!, family);
+  if (state.demo) {
+    store.dispatch(actions.family(family));
+    syncDemoProfile();
+  } else await saveFamily(state.uid!, family);
 }
 export async function completeChallenge(
   levelId: string,
@@ -20,7 +32,7 @@ export async function completeChallenge(
 ) {
   const state = store.getState().app;
   if (!state.demo) {
-    await callBackend("completeChallenge", { levelId, challengeId, note });
+    await completeSparkChallenge(levelId, challengeId, note);
     return;
   }
   const level = state.levels.find((l) => l.id === levelId)!;
@@ -31,7 +43,7 @@ export async function completeChallenge(
     currentChallenge(level, previous)?.id !== challengeId ||
     !canCompleteJourney(state.progress)
   )
-    throw new Error("El próximo reto estará disponible mañana.");
+    throw new Error("El próximo reto se abre 24 horas después del anterior.");
   store.dispatch(
     actions.progress({
       ...state.progress,
@@ -45,10 +57,11 @@ export async function completeChallenge(
             note: note.trim(),
           },
         ],
-        nextAvailableAt: nextLocalDay(state.family!.timezone),
+        nextAvailableAt: new Date(Date.now() + 86400000).toISOString(),
       },
     }),
   );
+  syncDemoProfile();
 }
 export async function finishLevel(
   levelId: string,
@@ -56,7 +69,7 @@ export async function finishLevel(
 ) {
   const state = store.getState().app;
   if (!state.demo) {
-    await callBackend("finishLevel", { levelId, answers });
+    await finishSparkLevel(levelId, answers);
     return;
   }
   const level = state.levels.find((l) => l.id === levelId)!;
@@ -75,4 +88,5 @@ export async function finishLevel(
       [levelId]: { ...previous, answers, finishedAt: new Date().toISOString() },
     }),
   );
+  syncDemoProfile();
 }

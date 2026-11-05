@@ -65,11 +65,22 @@ async function main() {
     projectId: process.env.GCLOUD_PROJECT,
   });
   const db = getFirestore();
+  level.questionIds = level.questions.map((q) => q.id);
   await db.runTransaction(async (tx) => {
     const ref = db.doc(`levels/${level.id}`),
       existing = await tx.get(ref);
     if (existing.exists) {
-      if (isDeepStrictEqual(existing.data(), level)) return;
+      const { auditId, publishedAt, questionIds, ...original } =
+        existing.data();
+      const { questionIds: expectedIds, ...source } = level;
+      if (isDeepStrictEqual(original, source)) {
+        const reservation = await tx.get(db.doc(`levelOrders/${level.order}`));
+        if (reservation.exists && reservation.data().levelId !== level.id)
+          throw new Error("Orden reservado por otro nivel.");
+        tx.update(ref, { questionIds: expectedIds });
+        tx.set(db.doc(`levelOrders/${level.order}`), { levelId: level.id });
+        return;
+      }
       throw new Error(
         "No se sobrescribe un nivel existente: conserva los retos y publica una nueva versión con otro ID.",
       );
@@ -94,6 +105,7 @@ async function main() {
         );
     }
     tx.create(ref, level);
+    tx.set(db.doc(`levelOrders/${level.order}`), { levelId: level.id });
   });
   console.log(
     `Nivel ${level.id} publicado en ${process.env.GCLOUD_PROJECT}: ${level.challenges.length} retos.`,

@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useApp } from "../../store";
 import { useNow } from "../../components/useNow";
 import { Brand } from "../../components/Brand";
+import { Avatar } from "../../components/Avatar";
 import { AnniversaryCard } from "../../components/AnniversaryCard";
 import { BirthdaysCard } from "../../components/BirthdaysCard";
 import { CreatorFooter } from "../../components/CreatorFooter";
@@ -36,6 +37,7 @@ export default function Today() {
     controls,
     catalogReady,
     progressReady,
+    avatar,
   } = useApp();
   const now = useNow();
   const journey = getJourney(levels, progress, catalogReady && progressReady);
@@ -71,10 +73,7 @@ export default function Today() {
             justifyContent: "center",
           }}
         >
-          <Text style={{ color: colors.ink, fontWeight: "600" }}>
-            {family?.partner1[0]}
-            {family?.partner2[0]}
-          </Text>
+          <Avatar uri={avatar} name={family?.name ?? "Familia"} size={40} />
         </Pressable>
       </View>
       {demo && (
@@ -175,7 +174,7 @@ export default function Today() {
             <Text style={[s.body, { color: "#6F4E68" }]}>
               {challenge
                 ? waiting
-                  ? "Ya cuidaron su relación hoy. Su siguiente momento se abre mañana."
+                  ? "Ya completaron su reto anterior. El siguiente se abre 24 horas después del último."
                   : challenge.description
                 : "Cierren este capítulo con una reflexión juntos para conseguir el nivel."}
             </Text>
@@ -191,7 +190,7 @@ export default function Today() {
               title={
                 challenge
                   ? waiting
-                    ? "Conocer el reto de mañana"
+                    ? "Conocer el próximo reto"
                     : "Hagamos este reto"
                   : "Nuestra reflexión final"
               }

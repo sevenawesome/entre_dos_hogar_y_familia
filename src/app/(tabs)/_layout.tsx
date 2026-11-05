@@ -1,7 +1,9 @@
 import { Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { colors } from "../../components/ui";
+import { useApp } from "../../store";
 export default function TabLayout() {
+  const { isAdmin, demo } = useApp();
   return (
     <Tabs
       screenOptions={{
@@ -34,7 +36,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="levels"
         options={{
-          title: "Nuestro camino",
+          title: "Camino",
           tabBarIcon: ({ focused, size }) => (
             <Ionicons
               name="trail-sign-outline"
@@ -47,12 +49,26 @@ export default function TabLayout() {
       <Tabs.Screen
         name="memories"
         options={{
+          href: null,
           title: "Recuerdos",
           tabBarIcon: ({ focused, size }) => (
             <Ionicons
               name="book-outline"
               size={size}
               color={focused ? colors.rose : colors.muted}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="community"
+        options={{
+          title: "Comunidad",
+          tabBarIcon: ({ focused, size }) => (
+            <Ionicons
+              name="heart-circle-outline"
+              color={focused ? colors.rose : colors.muted}
+              size={size}
             />
           ),
         }}
@@ -73,12 +89,26 @@ export default function TabLayout() {
       <Tabs.Screen
         name="information"
         options={{
-          title: "Información",
+          title: "Info",
           tabBarIcon: ({ focused, size }) => (
             <Ionicons
               name="information-circle-outline"
               size={size}
               color={focused ? colors.rose : colors.muted}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="administration"
+        options={{
+          title: "Admin",
+          href: isAdmin || demo ? undefined : null,
+          tabBarIcon: ({ focused, size }) => (
+            <Ionicons
+              name="shield-checkmark-outline"
+              color={focused ? colors.rose : colors.muted}
+              size={size}
             />
           ),
         }}

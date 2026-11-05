@@ -10,6 +10,7 @@ import { useNow } from "../../components/useNow";
 import { signOut } from "firebase/auth";
 import { useApp, store, actions } from "../../store";
 import { FamilyForm } from "../../components/FamilyForm";
+import { ProfileSharing } from "../../components/ProfileSharing";
 import { auth } from "../../services/firebase";
 import {
   disableDevice,
@@ -29,7 +30,7 @@ import {
   colors,
 } from "../../components/ui";
 export default function FamilyScreen() {
-  const { family, demo, uid, settings, controls } = useApp();
+  const { family, demo, uid, settings, controls, communityProfile } = useApp();
   const now = useNow();
   const { edit } = useLocalSearchParams<{ edit?: string }>();
   const [editingManually, setEditing] = useState(false),
@@ -119,6 +120,9 @@ export default function FamilyScreen() {
       )}
       {(!settings.notificationsEnabled || controls.remindersPaused) && (
         <Notice text="La administración ha pausado los avisos. Tu horario se conserva y podrás seguir haciendo retos." />
+      )}
+      {!editing && family && (
+        <ProfileSharing key={`${uid}-${!!communityProfile}`} />
       )}
       {editing ? (
         <Card>

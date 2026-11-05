@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import { Stack, router, useSegments } from "expo-router";
-import { onAuthStateChanged, onIdTokenChanged } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { store, actions, useApp } from "../store";
@@ -14,6 +14,7 @@ import {
   subscribeAnniversaries,
   subscribeSettings,
   subscribeControls,
+  subscribeSocial,
 } from "../services/api";
 import { FirstVisitGuide } from "../components/FirstVisitGuide";
 import { colors, Notice } from "../components/ui";
@@ -21,11 +22,25 @@ import {
   notificationResponseListener,
   registerDevice,
   refreshDevice,
+  presentInbox,
 } from "../services/notifications";
 import { AppState } from "react-native";
 
 function AppLayout() {
-  const { ready, uid, demo, family, error } = useApp();
+  const {
+    ready,
+    uid,
+    demo,
+    family,
+    error,
+    progress,
+    levels,
+    settings,
+    controls,
+    inbox,
+    catalogReady,
+    progressReady,
+  } = useApp();
   const [familyLoaded, setFamilyLoaded] = useState(false);
   const segments = useSegments();
   const hasFamily = !!family;
@@ -42,23 +57,10 @@ function AppLayout() {
     });
   }, []);
   useEffect(() => {
-    if (!auth) return;
-    return onIdTokenChanged(auth, async (user) => {
-      if (!user || store.getState().app.demo) return;
-      try {
-        const token = await user.getIdTokenResult();
-        if (store.getState().app.uid === user.uid)
-          store.dispatch(actions.admin(token.claims.admin === true));
-      } catch {
-        if (store.getState().app.uid === user.uid)
-          store.dispatch(actions.admin(false));
-      }
-    });
-  }, []);
-  useEffect(() => {
     if (!uid || demo) return;
     const fail = (e: Error) => store.dispatch(actions.error(friendlyError(e)));
     const stops = [
+      ...subscribeSocial(uid, fail),
       subscribeFamily(
         uid,
         (f) => {
@@ -107,12 +109,34 @@ function AppLayout() {
     const state = AppState.addEventListener("change", (status) => {
       if (status === "active") refreshDevice().catch(() => {});
     });
-    const listener = notificationResponseListener(() => router.push("/(tabs)"));
+    const listener = notificationResponseListener((screen) =>
+      router.push(screen === "inbox" ? "/inbox" : "/(tabs)"),
+    );
     return () => {
       state.remove();
       listener?.remove();
     };
   }, [uid, demo, hasFamily]);
+  const reminderKey = JSON.stringify({
+    uid,
+    family,
+    catalogReady,
+    progressReady,
+    levels: levels.map((l) => l.id),
+    progress: Object.values(progress).map((p) => [
+      p.levelId,
+      p.completions.length,
+      p.finishedAt,
+    ]),
+    enabled: settings.notificationsEnabled,
+    paused: controls.remindersPaused,
+  });
+  useEffect(() => {
+    if (uid && !demo && hasFamily) refreshDevice().catch(() => {});
+  }, [uid, demo, hasFamily, reminderKey]);
+  useEffect(() => {
+    if (uid && !demo) presentInbox(inbox).catch(() => {});
+  }, [uid, demo, inbox]);
   return (
     <>
       <StatusBar style="dark" />

@@ -4,30 +4,26 @@
       "collectionGroup": "levels",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "published", "order": "ASCENDING" },
-        { "fieldPath": "order", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "devices",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "enabled", "order": "ASCENDING" },
-        { "fieldPath": "nextReminderAt", "order": "ASCENDING" }
+        {
+          "fieldPath": "published",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "order",
+          "order": "ASCENDING"
+        }
       ]
     }
   ],
   "fieldOverrides": [
     {
-      "collectionGroup": "pushReceipts",
-      "fieldPath": "expiresAt",
-      "ttl": true,
+      "collectionGroup": "community",
+      "fieldPath": "avatar",
       "indexes": []
     },
     {
-      "collectionGroup": "deletedAccounts",
-      "fieldPath": "expiresAt",
-      "ttl": true,
+      "collectionGroup": "avatars",
+      "fieldPath": "dataUri",
       "indexes": []
     }
   ]

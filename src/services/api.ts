@@ -3,11 +3,13 @@ import {
   doc,
   onSnapshot,
   query,
-  setDoc,
   where,
+  limit,
+  orderBy,
 } from "firebase/firestore";
-import { httpsCallable } from "firebase/functions";
-import { db, cloud } from "./firebase";
+import { db } from "./firebase";
+import { store, actions } from "../store";
+import { milliseconds, DAY_MS } from "../domain/community";
 import type {
   Family,
   Level,
@@ -15,6 +17,9 @@ import type {
   AnniversaryCatalog,
   AppSettings,
   FamilyControls,
+  AccountRole,
+  CommunityProfile,
+  FamilyMessage,
 } from "../domain/types";
 import { defaultSettings } from "../domain/settings";
 import { bundledAnniversaries } from "../data/anniversaries";
@@ -32,6 +37,57 @@ export function subscribeSettings(
       ),
     onError,
   );
+}
+export function subscribeSocial(uid: string, onError: (e: Error) => void) {
+  return [
+    onSnapshot(
+      doc(db!, "roles", uid),
+      (snap) =>
+        store.dispatch(
+          actions.role((snap.data()?.role ?? "member") as AccountRole),
+        ),
+      onError,
+    ),
+    onSnapshot(
+      doc(db!, "avatars", uid),
+      (snap) => store.dispatch(actions.avatar(snap.data()?.dataUri ?? null)),
+      onError,
+    ),
+    onSnapshot(
+      doc(db!, "community", uid),
+      (snap) => {
+        if (!snap.exists()) {
+          store.dispatch(actions.communityProfile(null));
+          return;
+        }
+        const { updatedAt: _updated, ...data } = snap.data();
+        store.dispatch(actions.communityProfile(data as CommunityProfile));
+      },
+      onError,
+    ),
+    onSnapshot(
+      query(
+        collection(db!, "families", uid, "inbox"),
+        orderBy("createdAt", "desc"),
+        limit(30),
+      ),
+      (snap) =>
+        store.dispatch(
+          actions.inbox(
+            snap.docs.map(
+              (d) =>
+                ({
+                  ...d.data(),
+                  id: d.id,
+                  createdAt:
+                    d.data().createdAt?.toDate?.().toISOString() ?? null,
+                }) as FamilyMessage,
+            ),
+          ),
+        ),
+      onError,
+    ),
+  ];
 }
 export function subscribeControls(
   uid: string,
@@ -81,7 +137,23 @@ export function subscribeProgress(
     (snap) =>
       callback(
         Object.fromEntries(
-          snap.docs.map((d) => [d.id, d.data()]),
+          snap.docs.map((d) => {
+            const data = d.data();
+            const time = milliseconds(data.lastCompletionAt);
+            return [
+              d.id,
+              {
+                levelId: data.levelId,
+                completions: data.completions,
+                answers: data.answers,
+                finishedAt: data.finishedAt,
+                nextAvailableAt:
+                  time !== null
+                    ? new Date(time + DAY_MS).toISOString()
+                    : data.nextAvailableAt,
+              },
+            ];
+          }),
         ) as ProgressMap,
       ),
     onError,
@@ -103,11 +175,17 @@ export function subscribeCatalog(
   );
 }
 export async function saveFamily(uid: string, family: Family) {
-  await setDoc(doc(db!, "families", uid), family, { merge: true });
+  const { saveSparkFamily } = await import("./spark");
+  await saveSparkFamily(uid, family);
 }
 export async function callBackend(name: string, data: unknown) {
-  if (!cloud) throw new Error("Firebase no está configurado.");
-  return httpsCallable(cloud, name)(data);
+  if (name === "deleteFamilyAccount") {
+    const { deleteSparkAccount } = await import("./spark");
+    await deleteSparkAccount();
+    return { data: { ok: true } };
+  }
+  const { adminRequest } = await import("./spark-admin");
+  return { data: await adminRequest(name, data) };
 }
 export function friendlyError(error: unknown): string {
   const code = (error as { code?: string }).code;

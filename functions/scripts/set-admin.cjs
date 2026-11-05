@@ -6,10 +6,10 @@ async function main() {
   if (
     !process.env.GCLOUD_PROJECT ||
     !target ||
-    !["grant", "revoke"].includes(mode)
+    !["owner", "grant", "revoke"].includes(mode)
   )
     throw new Error(
-      "Usa GCLOUD_PROJECT y set-admin.cjs <correo-o-uid> grant|revoke con credenciales del propietario.",
+      "Usa GCLOUD_PROJECT y set-admin.cjs <correo-o-uid> owner|grant|revoke con credenciales del propietario.",
     );
   initializeApp({
     credential: applicationDefault(),
@@ -20,20 +20,38 @@ async function main() {
       ? await auth.getUserByEmail(target)
       : await auth.getUser(target);
   if (user.disabled) throw new Error("La cuenta está deshabilitada.");
-  const claims = { ...user.customClaims };
-  if (mode === "grant") claims.admin = true;
-  else delete claims.admin;
-  await auth.setCustomUserClaims(user.uid, claims);
-  await getFirestore()
-    .collection("adminAudit")
-    .add({
+  const db = getFirestore(),
+    ref = db.doc(`roles/${user.uid}`);
+  const role =
+    mode === "owner" ? "owner" : mode === "grant" ? "admin" : "member";
+  await db.runTransaction(async (tx) => {
+    const current = await tx.get(ref);
+    if (current.data()?.role === "owner" && mode !== "owner")
+      throw new Error(
+        "Transfiere el propietario explícitamente desde la consola antes de retirarlo.",
+      );
+    const audit = db.collection("adminAudit").doc();
+    tx.set(ref, {
+      role,
+      updatedAt: Timestamp.now(),
+      updatedBy: "owner-cli",
+      auditId: audit.id,
+    });
+    tx.set(audit, {
       actorUid: "owner-cli",
       target: user.uid,
-      action: `admin.${mode}`,
+      action: `role.${mode}`,
       at: Timestamp.now(),
     });
+  });
+  // Remove legacy claims: current app/rules use the Firestore role and immediate revocation.
+  if (user.customClaims?.admin) {
+    const claims = { ...user.customClaims };
+    delete claims.admin;
+    await auth.setCustomUserClaims(user.uid, claims);
+  }
   console.log(
-    `Rol actualizado para ${user.uid}. Cierra sesión y vuelve a ingresar en la app para actualizar el acceso.`,
+    `Rol ${role} actualizado para ${user.uid}. La app recibe el permiso desde Firestore.`,
   );
 }
 main().catch((e) => {

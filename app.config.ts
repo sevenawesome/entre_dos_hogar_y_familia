@@ -42,6 +42,15 @@ const config: ExpoConfig = {
     "expo-router",
     "expo-font",
     [
+      "expo-image-picker",
+      {
+        photosPermission:
+          "ENTRE DOS usa la foto que elijas para el perfil de tu familia.",
+        cameraPermission: false,
+        microphonePermission: false,
+      },
+    ],
+    [
       "expo-notifications",
       {
         icon: "./assets/notification-icon.png",

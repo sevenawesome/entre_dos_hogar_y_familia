@@ -121,7 +121,7 @@ export function validateFamilyProfile(family: Family) {
     !text(family.partner1, 40) ||
     !text(family.partner2, 40) ||
     !Array.isArray(family.children) ||
-    family.children.length > 15 ||
+    family.children.length > 10 ||
     !text(family.timezone, 100)
   )
     throw new Error("Perfil familiar inválido.");

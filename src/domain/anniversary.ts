@@ -57,7 +57,12 @@ export function getAnnualEvent(
   includeDayZero = false,
 ): Anniversary | null {
   if (!marriageDate || !isCalendarDate(marriageDate)) return null;
-  const today = localDateISO(timezone, now);
+  let today: string;
+  try {
+    today = localDateISO(timezone, now);
+  } catch {
+    return null;
+  }
   if (marriageDate > today) return null;
   const [weddingYear, month, day] = marriageDate.split("-").map(Number);
   let year = Number(today.slice(0, 4));

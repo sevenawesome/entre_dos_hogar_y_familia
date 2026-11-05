@@ -1,44 +1,32 @@
-# Qué falta para terminar y publicar Entre dos
+# Pendientes para terminar ENTRE DOS
 
-La app se puede revisar en demostración. Para ponerla en funcionamiento con datos compartidos y avisos reales, se necesitan los siguientes proyectos y datos del propietario.
+## Firebase Spark
 
-## Firebase
+La configuración pública recibida está en `.env` local, excluido de Git. El propietario mostró Authentication por correo/contraseña habilitado y Firestore `(default)` creado. La versión actual usa Spark: no se necesita activar Blaze, Storage ni Cloud Functions.
 
-El proyecto **entre-dos-db** ya existe y quedó seleccionado en `.firebaserc`. El bloque `firebaseConfig` recibido está configurado en `.env` local con los seis valores que usa el SDK. Este archivo está excluido de Git. No hace falta volver a enviar la configuración. El fragmento `getAnalytics` de la consola no se incorpora: la app usa Authentication, Firestore y Functions y no necesita Analytics para su funcionamiento.
+Falta iniciar sesión localmente y desplegar las reglas e índices:
 
-La comprobación de solo lectura al servicio real detectó dos pendientes:
+```powershell
+npx firebase-tools@latest login
+npx firebase-tools@latest deploy --only firestore --project entre-dos-db
+```
 
-- Authentication respondió HTTP 400 `CONFIGURATION_NOT_FOUND`. En [Authentication](https://console.firebase.google.com/project/entre-dos-db/authentication/providers), pulsa Comenzar y habilita **Correo electrónico/contraseña**.
-- Firestore respondió HTTP 403 indicando que su API no está habilitada o no se ha usado. En [Firestore](https://console.firebase.google.com/project/entre-dos-db/firestore), crea la base `(default)` en **modo producción**. Elige una ubicación teniendo en cuenta a los usuarios; `us-central1` es la región ya preparada para las funciones del servidor. Luego desplegaremos las reglas del repositorio antes de guardar datos.
+Luego registra tu cuenta y familia en la app, copia el UID de Authentication y crea con permisos del propietario `roles/UID` con `role: owner` (string). Desde Admin puedes cargar el nivel 1 original, el catálogo de bodas y la configuración inicial. El procedimiento está en [ADMINISTRACION.md](ADMINISTRACION.md). No envíes contraseñas, archivos de cuenta de servicio ni claves privadas.
 
-La captura muestra el plan Spark; el propietario debe activar Blaze para desplegar las funciones programadas. No se ha modificado la facturación.
+## Expo y teléfonos
 
-Para desplegar el backend, el propietario inicia sesión con Firebase CLI en su computadora: `npx firebase-tools@latest login`. La comprobación `login:list --json` no devolvió cuentas registradas y no hay credenciales ADC locales. Para los scripts de catálogo y asignación de administrador también hace falta autenticar ADC, según el README. Las credenciales de administrador y secretos se configuran localmente y en Secret Manager; no se publican en el código ni se envían por chat. Después se despliegan reglas, índices y funciones y se carga el catálogo.
+El ID recibido es `f9af2154-9d1b-49d6-bae8-588d83ce3ad7`. Falta iniciar sesión EAS y confirmar el propietario/slug del proyecto existente. El identificador `com.sevenawesome.entredos` es provisional y debe confirmarse antes de publicar.
 
-## Expo y notificaciones
+Necesitamos Android e iPhone para probar notificaciones locales, selector/compresión de fotos, sincronización, permisos y eliminación. Las notificaciones locales no requieren credenciales de envío remoto FCM/APNs.
 
-La cuenta y proyecto de Expo ya existen. Se incorporó el ID **f9af2154-9d1b-49d6-bae8-588d83ce3ad7** en la configuración. Falta iniciar sesión localmente con EAS y verificar el propietario y slug del proyecto existente antes del primer build; `project:info` no pudo consultarlos porque no hay sesión de Expo en esta computadora. El enlace al proyecto en Expo permite contrastar esos datos sin compartir credenciales.
+## Límites acordados de la versión gratuita
 
-Configurar FCM v1 y APNs con las cuentas propietarias de Firebase y Apple. El secreto de Expo Push se guarda mediante Firebase CLI. Los pasos y comandos están en el README.
+Los avisos diarios son generales y se programan por teléfono; los cambios de otro dispositivo y las pausas administrativas se aplican al sincronizar. Cumpleaños/aniversarios se programan para los próximos dos años y se renuevan al usar la app. Los mensajes del administrador llegan a una bandeja al abrir/sincronizar; no hay push remoto inmediato con la app cerrada. Firebase Spark tiene cuotas, supervisadas desde la consola.
 
-## Administrador
+El progreso admite un reto cada 24 horas validado con la hora del servidor. La familia admite hasta diez hijos para mantener la validación dentro del presupuesto de ejecución de las reglas. Las fotos son miniaturas pequeñas en Firestore; no se guarda el original ni se usa Storage.
 
-El propietario ya indicó el correo que usará. Una vez conectado Firebase, debe registrarse en ENTRE DOS con ese correo; después se le asigna el permiso administrativo con el script del propietario. El correo por sí solo no concede permisos. El panel vive en **Información → Administración**, con una vista previa de solo lectura disponible en demostración. Instrucciones en [ADMINISTRACION.md](ADMINISTRACION.md).
+## Publicación
 
-## Identidad de publicación
+Faltan la identidad legal del responsable, país, correo de soporte/privacidad, política pública y página para solicitar eliminación; confirmar el contenido y modelo gratuito de la primera versión. Se necesitan Google Play Console y Apple Developer, correos de probadores y cuentas de firma. Las tiendas tienen requisitos/costos separados de Firebase Spark.
 
-Facilitar el nombre legal de la organización responsable, país, correo de soporte y contacto para privacidad. Indicar el dominio o sitio donde se publicará la política de privacidad y la página para solicitar eliminación de cuenta. Confirmar el nombre público **Entre dos** y la firma **By Departamento de Hogar y Familia**. El logo nuevo ya tiene versiones SVG/PNG; una foto para el splash es opcional.
-
-Confirmar si el nivel 1 se publicará con el contenido actual y si la primera versión será gratuita. Los próximos niveles se pueden publicar después desde Firebase, sin crear una nueva versión de la app para cada catálogo.
-
-## Cuentas de tiendas y pruebas
-
-Crear las cuentas de Google Play Console y Apple Developer bajo el titular correcto. Las sesiones, invitaciones de equipo y credenciales de firma se gestionan en los servicios oficiales. No hace falta enviar contraseñas por chat.
-
-Disponer de un teléfono Android y un iPhone para instalar los builds y verificar los avisos, la sincronización, el aniversario y la eliminación de la cuenta. Se necesitan los correos de quienes harán la prueba interna o TestFlight cuando corresponda.
-
-## Trabajo final con esos datos
-
-Conectar Firebase/Expo, desplegar el backend, probar con ambos teléfonos y completar la lista de `VALIDACION.md`. Después preparar capturas, ficha de las tiendas, política pública y declaraciones de datos, generar los builds firmados y enviarlos a revisión. La aprobación y publicación dependen de cada tienda.
-
-La fecha de matrimonio y los cumpleaños se agregan desde Nosotros por cada familia. Las fechas y nombres de la familia de demostración son ficticios y sirven para revisar las cuentas regresivas y las edades. El catálogo de bodas se carga en Firebase junto al nivel 1; no requiere redactar las categorías de nuevo.
+No se han enviado builds a las tiendas, creado administradores reales ni desplegado estas reglas en el proyecto del propietario. La comunidad y el panel de demostración muestran datos ficticios y no contactan a nadie.

@@ -85,3 +85,37 @@ export interface AppSettings {
 export interface FamilyControls {
   remindersPaused: boolean;
 }
+export type AccountRole = "owner" | "admin" | "member";
+export interface FamilySummary {
+  uid: string;
+  familyName: string;
+  email: string;
+  joinedAt: unknown;
+  lastActivityAt: unknown;
+  lastCompletedAt: unknown;
+  levelId: string;
+  levelOrder: number;
+  completedCount: number;
+  totalCompleted: number;
+  finishedCount: number;
+}
+export interface CommunityProfile {
+  uid: string;
+  alias: string;
+  visible: boolean;
+  shareAnniversary: boolean;
+  shareProgress: boolean;
+  marriageDate: string | null;
+  timezone: string;
+  completedCount: number;
+  finishedCount: number;
+  avatar: string | null;
+  updatedAt?: unknown;
+}
+export interface FamilyMessage {
+  id: string;
+  title: string;
+  body: string;
+  senderUid: string;
+  createdAt: unknown;
+}

@@ -1,32 +1,176 @@
 rules_version = '2';
 service cloud.firestore {
-  match /databases/{database}/documents {
-    function owner(uid) { return request.auth != null && request.auth.uid == uid && !exists(/databases/$(database)/documents/deletedAccounts/$(uid)); }
-    function text(value, max) { return value is string && value.size() > 0 && value.size() <= max; }
-    function optionalDate(data, key) { return !(key in data) || data[key] == null || (data[key] is string && data[key].matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')); }
-    function childAt(children, i) { return i >= children.size() || (children[i] is map && children[i].keys().hasOnly(['id', 'name', 'kind', 'birthDate']) && text(children[i].name, 40) && children[i].kind in ['hijo', 'hija', 'otro'] && optionalDate(children[i], 'birthDate') && (!('id' in children[i]) || (text(children[i].id, 100) && children[i].id.matches('^[a-zA-Z0-9_-]+$')))); }
-    function validFamily() {
-      let f = request.resource.data;
-      return f.keys().hasAll(['name', 'partner1', 'partner2', 'children', 'timezone']) && f.keys().hasOnly(['name', 'partner1', 'partner2', 'children', 'timezone', 'marriageDate', 'partner1BirthDate', 'partner2BirthDate'])
-        && text(f.name, 60) && text(f.partner1, 40) && text(f.partner2, 40) && text(f.timezone, 100)
-        && optionalDate(f, 'marriageDate') && optionalDate(f, 'partner1BirthDate') && optionalDate(f, 'partner2BirthDate')
-        && f.children is list && f.children.size() <= 15
-        && childAt(f.children, 0) && childAt(f.children, 1) && childAt(f.children, 2) && childAt(f.children, 3) && childAt(f.children, 4)
-        && childAt(f.children, 5) && childAt(f.children, 6) && childAt(f.children, 7) && childAt(f.children, 8) && childAt(f.children, 9)
-        && childAt(f.children, 10) && childAt(f.children, 11) && childAt(f.children, 12) && childAt(f.children, 13) && childAt(f.children, 14);
-    }
-    match /families/{uid} {
-      allow read: if owner(uid);
-      allow create: if owner(uid) && validFamily();
-      allow update: if owner(uid) && validFamily() && request.resource.data.timezone == resource.data.timezone;
-      match /progress/{levelId} { allow read: if owner(uid); }
-      match /devices/{deviceId} { allow read: if owner(uid); }
-    }
-    match /levels/{levelId} { allow read: if request.auth != null && resource.data.published == true; }
-    match /catalogs/anniversaries { allow read: if request.auth != null; }
-    match /config/app { allow read: if request.auth != null; }
-    match /familyControls/{uid} { allow read: if owner(uid); }
-    // Content, device registrations, completions and deletion are server controlled.
-    match /{document=**} { allow read, write: if false; }
+ match /databases/{database}/documents {
+  function signed() { return request.auth != null; }
+  function self(uid) { return signed() && request.auth.uid == uid; }
+  function deleting(uid) { return exists(/databases/$(database)/documents/accountDeletion/$(uid)); }
+  function active(uid) { return self(uid) && !deleting(uid); }
+  function admin() { return signed() && !deleting(request.auth.uid) && get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.role in ['owner','admin']; }
+  function text(v,n) { return v is string && v.size() > 0 && v.size() <= n; }
+  function date(d,k) { let value=d.get(k,null); return value==null || (value is string && value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')); }
+  function validChild(child) {
+   let birth=child.get('birthDate',null);
+   return child.keys().hasOnly(['id','name','kind','birthDate']) && child.name.matches('^.{1,40}$') && child.kind in ['hijo','hija','otro'] && (birth==null || birth.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'));
   }
+  function childAt(c,i) { return i>=c.size() || validChild(c[i]); }
+  function validFamily() {
+   let f=request.resource.data;
+   return f.keys().hasAll(['name','partner1','partner2','children','timezone']) && f.keys().hasOnly(['name','partner1','partner2','children','timezone','marriageDate','partner1BirthDate','partner2BirthDate','adminAuditId'])
+    && text(f.name,60) && text(f.partner1,40) && text(f.partner2,40) && text(f.timezone,100)
+    && date(f,'marriageDate') && date(f,'partner1BirthDate') && date(f,'partner2BirthDate')
+    && f.children is list && f.children.size()<=10 && childAt(f.children, 0) && childAt(f.children, 1) && childAt(f.children, 2) && childAt(f.children, 3) && childAt(f.children, 4) && childAt(f.children, 5) && childAt(f.children, 6) && childAt(f.children, 7) && childAt(f.children, 8) && childAt(f.children, 9);
+  }
+  function audited(d,action,target) {
+   let a=getAfter(/databases/$(database)/documents/adminAudit/$(d.auditId)).data;
+   return a.actorUid==request.auth.uid && a.action==action && a.target==target && a.at==request.time;
+  }
+  function emptyProgress() { return {'completions':[], 'answers':{}, 'finishedAt':null}; }
+  function answerAt(a,q,i) { return i>=q.size() || a[q[i].id].matches('^[\\s\\S]{1,1000}[\\s\\S]{0,1000}$'); }
+  function progressShape(p,id) {
+   return p.keys().hasOnly(['levelId','completions','answers','finishedAt','nextAvailableAt','lastCompletionAt','updatedAt'])
+    && p.levelId==id && p.completions is list && p.answers is map && p.updatedAt==request.time
+    && (p.nextAvailableAt==null || (p.nextAvailableAt is string && p.nextAvailableAt.size()<=50));
+  }
+  function validProgress(uid,id) {
+   let l=get(/databases/$(database)/documents/levels/$(id)).data;
+   let p=request.resource.data;
+   let old=resource==null ? emptyProgress() : resource.data;
+   let t=get(/databases/$(database)/documents/tracking/$(uid)).data;
+   let after=getAfter(/databases/$(database)/documents/tracking/$(uid)).data;
+   let n=old.completions.size();
+   return l.published && progressShape(p,id) &&
+    (l.prerequisiteId==null || get(/databases/$(database)/documents/families/$(uid)/progress/$(l.prerequisiteId)).data.finishedAt!=null) &&
+    ((n<l.challenges.size() && p.completions.size()==n+1
+      && p.completions==old.completions.concat([p.completions[n]])
+      && p.completions[n].keys().hasOnly(['challengeId','completedAt','note'])
+      && p.completions[n].challengeId==l.challenges[n].id
+      && p.completions[n].completedAt is string && p.completions[n].completedAt.size()<=50
+      && p.completions[n].note is string && p.completions[n].note.size()<=2000
+      && p.answers==old.answers && p.finishedAt==null && old.finishedAt==null
+      && p.lastCompletionAt==request.time && after.lastCompletedAt==request.time
+      && after.totalCompleted==t.totalCompleted+1 && after.levelId==id
+      && (t.lastCompletedAt==null || request.time>=t.lastCompletedAt+duration.value(24,'h')))
+     || (resource!=null && old.finishedAt==null && text(p.finishedAt,50)
+      && n==l.challenges.size() && p.completions==old.completions && p.lastCompletionAt==old.lastCompletionAt
+      && p.nextAvailableAt==old.nextAvailableAt
+      && p.answers.keys().size()==l.questions.size() && answerAt(p.answers, l.questions, 0) && answerAt(p.answers, l.questions, 1) && answerAt(p.answers, l.questions, 2) && answerAt(p.answers, l.questions, 3) && answerAt(p.answers, l.questions, 4) && answerAt(p.answers, l.questions, 5) && answerAt(p.answers, l.questions, 6) && answerAt(p.answers, l.questions, 7) && answerAt(p.answers, l.questions, 8) && answerAt(p.answers, l.questions, 9) && answerAt(p.answers, l.questions, 10) && answerAt(p.answers, l.questions, 11) && answerAt(p.answers, l.questions, 12) && answerAt(p.answers, l.questions, 13) && answerAt(p.answers, l.questions, 14) && answerAt(p.answers, l.questions, 15) && answerAt(p.answers, l.questions, 16) && answerAt(p.answers, l.questions, 17) && answerAt(p.answers, l.questions, 18) && answerAt(p.answers, l.questions, 19) && answerAt(p.answers, l.questions, 20) && answerAt(p.answers, l.questions, 21) && answerAt(p.answers, l.questions, 22) && answerAt(p.answers, l.questions, 23) && answerAt(p.answers, l.questions, 24) && answerAt(p.answers, l.questions, 25) && answerAt(p.answers, l.questions, 26) && answerAt(p.answers, l.questions, 27) && answerAt(p.answers, l.questions, 28) && answerAt(p.answers, l.questions, 29)
+      && after.finishedCount==t.finishedCount+1));
+  }
+  function trackingShape(d,uid) {
+   return d.keys().hasOnly(['uid','familyName','email','joinedAt','lastActivityAt','lastCompletedAt','levelId','levelOrder','completedCount','totalCompleted','finishedCount'])
+    && d.uid==uid && text(d.familyName,60) && d.familyName==getAfter(/databases/$(database)/documents/families/$(uid)).data.name
+    && d.email==request.auth.token.email && d.lastActivityAt==request.time;
+  }
+  function trackingUpdate(uid) {
+   let d=request.resource.data;
+   let old=resource.data;
+   let p=getAfter(/databases/$(database)/documents/families/$(uid)/progress/$(d.levelId)).data;
+   let oldExists=exists(/databases/$(database)/documents/families/$(uid)/progress/$(d.levelId));
+   let before=oldExists ? get(/databases/$(database)/documents/families/$(uid)/progress/$(d.levelId)).data : emptyProgress();
+   let l=get(/databases/$(database)/documents/levels/$(d.levelId)).data;
+   return d.joinedAt==old.joinedAt &&
+    ((d.lastCompletedAt==request.time && d.totalCompleted==old.totalCompleted+1
+      && d.finishedCount==old.finishedCount && d.completedCount==p.completions.size()
+      && p.completions.size()==before.completions.size()+1 && p.updatedAt==request.time
+      && d.levelOrder==l.order)
+     || (d.finishedCount==old.finishedCount+1 && d.totalCompleted==old.totalCompleted && d.lastCompletedAt==old.lastCompletedAt
+      && d.levelId==old.levelId && d.levelOrder==old.levelOrder && d.completedCount==old.completedCount
+      && before.finishedAt==null && p.finishedAt!=null && p.updatedAt==request.time));
+  }
+  function avatar(v) { return v==null || (v is string && v.size()<=44000 && v.matches('^data:image/jpeg;base64,[A-Za-z0-9+/=]+$')); }
+  match /families/{uid} {
+   allow read: if self(uid) || admin();
+   allow create,update: if (active(uid) || (resource!=null && admin() && audited({'auditId':request.resource.data.adminAuditId},'family.profile.update',uid))) && (resource==null || request.resource.data.timezone==resource.data.timezone) && validFamily();
+   allow delete: if self(uid) && deleting(uid);
+   match /progress/{id} { allow read: if self(uid); allow create,update: if active(uid) && validProgress(uid,id); allow delete: if self(uid) && deleting(uid); }
+   match /devices/{id} { allow read,delete: if self(uid); }
+   match /inbox/{id} {
+    allow read: if self(uid);
+    allow create: if admin() && !deleting(uid) && exists(/databases/$(database)/documents/families/$(uid))
+      && request.resource.data.keys().hasOnly(['title','body','senderUid','createdAt','auditId'])
+      && text(request.resource.data.title,100) && text(request.resource.data.body,1200)
+      && request.resource.data.senderUid==request.auth.uid && request.resource.data.createdAt==request.time
+      && audited(request.resource.data,'message.send',uid);
+    allow delete: if self(uid) && deleting(uid);
+   }
+  }
+  match /tracking/{uid} {
+   allow read: if self(uid) || admin();
+   allow create: if active(uid) && trackingShape(request.resource.data,uid)
+    && request.resource.data.joinedAt==request.time && request.resource.data.lastCompletedAt==null
+    && request.resource.data.levelId=='' && request.resource.data.levelOrder==0 && request.resource.data.completedCount==0
+    && request.resource.data.totalCompleted==0 && request.resource.data.finishedCount==0;
+   allow update: if active(uid) && trackingShape(request.resource.data,uid)
+    && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['familyName','lastActivityAt']) || trackingUpdate(uid));
+   allow delete: if self(uid) && deleting(uid);
+  }
+  match /roles/{uid} {
+   allow read: if self(uid) || admin();
+   allow create,update: if admin() && uid!=request.auth.uid && exists(/databases/$(database)/documents/tracking/$(uid))
+    && (!exists(/databases/$(database)/documents/roles/$(uid)) || resource.data.role!='owner')
+    && request.resource.data.keys().hasOnly(['role','updatedAt','updatedBy','auditId']) && request.resource.data.role in ['admin','member']
+    && request.resource.data.updatedAt==request.time && request.resource.data.updatedBy==request.auth.uid && audited(request.resource.data,'role.update',uid);
+   allow delete: if self(uid) && deleting(uid) && resource.data.role!='owner';
+  }
+  match /avatars/{uid} {
+   allow read: if self(uid);
+   allow create,update: if active(uid) && request.resource.data.keys().hasOnly(['dataUri','updatedAt']) && avatar(request.resource.data.dataUri) && request.resource.data.updatedAt==request.time;
+   allow delete: if self(uid);
+  }
+  match /community/{uid} {
+   allow read: if self(uid) || (signed() && resource.data.visible==true);
+   allow create,update: if active(uid)
+    && request.resource.data.keys().hasOnly(['uid','alias','visible','shareAnniversary','shareProgress','marriageDate','timezone','completedCount','finishedCount','avatar','updatedAt'])
+    && request.resource.data.uid==uid && text(request.resource.data.alias,60)
+    && request.resource.data.visible is bool && request.resource.data.shareAnniversary is bool && request.resource.data.shareProgress is bool
+    && request.resource.data.timezone==get(/databases/$(database)/documents/families/$(uid)).data.timezone
+    && request.resource.data.updatedAt==request.time && avatar(request.resource.data.avatar)
+    && (!request.resource.data.shareAnniversary || request.resource.data.visible)
+    && (!request.resource.data.shareProgress || request.resource.data.visible)
+    && request.resource.data.marriageDate==(request.resource.data.shareAnniversary ? get(/databases/$(database)/documents/families/$(uid)).data.get('marriageDate',null) : null)
+    && request.resource.data.completedCount==(request.resource.data.shareProgress ? get(/databases/$(database)/documents/tracking/$(uid)).data.totalCompleted : 0)
+    && request.resource.data.finishedCount==(request.resource.data.shareProgress ? get(/databases/$(database)/documents/tracking/$(uid)).data.finishedCount : 0)
+    && (request.resource.data.avatar==null || (request.resource.data.visible && request.resource.data.avatar==getAfter(/databases/$(database)/documents/avatars/$(uid)).data.dataUri));
+   allow delete: if self(uid);
+  }
+  match /config/app {
+   allow read: if signed();
+   allow create,update: if admin() && audited(request.resource.data,'app.settings.update','config/app')
+    && request.resource.data.keys().hasOnly(['version','announcement','endTitle','endMessage','newLevelTitle','supportEmail','supportUrl','notificationsEnabled','auditId'])
+    && request.resource.data.version==(resource==null ? 1 : resource.data.version+1)
+    && request.resource.data.announcement is string && request.resource.data.announcement.size()<=800
+    && text(request.resource.data.endTitle,100) && text(request.resource.data.endMessage,1200) && text(request.resource.data.newLevelTitle,100)
+    && request.resource.data.supportEmail is string && request.resource.data.supportEmail.size()<=150
+    && request.resource.data.supportUrl is string && request.resource.data.supportUrl.size()<=1000
+    && request.resource.data.notificationsEnabled is bool;
+  }
+  match /levels/{id} {
+   allow read: if admin() || (signed() && resource.data.published==true);
+   allow create,update: if admin() && audited(request.resource.data,'level.save',id)
+    && request.resource.data.id==id && request.resource.data.order is int && request.resource.data.order>0
+    && getAfter(/databases/$(database)/documents/levelOrders/$(string(request.resource.data.order))).data.levelId==id
+    && text(request.resource.data.title,100) && text(request.resource.data.subtitle,300) && text(request.resource.data.description,2000)
+    && request.resource.data.challenges is list && request.resource.data.challenges.size()>0 && request.resource.data.challenges.size()<=200
+    && request.resource.data.questions is list && request.resource.data.questions.size()>0 && request.resource.data.questions.size()<=30
+    && request.resource.data.questionIds is list && request.resource.data.questionIds.size()==request.resource.data.questions.size()
+    && request.resource.data.published is bool
+    && ((request.resource.data.order==1 && request.resource.data.prerequisiteId==null) || (request.resource.data.order>1 && get(/databases/$(database)/documents/levels/$(request.resource.data.prerequisiteId)).data.published==true && get(/databases/$(database)/documents/levels/$(request.resource.data.prerequisiteId)).data.order<request.resource.data.order))
+    && (resource==null || !resource.data.published || (request.resource.data.published && request.resource.data.challenges==resource.data.challenges && request.resource.data.questions==resource.data.questions && request.resource.data.order==resource.data.order && request.resource.data.prerequisiteId==resource.data.prerequisiteId));
+  }
+  match /levelOrders/{order} { allow read: if admin(); allow create: if admin() && request.resource.data.keys().hasOnly(['levelId']); allow update: if admin() && request.resource.data==resource.data; }
+  match /familyControls/{uid} {
+   allow read: if self(uid) || admin();
+   allow create,update: if admin() && request.resource.data.keys().hasOnly(['remindersPaused','auditId']) && request.resource.data.remindersPaused is bool && audited(request.resource.data,'family.reminders.update',uid);
+   allow delete: if self(uid) && deleting(uid);
+  }
+  match /adminAudit/{id} { allow read: if admin(); allow create: if admin() && request.resource.data.keys().hasOnly(['actorUid','action','target','at']) && request.resource.data.actorUid==request.auth.uid && request.resource.data.at==request.time && text(request.resource.data.action,100) && text(request.resource.data.target,200); }
+  match /catalogs/anniversaries { allow read: if signed(); allow create: if admin() && audited(request.resource.data,'catalog.seed','catalogs/anniversaries') && request.resource.data.milestones is list && request.resource.data.milestones.size()<=100; }
+  match /accountDeletion/{uid} {
+   allow read: if self(uid);
+   allow create: if self(uid) && request.auth.token.auth_time*1000>request.time.toMillis()-300000
+    && (!exists(/databases/$(database)/documents/roles/$(uid)) || get(/databases/$(database)/documents/roles/$(uid)).data.role!='owner')
+    && request.resource.data.keys().hasOnly(['requestedAt']) && request.resource.data.requestedAt==request.time;
+  }
+  match /{all=**} { allow read,write: if false; }
+ }
 }

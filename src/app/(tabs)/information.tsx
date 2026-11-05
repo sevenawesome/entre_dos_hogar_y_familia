@@ -16,7 +16,7 @@ import {
   s,
 } from "../../components/ui";
 export default function Information() {
-  const { settings, isAdmin, demo } = useApp();
+  const { settings, isAdmin, demo, inbox } = useApp();
   const [expanded, setExpanded] = useState<string | null>(
     helpSections[0].title,
   );
@@ -30,6 +30,16 @@ export default function Information() {
         eyebrow="PARA SACARLE PROVECHO, JUNTOS"
         title="Información"
         subtitle="Todo lo que necesitan saber para hacer de los pequeños retos un hábito compartido."
+      />
+      <Button
+        secondary
+        title={`Mensajes para ustedes${inbox.length ? ` · ${inbox.length}` : ""}`}
+        onPress={() => router.push("/inbox")}
+      />
+      <Button
+        secondary
+        title="Nuestros recuerdos y reflexiones"
+        onPress={() => router.push("/(tabs)/memories")}
       />
       <Card style={{ backgroundColor: colors.blush }}>
         <Ionicons name="heart-outline" size={30} color={colors.rose} />
@@ -102,7 +112,7 @@ export default function Information() {
           title={
             demo ? "Vista previa de administración" : "Administrar ENTRE DOS"
           }
-          onPress={() => router.push("/admin")}
+          onPress={() => router.push("/(tabs)/administration")}
         />
       )}
       <CreatorFooter />

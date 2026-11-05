@@ -10,7 +10,7 @@ export const guideSteps = [
   {
     icon: "heart-outline",
     title: "Un reto, sin prisa",
-    body: "Abránlo en Hoy, hagan la actividad y conversen sobre la pregunta. Pueden guardar una nota. Cuando ambos estén de acuerdo, marquen «Lo hicimos juntos». El próximo se abre al día siguiente.",
+    body: "Abránlo en Hoy, hagan la actividad y conversen sobre la pregunta. Pueden guardar una nota. Cuando ambos estén de acuerdo, marquen «Lo hicimos juntos». El próximo se abre 24 horas después.",
   },
   {
     icon: "ribbon-outline",
@@ -30,8 +30,20 @@ export const guideSteps = [
 ] as const;
 export const helpSections = [
   {
+    title: "Comunidad y privacidad",
+    body: "Participar es opcional. En Nosotros elijan un nombre público, su foto y si desean mostrar aniversario o retos y niveles conseguidos. Compartir el aniversario publica su fecha de matrimonio entre cuentas registradas. No se muestran correos, cumpleaños, datos de hijos, notas ni cuestionarios. Pueden retirar su perfil en cualquier momento; otras personas podrían conservar lo que ya vieron.",
+  },
+  {
+    title: "Mensajes de acompañamiento",
+    body: "La administración puede escribir a una familia. Sus mensajes aparecen en Información → Mensajes para ustedes al abrir o sincronizar la app. Con avisos habilitados, puede mostrarse una notificación local al recibir el mensaje. Esta versión sin servidor no garantiza avisos remotos con la app cerrada.",
+  },
+  {
+    title: "Fotos y consumo gratuito",
+    body: "La foto se convierte en una miniatura JPEG pequeña; no se guarda el original. Se comparte solo si activan Comunidad. La aplicación usa Firebase Spark dentro de sus cuotas, sin Cloud Functions ni Storage. Los datos de comunidad y administración se cargan por páginas para cuidar ese consumo.",
+  },
+  {
     title: "Qué encontrarán en cada pestaña",
-    body: "Hoy muestra el nivel actual y el reto pendiente. Nuestro camino reúne los niveles y lo que falta para desbloquearlos. Recuerdos guarda retos, notas y reflexiones. Nosotros permite editar la familia y configurar avisos. Información contiene esta ayuda.",
+    body: "Hoy muestra el nivel actual y el reto pendiente. Nuestro camino reúne los niveles y lo que falta para desbloquearlos. Desde Información pueden entrar a Recuerdos para ver retos, notas y reflexiones. Comunidad muestra solo familias que eligieron compartir su perfil. Nosotros permite editar la familia y configurar avisos. Información contiene esta ayuda.",
   },
   {
     title: "Completar un reto y guardar el progreso",
@@ -39,7 +51,7 @@ export const helpSections = [
   },
   {
     title: "Un día a la vez",
-    body: "Solo se completa un reto por día. El siguiente se habilita al comenzar el nuevo día en la zona horaria con la que registraron a su familia. No se avanza automáticamente por dejar pasar días: el reto pendiente continúa esperándolos. No pierden lo conseguido por tomarse un descanso.",
+    body: "Se completa un reto cada 24 horas. El siguiente se habilita 24 horas después del último completado. Firebase valida ese intervalo con la hora del servidor. No se avanza automáticamente por dejar pasar días: el reto pendiente continúa esperándolos. No pierden lo conseguido por tomarse un descanso.",
   },
   {
     title: "Conseguir niveles y descubrir capítulos",
@@ -47,7 +59,7 @@ export const helpSections = [
   },
   {
     title: "Recordatorios en ambos teléfonos",
-    body: "Cada persona activa el permiso del teléfono y guarda su horario desde Nosotros. La aplicación recuerda el reto pendiente cada día en una ventana de hasta 15 minutos después del horario elegido. La entrega depende de permisos, conexión y del sistema del teléfono. Al tocar el aviso se abre Hoy. Pueden pausar los avisos o cerrar sesión en ese dispositivo.",
+    body: "Cada persona activa el permiso del teléfono y guarda su horario desde Nosotros. El teléfono programa un aviso general diario; no necesita consultar Firebase para presentarlo. La entrega depende de permisos y del sistema del teléfono. Al abrir la app, se sincroniza el reto correcto. Los cambios de otro teléfono, las pausas administrativas y los niveles nuevos se conocen al sincronizar. Al tocar el aviso se abre Hoy. Pueden pausar los avisos o cerrar sesión en ese dispositivo.",
   },
   {
     title: "Aniversario y categorías de bodas",
@@ -59,7 +71,7 @@ export const helpSections = [
   },
   {
     title: "Una cuenta y datos compartidos",
-    body: "Ambos pueden leer las notas, respuestas y fechas guardadas. Las notificaciones pueden mostrar el título del reto o el nombre y la edad de quien cumple años en la pantalla bloqueada. Las notas y reflexiones nunca se incluyen. Usen una contraseña segura y guarden solo lo que deseen compartir.",
+    body: "Ambos pueden leer las notas, respuestas y fechas guardadas. Los avisos locales pueden mostrar un saludo con el nombre de quien cumple años. Las notas y reflexiones nunca se incluyen. Usen una contraseña segura y guarden solo lo que deseen compartir.",
   },
   {
     title: "Pausar, salir o eliminar la cuenta",
@@ -71,6 +83,6 @@ export const helpSections = [
   },
   {
     title: "Qué permite la demostración",
-    body: "La demostración guarda los datos únicamente en este dispositivo o navegador. Permite conocer la experiencia y el avance diario, pero no comparte datos entre teléfonos ni envía notificaciones reales.",
+    body: "La demostración guarda los datos únicamente en este dispositivo o navegador. La comunidad y la administración usan ejemplos ficticios y no permiten envíos ni cambios remotos. Permite conocer la experiencia y el avance diario, pero no comparte datos entre teléfonos ni envía notificaciones reales.",
   },
 ];

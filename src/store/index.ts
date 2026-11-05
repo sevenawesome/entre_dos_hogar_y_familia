@@ -5,6 +5,7 @@ import {
 } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { publicProjection } from "../domain/community";
 import { bundledLevels } from "../data/catalog";
 import { bundledAnniversaries } from "../data/anniversaries";
 import type {
@@ -14,6 +15,9 @@ import type {
   AnniversaryCatalog,
   AppSettings,
   FamilyControls,
+  AccountRole,
+  CommunityProfile,
+  FamilyMessage,
 } from "../domain/types";
 import { defaultSettings } from "../domain/settings";
 
@@ -31,6 +35,10 @@ interface State {
   isAdmin: boolean;
   catalogReady: boolean;
   progressReady: boolean;
+  role: AccountRole;
+  avatar: string | null;
+  communityProfile: CommunityProfile | null;
+  inbox: FamilyMessage[];
 }
 const initialState: State = {
   ready: false,
@@ -46,6 +54,10 @@ const initialState: State = {
   isAdmin: false,
   catalogReady: false,
   progressReady: false,
+  role: "member",
+  avatar: null,
+  communityProfile: null,
+  inbox: [],
 };
 const slice = createSlice({
   name: "app",
@@ -68,6 +80,10 @@ const slice = createSlice({
       state.isAdmin = false;
       state.catalogReady = false;
       state.progressReady = false;
+      state.role = "member";
+      state.avatar = null;
+      state.communityProfile = null;
+      state.inbox = [];
     },
     family(state, action: PayloadAction<Family | null>) {
       state.family = action.payload;
@@ -95,6 +111,19 @@ const slice = createSlice({
     admin(state, action: PayloadAction<boolean>) {
       state.isAdmin = action.payload;
     },
+    role(state, action: PayloadAction<AccountRole>) {
+      state.role = action.payload;
+      state.isAdmin = action.payload === "owner" || action.payload === "admin";
+    },
+    avatar(state, action: PayloadAction<string | null>) {
+      state.avatar = action.payload;
+    },
+    communityProfile(state, action: PayloadAction<CommunityProfile | null>) {
+      state.communityProfile = action.payload;
+    },
+    inbox(state, action: PayloadAction<FamilyMessage[]>) {
+      state.inbox = action.payload;
+    },
   },
 });
 export const actions = slice.actions;
@@ -105,7 +134,12 @@ export const useAppDispatch = useDispatch.withTypes<typeof store.dispatch>();
 const demoKey = "@entre-dos/demo-v1";
 export async function startDemo() {
   const saved = await AsyncStorage.getItem(demoKey);
-  let data: { family: Family | null; progress: ProgressMap } = {
+  let data: {
+    family: Family | null;
+    progress: ProgressMap;
+    avatar?: string | null;
+    communityProfile?: CommunityProfile | null;
+  } = {
     family: null,
     progress: {},
   };
@@ -120,13 +154,28 @@ export async function startDemo() {
   store.dispatch(actions.levels(bundledLevels));
   store.dispatch(actions.family(data.family));
   store.dispatch(actions.progress(data.progress));
+  store.dispatch(actions.role("owner"));
+  store.dispatch(actions.avatar(data.avatar ?? null));
+  store.dispatch(
+    actions.communityProfile(
+      data.communityProfile && data.family
+        ? publicProjection(data.communityProfile, data.family, data.progress)
+        : null,
+    ),
+  );
 }
 let saving = Promise.resolve();
 let lastSerialized = "";
 store.subscribe(() => {
-  const { demo, family, progress } = store.getState().app;
+  const { demo, family, progress, avatar, communityProfile } =
+    store.getState().app;
   if (demo) {
-    const serialized = JSON.stringify({ family, progress });
+    const serialized = JSON.stringify({
+      family,
+      progress,
+      avatar,
+      communityProfile,
+    });
     if (serialized === lastSerialized) return;
     lastSerialized = serialized;
     saving = saving
