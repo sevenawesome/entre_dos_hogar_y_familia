@@ -4,18 +4,18 @@
 
 La configuración pública recibida está en `.env` local, excluido de Git. El propietario mostró Authentication por correo/contraseña habilitado y Firestore `(default)` creado. La versión actual usa Spark: no se necesita activar Blaze, Storage ni Cloud Functions.
 
-Falta iniciar sesión localmente y desplegar las reglas e índices:
+Las reglas e índices ya fueron desplegados por el propietario y la primera cuenta propietaria ya fue asignada y verificada en Firestore, con auditoría. Estos comandos quedan como referencia para futuros despliegues:
 
 ```powershell
 npx firebase-tools@latest login
 npx firebase-tools@latest deploy --only firestore --project entre-dos-db
 ```
 
-Luego registra tu cuenta y familia en la app, copia el UID de Authentication y crea con permisos del propietario `roles/UID` con `role: owner` (string). Desde Admin puedes cargar el nivel 1 original, el catálogo de bodas y la configuración inicial. El procedimiento está en [ADMINISTRACION.md](ADMINISTRACION.md). No envíes contraseñas, archivos de cuenta de servicio ni claves privadas.
+La cuenta del propietario ya está registrada con su familia y tiene `roles/UID.role = owner`. La app recibe ese permiso por suscripción. Desde Admin puedes cargar el nivel 1 original, el catálogo de bodas y la configuración inicial. El procedimiento está en [ADMINISTRACION.md](ADMINISTRACION.md). No envíes contraseñas, archivos de cuenta de servicio ni claves privadas.
 
 ## Expo y teléfonos
 
-El ID recibido es `f9af2154-9d1b-49d6-bae8-588d83ce3ad7`. Falta iniciar sesión EAS y confirmar el propietario/slug del proyecto existente. El identificador `com.sevenawesome.entredos` es provisional y debe confirmarse antes de publicar.
+El ID recibido es `f9af2154-9d1b-49d6-bae8-588d83ce3ad7`. La sesión de Expo CLI ya está iniciada y el propietario abrió la app en Expo Go para iPhone. Falta confirmar propietario/slug del proyecto existente en Expo Build. El identificador `com.sevenawesome.entredos` es provisional y debe confirmarse antes de publicar.
 
 Necesitamos Android e iPhone para probar notificaciones locales, selector/compresión de fotos, sincronización, permisos y eliminación. Las notificaciones locales no requieren credenciales de envío remoto FCM/APNs.
 
@@ -29,4 +29,4 @@ El progreso admite un reto cada 24 horas validado con la hora del servidor. La f
 
 Faltan la identidad legal del responsable, país, correo de soporte/privacidad, política pública y página para solicitar eliminación; confirmar el contenido y modelo gratuito de la primera versión. Se necesitan Google Play Console y Apple Developer, correos de probadores y cuentas de firma. Las tiendas tienen requisitos/costos separados de Firebase Spark.
 
-No se han enviado builds a las tiendas, creado administradores reales ni desplegado estas reglas en el proyecto del propietario. La comunidad y el panel de demostración muestran datos ficticios y no contactan a nadie.
+No se han enviado builds a las tiendas. Las reglas de Firestore están desplegadas y el primer propietario real está habilitado y auditado. La comunidad y el panel de demostración muestran datos ficticios y no contactan a nadie.

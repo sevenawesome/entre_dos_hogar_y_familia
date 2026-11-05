@@ -1,6 +1,6 @@
 # Validación de la versión Firebase Spark
 
-Verificado el 5 de noviembre de 2026. No se han escrito cuentas, roles, mensajes ni contenido de prueba en `entre-dos-db`.
+Verificado el 5 de noviembre de 2026. Las pruebas automatizadas usaron proyectos demo locales. Posteriormente el usuario registró su cuenta/familia real y se asignó a esa cuenta el rol propietario en `entre-dos-db`, con verificación del documento y de la auditoría. No se enviaron mensajes ni se crearon otras cuentas desde el agente.
 
 ## Comprobado localmente
 
@@ -12,7 +12,7 @@ Verificado el 5 de noviembre de 2026. No se han escrito cuentas, roles, mensajes
 - Exportación de bundles Android, iOS y web completada. Esto comprueba el empaquetado; no equivale a ejecutar un binario nativo.
 - Navegador de 390 × 844: demostración persistente, foto elegida y comprimida desde el selector, consentimiento independiente para aniversario/progreso y perfil en Comunidad; completar el primer reto guarda la nota y bloquea el siguiente por 24 horas; panel Admin con progreso proporcional al tamaño real del nivel, fechas próximas, mensajes y revisión de permisos. Las acciones de administración están deshabilitadas en demostración.
 - Capturas nuevas con datos ficticios: `preview-comunidad.jpg`, `preview-admin.jpg` y `preview-celebraciones.jpg`. Las capturas anteriores conservan evidencia de guía, niveles, final sin sucesor y nuevo nivel.
-- Configuración Firebase recibida en `.env` local excluido de Git. Las capturas del propietario muestran Authentication por correo habilitado y Firestore creado. Sin sesión Firebase CLI/ADC para desplegar; el rol propietario real y la carga inicial siguen pendientes.
+- Configuración Firebase recibida en `.env` local excluido de Git. Las capturas del propietario muestran Authentication por correo habilitado y Firestore creado. El propietario desplegó reglas e índices desde Firebase CLI. La cuenta real registrada tiene rol propietario verificado y auditado; la carga inicial del contenido desde Admin sigue pendiente. Expo CLI está autenticado y el usuario confirmó apertura en Expo Go para iPhone.
 - Auditoría npm del cliente en producción: 0 altas/críticas, 5 moderadas en la cadena de herramientas de Expo. Se mantienen versiones compatibles con SDK 58, sin forzar actualizaciones mayores.
 
 Las fuentes antiguas de Cloud Functions se compilan como regresión, pero no están conectadas al cliente ni se despliegan con `firebase.json`. El funcionamiento actual depende de transacciones del cliente y reglas de Firestore.
@@ -35,7 +35,7 @@ npx firebase-tools@latest emulators:exec --only firestore --project demo-entre-d
 
 ## Pendiente con el proyecto real
 
-- [ ] Desplegar solo las reglas e índices de Firestore; registrar la primera familia y asignar `roles/UID.role = owner` desde la consola del propietario.
+- [x] Desplegar solo las reglas e índices de Firestore; registrar la primera familia y asignar `roles/UID.role = owner` con las credenciales del propietario y auditoría.
 - [ ] Cargar los 30 retos originales, catálogo de bodas y configuración desde Admin.
 - [ ] Registro, recuperación de contraseña y acceso simultáneo a una cuenta desde dos teléfonos.
 - [ ] Edición de matrimonio/cumpleaños, edades, catálogo remoto y sincronización entre ambos teléfonos.

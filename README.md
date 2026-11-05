@@ -68,7 +68,7 @@ Los scripts de `functions/scripts` usan Admin SDK desde la computadora del propi
 
 ## Expo y tiendas
 
-El ID EAS recibido es `f9af2154-9d1b-49d6-bae8-588d83ce3ad7`. Falta autenticar EAS y confirmar el propietario/slug del proyecto existente antes de compilar. `com.sevenawesome.entredos` sigue siendo el identificador provisional.
+El ID EAS recibido es `f9af2154-9d1b-49d6-bae8-588d83ce3ad7`. Expo CLI ya está autenticado y el usuario abrió la app en Expo Go para iPhone. Falta confirmar el propietario/slug del proyecto existente antes de compilar. `com.sevenawesome.entredos` sigue siendo el identificador provisional.
 
 ```powershell
 npx eas-cli@latest login
