@@ -5,8 +5,8 @@ Verificado el 5 de noviembre de 2026. Las pruebas automatizadas usaron proyectos
 ## Comprobado localmente
 
 - TypeScript y lint sin errores.
-- 96 pruebas de dominio y regresión aprobadas, incluidas privacidad de la proyección pública, fotos, acompañamiento y programación local de celebraciones.
-- 38 pruebas de seguridad aprobadas contra Firestore Emulator y tres pruebas de acceso contra Auth Emulator, en proyectos demo aislados. Comprueban creación atómica de familia/resumen, aislamiento entre familias, privacidad de notas incluso frente a administradores, secuencia de retos, intervalo de 24 horas con hora del servidor, cuestionario completo y bloqueo de respuestas inválidas.
+- 109 pruebas de dominio y regresión aprobadas, incluidas privacidad de la proyección pública, fotos, acompañamiento y programación local de celebraciones.
+- 46 pruebas de seguridad aprobadas contra Firestore Emulator y tres pruebas de acceso contra Auth Emulator, en proyectos demo aislados. Comprueban creación atómica de familia/resumen, aislamiento entre familias, privacidad de notas incluso frente a administradores, secuencia de retos, intervalo de 24 horas con hora del servidor, cuestionario completo y bloqueo de respuestas inválidas.
 - Casos positivos de límites: nivel de 50 retos, cuestionario de 30 respuestas multilínea y familia con diez hijos. También se probó que la fecha de matrimonio sea obligatoria para registrar, editar y avanzar, incluso ante intentos administrativos de retirarla; los cumpleaños permanecen opcionales. Se probaron concesión/revocación de administradores, protección del propietario, auditoría, bandeja privada, consentimiento público, contadores no falsificables, miniaturas y marcador de eliminación.
 - Expo Doctor: 20/20 comprobaciones aprobadas.
 - Exportación de bundles Android, iOS y web completada. Esto comprueba el empaquetado; no equivale a ejecutar un binario nativo.
@@ -84,3 +84,13 @@ Comprobación visual del ajuste de cadencia: comenzar abre el primer reto sin co
 - Auth Emulator: solicitar enlace con el mismo helper del cliente, confirmar su código, rechazar la clave anterior, aceptar la nueva con el mismo UID e impedir reutilizar el enlace. Respuesta genérica para correo no registrado.
 - Auth Emulator: el cambio dentro de la app rechaza contraseña actual vacía/incorrecta, nueva débil, confirmación distinta y nueva igual a anterior; comprueba cambios de sesión antes de actualizar. Después del cambio, solo la nueva permite entrar y el UID permanece igual.
 - No se modificaron credenciales reales ni se enviaron correos reales. Queda comprobar recepción/spam y finalización del enlace alojado por Firebase con un usuario real.
+
+## Correos personalizados y permisos
+
+- TypeScript/lint y pruebas del cliente; permisos agrupados, compatibilidad con administradores antiguos, dependencias y validación de plantillas/límites.
+- Reglas: consentimiento propio, verificación y servicio activo; cola atómica con mensaje/auditoría; privacidad y limpieza al eliminar cuenta; roles de solo consulta/contenido/configuración; denegación de escalada por campos omitidos y aplicación de revocación sin renovar el token.
+- Worker empaquetado localmente sin desplegar; transporte/repositorio locales prueban cuota atómica, exclusión de duplicados, reintento con contenido inmutable, supresión tras retirar consentimiento o completar un reto, destinatario desde Auth, baja firmada, plantillas, remitente y permisos del emisor.
+- Resultado: 109 pruebas de dominio/regresión, 46 de reglas, 3 de Auth y 14 del Worker aprobadas (172 en total). Typecheck y lint aprobados.
+- Exportación de producción Android, iOS y web aprobada con Expo SDK 58. Se desplegaron únicamente reglas e índices de Firestore; correo personalizado sin activar y roles reales conservados. La exportación no sustituye las pruebas en teléfonos ni genera binarios firmados para las tiendas.
+- Revisión móvil web a 390 × 844 con datos ficticios: centro con cinco secciones, remitente/respuestas y estado pendiente, búsqueda y seis permisos, consentimiento apagado e inhabilitado mientras el servicio esté pendiente. Capturas: `preview-centro-configuracion.jpg`, `preview-correos-config.jpg`, `preview-permisos-admin.jpg`. No se cambiaron roles reales ni se enviaron mensajes.
+- No se crearon cuentas externas, claves ni suscripciones pagadas; no se enviaron correos personalizados reales. Falta comprobar dominio, remitente, ejecución/CPU en Cloudflare, recepción/spam y baja con las cuentas reales cuando existan.

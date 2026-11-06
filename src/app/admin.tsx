@@ -1,3 +1,6 @@
+import { AdminEmailSettings } from "../components/AdminEmailSettings";
+import { AdminPermissionsEditor } from "../components/AdminPermissionsEditor";
+import { hasPermission } from "../domain/admin-permissions";
 import { useEffect, useState } from "react";
 import { Text, View, Pressable, Switch } from "react-native";
 import { router } from "expo-router";
@@ -30,7 +33,14 @@ interface ManagedFamily {
 export default function Admin() {
   const app = useApp();
   const canEdit = app.isAdmin && !app.demo;
-  const [section, setSection] = useState<"app" | "levels" | "families">("app");
+  const canSettings = app.demo || hasPermission(app, "settings.manage"),
+    canContent = app.demo || hasPermission(app, "content.manage"),
+    canFamily = app.demo || hasPermission(app, "families.view"),
+    canFamilyEdit = app.demo || hasPermission(app, "families.edit"),
+    canRoles = app.demo || hasPermission(app, "roles.manage");
+  const [chosenSection, setSection] = useState<
+    "app" | "email" | "levels" | "families" | "roles"
+  >("app");
   const [settings, setSettings] = useState(app.settings),
     [levels, setLevels] = useState<Level[]>(app.levels),
     [json, setJson] = useState(""),
@@ -57,7 +67,24 @@ export default function Admin() {
     return () => {
       active = false;
     };
-  }, [canEdit]);
+  }, [canEdit, app.permissions]);
+  const permitted =
+    chosenSection === "app" || chosenSection === "email"
+      ? canSettings
+      : chosenSection === "levels"
+        ? canContent
+        : chosenSection === "roles"
+          ? canRoles
+          : canFamily;
+  const section = permitted
+    ? chosenSection
+    : canSettings
+      ? "app"
+      : canContent
+        ? "levels"
+        : canRoles
+          ? "roles"
+          : "families";
   async function run(work: () => Promise<void>) {
     setBusy(true);
     setError("");
@@ -132,47 +159,66 @@ export default function Admin() {
         eyebrow={
           app.demo ? "VISTA PREVIA · SOLO LECTURA" : "ACCESO DE ADMINISTRADOR"
         }
-        title="Administrar ENTRE DOS"
-        subtitle="La app, los capítulos y el acompañamiento a las familias."
+        title="Centro de configuración"
+        subtitle="Ajustes, correos, niveles, perfiles y permisos desde un mismo lugar."
       />
       {app.demo && (
         <Notice text="Esta vista permite revisar la administración. Para guardar cambios reales, activa las reglas y asigna el primer rol propietario al UID de la cuenta en Firestore. La vista previa no modifica datos de otras cuentas." />
       )}
       <View style={[s.row, { flexWrap: "wrap" }]}>
-        {(["app", "levels", "families"] as const).map((key) => (
-          <Pressable
-            accessibilityRole="button"
-            key={key}
-            onPress={() => {
-              setSection(key);
-              setError("");
-              setMessage("");
-            }}
-            style={{
-              padding: 13,
-              borderRadius: 12,
-              backgroundColor:
-                section === key ? colors.violet : colors.lavender,
-            }}
-          >
-            <Text
+        {(["app", "email", "levels", "families", "roles"] as const)
+          .filter((key) =>
+            key === "app" || key === "email"
+              ? canSettings
+              : key === "levels"
+                ? canContent
+                : key === "roles"
+                  ? canRoles
+                  : canFamily,
+          )
+          .map((key) => (
+            <Pressable
+              accessibilityRole="button"
+              key={key}
+              onPress={() => {
+                setSection(key);
+                setError("");
+                setMessage("");
+              }}
               style={{
-                color: section === key ? "#FFFFFF" : colors.violet,
-                fontWeight: "600",
+                padding: 13,
+                borderRadius: 12,
+                backgroundColor:
+                  section === key ? colors.violet : colors.lavender,
               }}
             >
-              {key === "app"
-                ? "Aplicación"
-                : key === "levels"
-                  ? "Niveles"
-                  : "Familias"}
-            </Text>
-          </Pressable>
-        ))}
+              <Text
+                style={{
+                  color: section === key ? "#FFFFFF" : colors.violet,
+                  fontWeight: "600",
+                }}
+              >
+                {key === "app"
+                  ? "Aplicación"
+                  : key === "email"
+                    ? "Correos"
+                    : key === "roles"
+                      ? "Permisos"
+                      : key === "levels"
+                        ? "Niveles"
+                        : "Familias"}
+              </Text>
+            </Pressable>
+          ))}
       </View>
       {!!error && <Notice error text={error} />}
       {!!message && <Notice text={message} />}
-      {section === "app" && (
+      {section === "roles" && canRoles && <AdminPermissionsEditor />}
+      {section === "email" && canSettings && <AdminEmailSettings />}
+      {!canSettings && !canContent && !canFamily && !canRoles && (
+        <Notice text="Todavía no tienes secciones administrativas asignadas. Consulta al propietario." />
+      )}
+      {section === "app" && canSettings && (
         <Card>
           <Text style={s.sectionTitle}>Mensajes y soporte</Text>
           <Field
@@ -264,7 +310,7 @@ export default function Admin() {
           />
         </Card>
       )}
-      {section === "levels" && (
+      {section === "levels" && canContent && (
         <>
           <Card>
             <Text style={s.sectionTitle}>Catálogo de niveles</Text>
@@ -419,7 +465,7 @@ export default function Admin() {
           </Card>
         </>
       )}
-      {section === "families" && (
+      {section === "families" && canFamily && (
         <>
           <Card>
             <Text style={s.sectionTitle}>Acompañar una familia</Text>
@@ -472,6 +518,7 @@ export default function Admin() {
                       : "Pausar recordatorios de la familia"
                   }
                   busy={busy}
+                  disabled={!canFamilyEdit || app.demo}
                   onPress={() =>
                     run(async () => {
                       await callBackend("adminSetFamilyReminders", {
@@ -488,19 +535,23 @@ export default function Admin() {
                 />
               </Card>
               <Card>
-                <Text style={s.sectionTitle}>Editar perfil familiar</Text>
-                <FamilyForm
-                  key={target.uid}
-                  initial={target.family}
-                  onSave={async (family) => {
-                    await callBackend("adminUpdateFamily", {
-                      uid: target.uid,
-                      family,
-                    });
-                    setTarget({ ...target, family });
-                  }}
-                  onSaved={() => setMessage("Perfil familiar actualizado.")}
-                />
+                {canFamilyEdit && (
+                  <>
+                    <Text style={s.sectionTitle}>Editar perfil familiar</Text>
+                    <FamilyForm
+                      key={target.uid}
+                      initial={target.family}
+                      onSave={async (family) => {
+                        await callBackend("adminUpdateFamily", {
+                          uid: target.uid,
+                          family,
+                        });
+                        setTarget({ ...target, family });
+                      }}
+                      onSaved={() => setMessage("Perfil familiar actualizado.")}
+                    />
+                  </>
+                )}
               </Card>
             </>
           )}

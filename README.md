@@ -27,7 +27,7 @@ Para Android/iOS usa `npm start` y un development build. La vista web permite re
 - Recuperación de acceso por correo desde la pantalla de entrada y Nosotros. Cambio de contraseña dentro de Nosotros con comprobación de la actual y confirmación de la nueva; conserva UID/familia/progreso. Las contraseñas no se guardan en Firestore ni Redux.
 - Correo compartido obligatorio para la cuenta, verificación al registrarse y reenvío/comprobación en Nosotros. Firebase Spark incluye [hasta 1.000 correos de verificación al día](https://firebase.google.com/docs/auth/limits); no se implementan campañas ni acceso sin contraseña.
 - Comunidad opcional: alias y foto, consentimiento separado para aniversario y contadores de retos/niveles. Permiso adicional por persona para compartir nombre, foto y día/mes de cumpleaños, incluidos hijos. No publica edades, año de nacimiento, correos, notas o cuestionarios. Páginas de 8 familias, sin clasificación competitiva.
-- Pestaña Admin: resúmenes de avance, fechas próximas, acompañamiento tras siete días sin completar, mensajes dirigidos y concesión/revocación de administradores. Páginas de 20 familias; propietario protegido.
+- Pestaña Admin según permisos: resúmenes de avance, fechas próximas, acompañamiento tras siete días sin completar, mensajes dirigidos y concesión/revocación de administradores. Páginas de 20 familias; propietario protegido y seis permisos independientes.
 - Bandeja de mensajes familiares, guía de bienvenida, Información permanente y acceso a Recuerdos desde Información.
 - Configuración de mensajes y soporte, pausas de avisos, borradores y publicación de niveles; auditoría de cambios administrativos.
 - Eliminación de cuenta con sesión reciente y limpieza por lotes; un marcador impide que tokens antiguos vuelvan a crear datos. El propietario debe transferir su rol fuera de la app antes de eliminarse.
@@ -56,7 +56,7 @@ npx firebase-tools@latest deploy --only firestore --project entre-dos-db
 
 3. Registra tu cuenta y familia desde ENTRE DOS. En Firebase Authentication copia el UID de esa cuenta.
 4. En Firestore, crea con acceso de propietario el documento `roles/EL_UID`, con el campo `role` de tipo **string** y valor **owner**. Esta es la asignación inicial fuera de la app; ningún cliente puede darse ese rol.
-5. La cuenta recibe el permiso por suscripción y aparece Admin. En **Admin → Configurar mensajes, niveles y perfiles → Niveles**, pulsa **Preparar los 30 retos originales del nivel 1**, valida, revisa y confirma la publicación. Pulsa **Cargar catálogo inicial de bodas**. Guarda también la configuración de mensajes desde Aplicación.
+5. La cuenta recibe el permiso por suscripción y aparece Admin. En **Admin → Abrir centro de configuración → Niveles**, pulsa **Preparar los 30 retos originales del nivel 1**, valida, revisa y confirma la publicación. Pulsa **Cargar catálogo inicial de bodas**. Guarda también la configuración de mensajes desde Aplicación.
 6. Registra otra familia para comprobar aislamiento y prueba la misma cuenta en ambos teléfonos.
 
 Alternativa del propietario con ADC (`gcloud auth application-default login`) o credenciales privadas fuera del repositorio:
@@ -88,25 +88,28 @@ Para publicar se necesitan las cuentas de las tiendas, identidad legal, polític
 
 | Ruta | Contenido / acceso |
 | --- | --- |
-| `families/{uid}` | Perfil y fechas; familia y administradores. Edición administrativa auditada. |
+| `families/{uid}` | Perfil y fechas; familia y administradores con `families.view`. Edición con `families.edit`, auditada. |
 | `families/{uid}/progress/{levelId}` | Retos, notas y cuestionarios; solo la propia cuenta, incluso frente a administradores. |
-| `tracking/{uid}` | Resumen validado contra el progreso en la misma transacción; familia y administradores. |
-| `roles/{uid}` | `owner`, `admin` o `member`; autoasignación prohibida. Reglas consultan el rol actual. |
+| `tracking/{uid}` | Resumen validado contra el progreso en la misma transacción; familia y administradores con `families.view`. |
+| `roles/{uid}` | `owner`, `admin` o `member` y lista de permisos; autoasignación prohibida. Reglas consultan el acceso actual. |
 | `community/{uid}` | Proyección consentida; otras cuentas solo pueden leer perfiles `visible: true`. |
 | `avatars/{uid}` | Miniatura privada de la familia; la copia pública solo existe al participar. |
 | `families/{uid}/inbox/{id}` | Mensaje administrativo dirigido; solo la familia destinataria puede leerlo. |
-| `levels/{id}`, `levelOrders/{order}` | Catálogo y reserva de orden; borradores solo para administradores. |
+| `levels/{id}`, `levelOrders/{order}` | Catálogo y reserva de orden; borradores con `content.manage`. |
 | `config/app`, `familyControls/{uid}` | Mensajes, soporte y pausas; escritura administrativa auditada. |
 | `catalogs/anniversaries` | Catálogo de bodas; copia inicial empaquetada como respaldo. |
 | `adminAudit/{id}` | Actor, acción, destino y fecha; creación atómica con cambios, inmutable desde la app. |
 | `accountDeletion/{uid}` | Marcador mínimo para impedir recreación tras eliminar la cuenta. |
+| `config/email`, `emailPreferences/{uid}` | Ajustes sin secretos y consentimiento propio; correos opcionales apagados inicialmente. |
+| `emailQueue/{id}`, `mailJobs/{id}`, `mailRuntime/{id}` | Cola, trabajos con idempotencia y presupuesto atómico del Worker opcional. |
 
-Una cuenta administradora no accede a notas ni cuestionarios, pero sí a nombres, fechas y resúmenes para acompañamiento. Los administradores pueden administrar otros permisos; no pueden cambiar su propio rol ni el de un propietario. El propietario de infraestructura conserva las facultades de la consola/Admin SDK.
+Una cuenta con `families.view` accede a nombres, fechas y resúmenes para acompañamiento, sin notas, cuestionarios ni fotos individuales privadas. Los permisos de configuración o contenido pueden concederse sin acceso a las familias. Solo `roles.manage` permite gestionar otros administradores, sin conceder accesos superiores a los propios ni cambiar cuentas con permisos superiores, su propio rol o el de un propietario. El propietario de infraestructura conserva las facultades de la consola/Admin SDK.
 
 ## Verificación
 
 ```powershell
 npm run check
+npm run test:email
 npx expo export --platform all
 npx expo-doctor
 ```
@@ -127,4 +130,6 @@ Las fuentes/tradiciones del catálogo están en [docs/FUENTES_BODAS.md](docs/FUE
 
 `functions/src` conserva la arquitectura anterior como referencia y para pruebas de regresión; **no está conectada al cliente ni incluida en el despliegue actual**. Sus requisitos de Blaze/Expo Push no corresponden a la versión Spark.
 
-Correos incluidos en Firebase Spark: [150 recuperaciones y 1.000 verificaciones al día](https://firebase.google.com/docs/auth/limits), sujetos a las protecciones del proveedor. Esta integración no envía campañas ni correos personalizados de retos/cumpleaños. La solicitud de recuperación conserva una respuesta genérica para no revelar si existe la cuenta.
+Correos incluidos en Firebase Spark: [150 recuperaciones y 1.000 verificaciones al día](https://firebase.google.com/docs/auth/limits), sujetos a las protecciones del proveedor. Los correos personalizados de retos, celebraciones y mensajes están preparados mediante un Worker opcional, pero siguen inactivos hasta configurar las cuentas externas. La solicitud de recuperación conserva una respuesta genérica para no revelar si existe la cuenta.
+
+El [centro de configuración, permisos y activación del correo](docs/CORREOS_Y_PERMISOS.md) reúne ajustes, remitente/respuestas, plantillas, cuotas y accesos por administrador. Firebase continúa en Spark; la cuenta propietaria tiene acceso completo y los permisos se aplican en reglas, cliente y servicio de correo. Los secretos quedan fuera de Firebase/Expo.

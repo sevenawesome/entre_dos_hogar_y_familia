@@ -67,6 +67,18 @@ export default function Privacy() {
           a miniaturas; no guardamos los originales. Pueden retirar su perfil,
           aunque otras personas podrían conservar lo que ya vieron.
         </Text>
+        <Text style={s.sectionTitle}>Correos opcionales</Text>
+        <Text style={s.body}>
+          Solo se activan si lo eligen y verifican su correo. Cloudflare procesa
+          las preferencias, fechas familiares y resúmenes necesarios para
+          preparar los avisos; Resend recibe la dirección y el contenido que
+          debe enviar. No se envían notas, cuestionarios ni fotos. Pueden
+          incluir el título del reto, nombres de quienes cumplen años, años de
+          matrimonio y mensajes autorizados del equipo. Pueden darse de baja
+          desde el correo o desde Nosotros. La aplicación guarda preferencias,
+          cola y estados técnicos de envío; un estado aceptado no confirma
+          entrega ni lectura.
+        </Text>
         <Text style={s.sectionTitle}>Eliminar la cuenta</Text>
         <Text style={s.body}>
           En Nosotros pueden eliminar la cuenta y sus datos compartidos. La

@@ -1,3 +1,5 @@
+import { effectivePermissions } from "../domain/admin-permissions";
+import { emailDefaults, emailServiceOff } from "../domain/email-reminders";
 import {
   collection,
   doc,
@@ -41,6 +43,34 @@ export function subscribeSettings(
 export function subscribeSocial(uid: string, onError: (e: Error) => void) {
   return [
     onSnapshot(
+      doc(db!, "config", "email"),
+      (snap) => {
+        const data = snap.data() ?? {};
+        store.dispatch(
+          actions.emailService({
+            ...emailServiceOff,
+            ...data,
+            lastRunAt: data.lastRunAt?.toDate?.().toISOString(),
+          }),
+        );
+      },
+      onError,
+    ),
+    onSnapshot(
+      doc(db!, "emailPreferences", uid),
+      (snap) => {
+        const { updatedAt: _updated, ...data } = snap.data() ?? {};
+        store.dispatch(
+          actions.emailPreferences({
+            ...emailDefaults("UTC"),
+            ...data,
+            nextDueAt: data.nextDueAt?.toDate?.().toISOString() ?? null,
+          }),
+        );
+      },
+      onError,
+    ),
+    onSnapshot(
       doc(db!, "portraits", uid),
       (snap) => store.dispatch(actions.portraits(snap.data()?.people ?? {})),
       onError,
@@ -64,10 +94,11 @@ export function subscribeSocial(uid: string, onError: (e: Error) => void) {
     ),
     onSnapshot(
       doc(db!, "roles", uid),
-      (snap) =>
-        store.dispatch(
-          actions.role((snap.data()?.role ?? "member") as AccountRole),
-        ),
+      (snap) => {
+        const data = snap.data() ?? { role: "member" };
+        store.dispatch(actions.role(data.role as AccountRole));
+        store.dispatch(actions.permissions(effectivePermissions(data)));
+      },
       onError,
     ),
     onSnapshot(

@@ -6,6 +6,10 @@ service cloud.firestore {
   function deleting(uid) { return exists(/databases/$(database)/documents/accountDeletion/$(uid)); }
   function active(uid) { return self(uid) && !deleting(uid); }
   function admin() { return signed() && !deleting(request.auth.uid) && get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.role in ['owner','admin']; }
+  function allPermissions() { return ['families.view','families.edit','messages.send','content.manage','settings.manage','roles.manage']; }
+  function owner() { return admin() && get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.role=='owner'; }
+  function can(p) { return admin() && (owner() || p in get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.get('permissions',allPermissions())); }
+  function auditAllowed(action) { return (action=='role.update' && can('roles.manage')) || (action=='message.send' && can('messages.send')) || (action in ['family.profile.update','family.reminders.update'] && can('families.edit')) || (action in ['level.save','catalog.seed'] && can('content.manage')) || (action in ['app.settings.update','email.pause','email.settings.update'] && can('settings.manage')); }
   function text(v,n) { return v is string && v.size() > 0 && v.size() <= n; }
   function date(d,k) { let value=d.get(k,null); return value==null || (value is string && value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')); }
   function validChild(child) {
@@ -119,7 +123,7 @@ service cloud.firestore {
    allow delete: if self(uid) && deleting(uid);
   }
   match /journeys/{uid} {
-   allow read: if self(uid) || admin();
+   allow read: if self(uid) || can('families.view');
    allow create: if active(uid) && request.resource.data.keys().hasOnly(['levelId','startedAt']) && request.resource.data.startedAt==request.time
     && get(/databases/$(database)/documents/families/$(uid)).data.marriageDate is string
     && get(/databases/$(database)/documents/tracking/$(uid)).data.totalCompleted==0
@@ -128,14 +132,14 @@ service cloud.firestore {
    allow delete: if self(uid) && deleting(uid);
   }
   match /families/{uid} {
-   allow read: if self(uid) || admin();
-   allow create,update: if (active(uid) || (resource!=null && admin() && audited({'auditId':request.resource.data.adminAuditId},'family.profile.update',uid))) && (resource==null || request.resource.data.timezone==resource.data.timezone) && validFamily();
+   allow read: if self(uid) || can('families.view');
+   allow create,update: if (active(uid) || (resource!=null && can('families.edit') && audited({'auditId':request.resource.data.adminAuditId},'family.profile.update',uid))) && (resource==null || request.resource.data.timezone==resource.data.timezone) && validFamily();
    allow delete: if self(uid) && deleting(uid);
    match /progress/{id} { allow read: if self(uid); allow create,update: if active(uid) && validProgress(uid,id); allow delete: if self(uid) && deleting(uid); }
    match /devices/{id} { allow read,delete: if self(uid); }
    match /inbox/{id} {
     allow read: if self(uid);
-    allow create: if admin() && !deleting(uid) && exists(/databases/$(database)/documents/families/$(uid))
+    allow create: if can('messages.send') && !deleting(uid) && exists(/databases/$(database)/documents/families/$(uid))
       && request.resource.data.keys().hasOnly(['title','body','senderUid','createdAt','auditId'])
       && text(request.resource.data.title,100) && text(request.resource.data.body,1200)
       && request.resource.data.senderUid==request.auth.uid && request.resource.data.createdAt==request.time
@@ -144,7 +148,7 @@ service cloud.firestore {
    }
   }
   match /tracking/{uid} {
-   allow read: if self(uid) || admin();
+   allow read: if self(uid) || can('families.view');
    allow create: if active(uid) && trackingShape(request.resource.data,uid)
     && request.resource.data.joinedAt==request.time && request.resource.data.lastCompletedAt==null
     && request.resource.data.levelId=='' && request.resource.data.levelOrder==0 && request.resource.data.completedCount==0
@@ -153,11 +157,59 @@ service cloud.firestore {
     && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['familyName','lastActivityAt','emailVerified']) || trackingUpdate(uid));
    allow delete: if self(uid) && deleting(uid);
   }
+  match /emailPreferences/{uid} {
+   allow read: if self(uid) || can('families.view');
+   allow create,update: if active(uid)
+    && request.resource.data.keys().hasOnly(['enabled','challenges','celebrations','adminMessages','hour','minute','timezone','version','nextDueAt','updatedAt'])
+    && request.resource.data.enabled is bool && request.resource.data.challenges is bool && request.resource.data.celebrations is bool && request.resource.data.adminMessages is bool
+    && request.resource.data.hour is int && request.resource.data.hour>=0 && request.resource.data.hour<24
+    && request.resource.data.minute is int && request.resource.data.minute>=0 && request.resource.data.minute<60
+    && request.resource.data.timezone==get(/databases/$(database)/documents/families/$(uid)).data.timezone
+    && request.resource.data.version==(resource==null ? 1 : resource.data.version+1)
+    && request.resource.data.updatedAt==request.time && request.resource.data.nextDueAt is timestamp
+    && request.resource.data.nextDueAt>=request.time-duration.value(1,'d') && request.resource.data.nextDueAt<=request.time+duration.value(2,'d')
+    && (!request.resource.data.enabled || (request.auth.token.get('email_verified',false)==true && get(/databases/$(database)/documents/config/email).data.enabled && !get(/databases/$(database)/documents/config/email).data.paused && (request.resource.data.challenges || request.resource.data.celebrations || request.resource.data.adminMessages)));
+   allow delete: if self(uid) && deleting(uid);
+  }
+  function validEmailConfig(d) {
+   return d.version is int && d.paused is bool && d.automaticEnabled is bool && d.adminMessagesEnabled is bool
+    && text(d.fromName,80) && d.fromEmail is string && d.fromEmail.size()<=150 && text(d.replyTo,150)
+    && d.dailyLimit is int && d.dailyLimit>=1 && d.dailyLimit<=90 && d.monthlyLimit is int && d.monthlyLimit>=1 && d.monthlyLimit<=2700
+    && d.subjectPrefix is string && d.subjectPrefix.size()<=40
+    && text(d.birthdayTemplate,800) && text(d.anniversaryTemplate,800) && text(d.challengeTemplate,800) && text(d.finishTemplate,800);
+  }
+  match /config/email {
+   allow read: if signed();
+   allow create: if can('settings.manage') && request.resource.data.keys().hasOnly(['version','paused','fromName','fromEmail','replyTo','automaticEnabled','adminMessagesEnabled','dailyLimit','monthlyLimit','subjectPrefix','birthdayTemplate','anniversaryTemplate','challengeTemplate','finishTemplate','auditId']) && request.resource.data.version==1 && validEmailConfig(request.resource.data) && audited(request.resource.data,'email.settings.update','config/email');
+   allow update: if can('settings.manage') && request.resource.data.version==resource.data.get('version',0)+1
+    && ((request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paused','version','auditId']) && request.resource.data.paused is bool && audited(request.resource.data,'email.pause','config/email'))
+     || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['version','paused','fromName','fromEmail','replyTo','automaticEnabled','adminMessagesEnabled','dailyLimit','monthlyLimit','subjectPrefix','birthdayTemplate','anniversaryTemplate','challengeTemplate','finishTemplate','auditId']) && validEmailConfig(request.resource.data) && audited(request.resource.data,'email.settings.update','config/email')));
+  }
+  match /emailQueue/{id} {
+   allow read: if self(resource.data.uid) || can('families.view');
+   allow create: if can('messages.send') && !deleting(request.resource.data.uid)
+    && request.resource.data.keys().hasOnly(['uid','title','body','senderUid','createdAt','auditId','state']) && request.resource.data.state=='pending'
+    && request.resource.data.senderUid==request.auth.uid && request.resource.data.createdAt==request.time
+    && text(request.resource.data.title,100) && text(request.resource.data.body,1200)
+    && get(/databases/$(database)/documents/config/email).data.enabled && !get(/databases/$(database)/documents/config/email).data.paused && get(/databases/$(database)/documents/config/email).data.get('adminMessagesEnabled',true)
+    && get(/databases/$(database)/documents/emailPreferences/$(request.resource.data.uid)).data.enabled && get(/databases/$(database)/documents/emailPreferences/$(request.resource.data.uid)).data.adminMessages
+    && getAfter(/databases/$(database)/documents/families/$(request.resource.data.uid)/inbox/$(id)).data.auditId==request.resource.data.auditId
+    && getAfter(/databases/$(database)/documents/families/$(request.resource.data.uid)/inbox/$(id)).data.title==request.resource.data.title
+    && getAfter(/databases/$(database)/documents/families/$(request.resource.data.uid)/inbox/$(id)).data.body==request.resource.data.body
+    && audited(request.resource.data,'message.send',request.resource.data.uid);
+   allow delete: if self(resource.data.uid) && deleting(resource.data.uid);
+  }
+  match /mailJobs/{id} { allow read: if self(resource.data.uid) || can('families.view'); allow delete: if self(resource.data.uid) && deleting(resource.data.uid); }
+  match /mailRuntime/{id} { allow read: if owner(); }
   match /roles/{uid} {
-   allow read: if self(uid) || admin();
-   allow create,update: if admin() && uid!=request.auth.uid && exists(/databases/$(database)/documents/tracking/$(uid))
+   allow read: if self(uid) || can('roles.manage');
+   allow create,update: if can('roles.manage') && uid!=request.auth.uid && exists(/databases/$(database)/documents/tracking/$(uid))
     && (!exists(/databases/$(database)/documents/roles/$(uid)) || resource.data.role!='owner')
-    && request.resource.data.keys().hasOnly(['role','updatedAt','updatedBy','auditId']) && request.resource.data.role in ['admin','member']
+    && request.resource.data.keys().hasOnly(['role','permissions','updatedAt','updatedBy','auditId']) && request.resource.data.role in ['admin','member']
+    && request.resource.data.keys().hasAll(['permissions']) && request.resource.data.get('permissions',[]) is list && request.resource.data.get('permissions',[]).size()<=6 && request.resource.data.get('permissions',[]).hasOnly(allPermissions())
+    && (request.resource.data.role=='admin' || request.resource.data.get('permissions',[]).size()==0)
+    && (!request.resource.data.get('permissions',[]).hasAny(['families.edit','messages.send','roles.manage']) || 'families.view' in request.resource.data.permissions)
+    && (owner() || (request.resource.data.get('permissions',[]).hasOnly(get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.get('permissions',allPermissions())) && (resource==null || resource.data.role=='member' || resource.data.get('permissions',allPermissions()).hasOnly(get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.get('permissions',allPermissions())))))
     && request.resource.data.updatedAt==request.time && request.resource.data.updatedBy==request.auth.uid && audited(request.resource.data,'role.update',uid);
    allow delete: if self(uid) && deleting(uid) && resource.data.role!='owner';
   }
@@ -187,7 +239,7 @@ service cloud.firestore {
   }
   match /config/app {
    allow read: if signed();
-   allow create,update: if admin() && audited(request.resource.data,'app.settings.update','config/app')
+   allow create,update: if can('settings.manage') && audited(request.resource.data,'app.settings.update','config/app')
     && request.resource.data.keys().hasOnly(['version','announcement','endTitle','endMessage','newLevelTitle','supportEmail','supportUrl','notificationsEnabled','auditId'])
     && request.resource.data.version==(resource==null ? 1 : resource.data.version+1)
     && request.resource.data.announcement is string && request.resource.data.announcement.size()<=800
@@ -197,8 +249,8 @@ service cloud.firestore {
     && request.resource.data.notificationsEnabled is bool;
   }
   match /levels/{id} {
-   allow read: if admin() || (signed() && resource.data.published==true);
-   allow create,update: if admin() && audited(request.resource.data,'level.save',id)
+   allow read: if can('content.manage') || (signed() && resource.data.published==true);
+   allow create,update: if can('content.manage') && audited(request.resource.data,'level.save',id)
     && request.resource.data.id==id && request.resource.data.order is int && request.resource.data.order>0
     && getAfter(/databases/$(database)/documents/levelOrders/$(string(request.resource.data.order))).data.levelId==id
     && text(request.resource.data.title,100) && text(request.resource.data.subtitle,300) && text(request.resource.data.description,2000)
@@ -209,14 +261,14 @@ service cloud.firestore {
     && ((request.resource.data.order==1 && request.resource.data.prerequisiteId==null) || (request.resource.data.order>1 && get(/databases/$(database)/documents/levels/$(request.resource.data.prerequisiteId)).data.published==true && get(/databases/$(database)/documents/levels/$(request.resource.data.prerequisiteId)).data.order<request.resource.data.order))
     && (resource==null || !resource.data.published || (request.resource.data.published && request.resource.data.challenges==resource.data.challenges && request.resource.data.questions==resource.data.questions && request.resource.data.order==resource.data.order && request.resource.data.prerequisiteId==resource.data.prerequisiteId));
   }
-  match /levelOrders/{order} { allow read: if admin(); allow create: if admin() && request.resource.data.keys().hasOnly(['levelId']); allow update: if admin() && request.resource.data==resource.data; }
+  match /levelOrders/{order} { allow read: if can('content.manage'); allow create: if can('content.manage') && request.resource.data.keys().hasOnly(['levelId']); allow update: if can('content.manage') && request.resource.data==resource.data; }
   match /familyControls/{uid} {
-   allow read: if self(uid) || admin();
-   allow create,update: if admin() && request.resource.data.keys().hasOnly(['remindersPaused','auditId']) && request.resource.data.remindersPaused is bool && audited(request.resource.data,'family.reminders.update',uid);
+   allow read: if self(uid) || can('families.view');
+   allow create,update: if can('families.edit') && request.resource.data.keys().hasOnly(['remindersPaused','auditId']) && request.resource.data.remindersPaused is bool && audited(request.resource.data,'family.reminders.update',uid);
    allow delete: if self(uid) && deleting(uid);
   }
-  match /adminAudit/{id} { allow read: if admin(); allow create: if admin() && request.resource.data.keys().hasOnly(['actorUid','action','target','at']) && request.resource.data.actorUid==request.auth.uid && request.resource.data.at==request.time && text(request.resource.data.action,100) && text(request.resource.data.target,200); }
-  match /catalogs/anniversaries { allow read: if signed(); allow create: if admin() && audited(request.resource.data,'catalog.seed','catalogs/anniversaries') && request.resource.data.milestones is list && request.resource.data.milestones.size()<=100; }
+  match /adminAudit/{id} { allow read: if owner(); allow create: if admin() && auditAllowed(request.resource.data.action) && request.resource.data.keys().hasOnly(['actorUid','action','target','at']) && request.resource.data.actorUid==request.auth.uid && request.resource.data.at==request.time && text(request.resource.data.action,100) && text(request.resource.data.target,200); }
+  match /catalogs/anniversaries { allow read: if signed(); allow create: if can('content.manage') && audited(request.resource.data,'catalog.seed','catalogs/anniversaries') && request.resource.data.milestones is list && request.resource.data.milestones.size()<=100; }
   match /accountDeletion/{uid} {
    allow read: if self(uid);
    allow create: if self(uid) && request.auth.token.auth_time*1000>request.time.toMillis()-300000

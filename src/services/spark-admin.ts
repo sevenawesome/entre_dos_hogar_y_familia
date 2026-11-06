@@ -1,4 +1,14 @@
 import {
+  validateEmailSettings,
+  type EmailSettings,
+} from "../domain/email-settings";
+import {
+  hasPermission,
+  normalizePermissions,
+  effectivePermissions,
+  type AdminPermission,
+} from "../domain/admin-permissions";
+import {
   collection,
   doc,
   getDoc,
@@ -22,14 +32,16 @@ import {
 import type { Family, FamilySummary, Level } from "../domain/types";
 import { bundledAnniversaries } from "../data/anniversaries";
 
-async function requireAdmin() {
+async function requireAdmin(permission?: AdminPermission) {
   if (!db || !auth?.currentUser)
     throw new Error("Inicia sesión como administrador.");
-  const role = (await getDoc(doc(db, "roles", auth.currentUser.uid))).data()
-    ?.role;
-  if (role !== "owner" && role !== "admin")
-    throw new Error("Esta cuenta no tiene permiso de administración.");
-  return { database: db, actor: auth.currentUser.uid };
+  const permissionData =
+    (await getDoc(doc(db, "roles", auth.currentUser.uid))).data() ?? {};
+  if (permissionData.role !== "owner" && permissionData.role !== "admin")
+    throw new Error("Esta cuenta no tiene acceso administrativo.");
+  if (permission && !hasPermission(permissionData, permission))
+    throw new Error("Tu cuenta no tiene permiso para esta sección.");
+  return { database: db, actor: auth.currentUser.uid, permissionData };
 }
 const auditData = (actorUid: string, action: string, target: string) => ({
   actorUid,
@@ -44,9 +56,10 @@ export interface ManagedFamily {
   summary: FamilySummary | null;
   remindersPaused: boolean;
   role: "owner" | "admin" | "member";
+  permissions?: AdminPermission[];
 }
 export async function listManagedFamilies(after?: QueryDocumentSnapshot) {
-  const { database } = await requireAdmin();
+  const { database, permissionData } = await requireAdmin("families.view");
   const { startAfter } = await import("firebase/firestore");
   const page = await getDocs(
     query(
@@ -61,7 +74,9 @@ export async function listManagedFamilies(after?: QueryDocumentSnapshot) {
       const [s, control, role, journey] = await Promise.all([
         getDoc(doc(database, "tracking", f.id)),
         getDoc(doc(database, "familyControls", f.id)),
-        getDoc(doc(database, "roles", f.id)),
+        hasPermission(permissionData, "roles.manage")
+          ? getDoc(doc(database, "roles", f.id))
+          : Promise.resolve(null),
         getDoc(doc(database, "journeys", f.id)),
       ]);
       return {
@@ -77,7 +92,8 @@ export async function listManagedFamilies(after?: QueryDocumentSnapshot) {
             } as FamilySummary)
           : null,
         remindersPaused: control.data()?.remindersPaused === true,
-        role: role.data()?.role ?? "member",
+        role: role?.data()?.role ?? "member",
+        permissions: effectivePermissions(role?.data() ?? { role: "member" }),
       } as ManagedFamily;
     }),
   );
@@ -87,13 +103,40 @@ export async function sendFamilyMessage(
   uid: string,
   title: string,
   body: string,
+  byEmail = false,
 ) {
-  const { database, actor } = await requireAdmin();
+  const { database, actor } = await requireAdmin("messages.send");
   if (!title.trim() || title.length > 100 || !body.trim() || body.length > 1200)
     throw new Error("Escribe un título y un mensaje de hasta 1200 caracteres.");
   const messageRef = doc(collection(database, "families", uid, "inbox")),
     audit = doc(collection(database, "adminAudit"));
+  if (byEmail) {
+    const [prefs, service] = await Promise.all([
+      getDoc(doc(database, "emailPreferences", uid)),
+      getDoc(doc(database, "config", "email")),
+    ]);
+    if (!prefs.data()?.enabled || !prefs.data()?.adminMessages)
+      throw new Error(
+        "Esta familia no ha autorizado mensajes por correo. Puedes usar su bandeja.",
+      );
+    if (
+      !service.data()?.enabled ||
+      service.data()?.paused ||
+      service.data()?.adminMessagesEnabled === false
+    )
+      throw new Error("El servicio de correos no está activo.");
+  }
   const batch = writeBatch(database);
+  if (byEmail)
+    batch.set(doc(database, "emailQueue", messageRef.id), {
+      uid,
+      title: title.trim(),
+      body: body.trim(),
+      senderUid: actor,
+      createdAt: serverTimestamp(),
+      auditId: audit.id,
+      state: "pending",
+    });
   batch.set(messageRef, {
     title: title.trim(),
     body: body.trim(),
@@ -104,8 +147,14 @@ export async function sendFamilyMessage(
   batch.set(audit, auditData(actor, "message.send", uid));
   await batch.commit();
 }
-export async function setAccountRole(uid: string, role: "admin" | "member") {
-  const { database, actor } = await requireAdmin();
+export async function setAccountRole(
+  uid: string,
+  role: "admin" | "member",
+  supplied: AdminPermission[] = ["families.view"],
+) {
+  const { database, actor, permissionData } =
+    await requireAdmin("roles.manage");
+  const permissions = role === "member" ? [] : normalizePermissions(supplied);
   if (uid === actor)
     throw new Error("No puedes cambiar tu propio permiso desde este panel.");
   const ref = doc(database, "roles", uid),
@@ -116,8 +165,20 @@ export async function setAccountRole(uid: string, role: "admin" | "member") {
       throw new Error(
         "El permiso del propietario se administra fuera de la app.",
       );
+    const mine = effectivePermissions(permissionData);
+    if (
+      permissionData.role !== "owner" &&
+      (permissions.some((p) => !mine.includes(p)) ||
+        effectivePermissions(existing.data() ?? { role: "member" }).some(
+          (p) => !mine.includes(p),
+        ))
+    )
+      throw new Error(
+        "Solo el propietario puede conceder o modificar permisos superiores a los tuyos.",
+      );
     tx.set(ref, {
       role,
+      permissions,
       updatedAt: serverTimestamp(),
       updatedBy: actor,
       auditId: audit.id,
@@ -129,18 +190,29 @@ export async function adminRequest(
   name: string,
   input: unknown,
 ): Promise<unknown> {
-  const { database, actor } = await requireAdmin();
+  const { database, actor, permissionData } = await requireAdmin();
   const data = input as Record<string, unknown>;
+  const required: Record<string, AdminPermission> = {
+    adminLoadAnniversaries: "content.manage",
+    adminSaveSettings: "settings.manage",
+    adminSaveLevel: "content.manage",
+    adminFindFamily: "families.view",
+    adminUpdateFamily: "families.edit",
+    adminSetFamilyReminders: "families.edit",
+  };
+  if (required[name]) await requireAdmin(required[name]);
   if (name === "adminBootstrap") {
     const [settings, levels] = await Promise.all([
       getDoc(doc(database, "config", "app")),
-      getDocs(
-        query(collection(database, "levels"), orderBy("order"), limit(200)),
-      ),
+      hasPermission(permissionData, "content.manage")
+        ? getDocs(
+            query(collection(database, "levels"), orderBy("order"), limit(200)),
+          )
+        : Promise.resolve(null),
     ]);
     return {
       settings: { ...defaultSettings, ...settings.data() },
-      levels: levels.docs.map((d) => ({ ...d.data(), id: d.id })),
+      levels: (levels?.docs ?? []).map((d) => ({ ...d.data(), id: d.id })),
     };
   }
   if (name === "adminLoadAnniversaries") {
@@ -279,4 +351,40 @@ export async function adminRequest(
     return { ok: true };
   }
   throw new Error("Esta acción no está disponible en el modo Spark.");
+}
+
+export async function saveOptionalEmailSettings(input: EmailSettings) {
+  const saved = validateEmailSettings(input),
+    { database, actor } = await requireAdmin("settings.manage"),
+    ref = doc(database, "config", "email"),
+    audit = doc(collection(database, "adminAudit"));
+  await runTransaction(database, async (tx) => {
+    const old = await tx.get(ref);
+    if ((old.data()?.version ?? 0) !== saved.version)
+      throw new Error(
+        "La configuración de correos cambió. Recarga antes de guardar.",
+      );
+    tx.set(ref, {
+      ...old.data(),
+      ...saved,
+      version: saved.version + 1,
+      auditId: audit.id,
+    });
+    tx.set(audit, auditData(actor, "email.settings.update", "config/email"));
+  });
+}
+export async function pauseOptionalEmails(paused: boolean) {
+  const { database, actor } = await requireAdmin("settings.manage"),
+    ref = doc(database, "config", "email"),
+    audit = doc(collection(database, "adminAudit"));
+  await runTransaction(database, async (tx) => {
+    const old = await tx.get(ref);
+    if (!old.exists()) throw new Error("Primero configura los correos.");
+    tx.update(ref, {
+      paused,
+      version: (old.data().version ?? 0) + 1,
+      auditId: audit.id,
+    });
+    tx.set(audit, auditData(actor, "email.pause", "config/email"));
+  });
 }

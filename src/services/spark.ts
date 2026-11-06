@@ -9,6 +9,7 @@ import {
   serverTimestamp,
   setDoc,
   writeBatch,
+  where,
 } from "firebase/firestore";
 import { deleteUser } from "firebase/auth";
 import { auth, db } from "./firebase";
@@ -346,6 +347,21 @@ export async function deleteSparkAccount() {
       await batch.commit();
     }
   }
+  for (const root of ["emailQueue", "mailJobs"]) {
+    for (;;) {
+      const page = await getDocs(
+        query(
+          collection(databaseRef, root),
+          where("uid", "==", uid),
+          limit(100),
+        ),
+      );
+      if (page.empty) break;
+      const clean = writeBatch(databaseRef);
+      page.docs.forEach((d) => clean.delete(d.ref));
+      await clean.commit();
+    }
+  }
   const batch = writeBatch(databaseRef);
   for (const name of [
     "community",
@@ -354,6 +370,7 @@ export async function deleteSparkAccount() {
     "journeys",
     "tracking",
     "familyControls",
+    "emailPreferences",
     "families",
   ])
     batch.delete(doc(databaseRef, name, uid));

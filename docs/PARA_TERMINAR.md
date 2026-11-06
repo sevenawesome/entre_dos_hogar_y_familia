@@ -32,3 +32,5 @@ Faltan la identidad legal del responsable, país, correo de soporte/privacidad, 
 No se han enviado builds a las tiendas. Las reglas de Firestore están desplegadas y el primer propietario real está habilitado y auditado. La comunidad y el panel de demostración muestran datos ficticios y no contactan a nadie.
 
 Fotos: familiar ampliable y fotos individuales privadas de ambos integrantes e hijos. La familia puede publicar por persona nombre/foto/día/mes de cumpleaños, nunca edad o año. Verificación gratuita del correo mediante Firebase Authentication (límite Spark de 1.000 mensajes diarios); se solicita al registrarse y puede repetirse desde Nosotros. No bloquea los retos.
+
+Preparados el centro de configuración y los permisos por administrador. Para correo personalizado faltan las cuentas de Resend/Cloudflare, dominio verificado, secretos del Worker y prueba real de recepción/baja. `sevenawesome.srl@gmail.com` es el contacto y la dirección inicial para respuestas; no es un dominio remitente verificable en Resend. Procedimiento: [CORREOS_Y_PERMISOS.md](CORREOS_Y_PERMISOS.md).

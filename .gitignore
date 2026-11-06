@@ -46,3 +46,10 @@ serviceAccount*.json
 # generated native folders
 /ios
 /android
+
+# Email worker server-only secrets and generated files
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.wrangler/
+email-worker/.env*

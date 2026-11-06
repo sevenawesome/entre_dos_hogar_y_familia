@@ -1,4 +1,14 @@
 import {
+  effectivePermissions,
+  type AdminPermission,
+} from "../domain/admin-permissions";
+import {
+  emailDefaults,
+  emailServiceOff,
+  type EmailPreferences,
+  type EmailServiceStatus,
+} from "../domain/email-reminders";
+import {
   configureStore,
   createSlice,
   type PayloadAction,
@@ -38,6 +48,7 @@ interface State {
   catalogReady: boolean;
   progressReady: boolean;
   role: AccountRole;
+  permissions: AdminPermission[];
   avatar: string | null;
   communityProfile: CommunityProfile | null;
   inbox: FamilyMessage[];
@@ -47,6 +58,8 @@ interface State {
   email: string | null;
   emailVerified: boolean;
   verificationMessage: string | null;
+  emailPreferences: EmailPreferences;
+  emailService: EmailServiceStatus;
 }
 const initialState: State = {
   ready: false,
@@ -63,6 +76,7 @@ const initialState: State = {
   catalogReady: false,
   progressReady: false,
   role: "member",
+  permissions: [],
   avatar: null,
   communityProfile: null,
   inbox: [],
@@ -72,6 +86,8 @@ const initialState: State = {
   email: null,
   emailVerified: false,
   verificationMessage: null,
+  emailPreferences: emailDefaults("UTC"),
+  emailService: emailServiceOff,
 };
 const slice = createSlice({
   name: "app",
@@ -95,6 +111,7 @@ const slice = createSlice({
       state.catalogReady = false;
       state.progressReady = false;
       state.role = "member";
+      state.permissions = [];
       state.avatar = null;
       state.communityProfile = null;
       state.inbox = [];
@@ -104,6 +121,14 @@ const slice = createSlice({
       state.email = null;
       state.emailVerified = false;
       state.verificationMessage = null;
+      state.emailPreferences = emailDefaults("UTC");
+      state.emailService = emailServiceOff;
+    },
+    emailPreferences(state, action: PayloadAction<EmailPreferences>) {
+      state.emailPreferences = action.payload;
+    },
+    emailService(state, action: PayloadAction<EmailServiceStatus>) {
+      state.emailService = action.payload;
     },
     family(state, action: PayloadAction<Family | null>) {
       state.family = action.payload;
@@ -133,7 +158,11 @@ const slice = createSlice({
     },
     role(state, action: PayloadAction<AccountRole>) {
       state.role = action.payload;
+      state.permissions = effectivePermissions({ role: action.payload });
       state.isAdmin = action.payload === "owner" || action.payload === "admin";
+    },
+    permissions(state, action: PayloadAction<AdminPermission[]>) {
+      state.permissions = action.payload;
     },
     avatar(state, action: PayloadAction<string | null>) {
       state.avatar = action.payload;

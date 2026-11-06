@@ -1,6 +1,6 @@
 # Administración con Firebase Spark
 
-La pestaña Admin aparece para `roles/{uid}.role` igual a `owner` o `admin`. Las operaciones usan el SDK de Firestore desde la app, transacciones/lotes y reglas; no hay Cloud Functions ni facturación Blaze.
+Consulta también [configuración centralizada, permisos y correos opcionales](CORREOS_Y_PERMISOS.md). La pestaña Admin aparece para `roles/{uid}.role` igual a `owner` o `admin`. Las operaciones usan el SDK de Firestore desde la app, transacciones/lotes y reglas; no hay Cloud Functions ni facturación Blaze.
 
 ## Primera cuenta propietaria
 
@@ -17,27 +17,29 @@ El script necesita una cuenta Auth existente y credenciales del propietario, nun
 
 ## Acompañamiento
 
-El panel carga 20 familias por página, con nombre, integrantes y resumen de retos/niveles. El progreso administrativo se confirma en la misma transacción que el reto; no se deriva de notas ni de cuestionarios visibles al administrador. Las cifras de cabecera corresponden a las familias cargadas, no al total de toda la base.
+Con el permiso Consultar familias, el panel carga 20 familias por página, con nombre, integrantes y resumen de retos/niveles. El progreso administrativo se confirma en la misma transacción que el reto; no se deriva de notas ni de cuestionarios visibles al administrador. Las cifras de cabecera corresponden a las familias cargadas, no al total de toda la base.
 
 Celebraciones muestra aniversarios y cumpleaños de los próximos 30 días de esa página, incluidos hijos si su familia registró esas fechas. Acompañamiento identifica siete días o más sin completar desde el último avance o el inicio explícito del recorrido (registro inicial solo para datos anteriores), mientras queden niveles publicados por conseguir. No penaliza a las familias ni publica una clasificación.
 
 ## Mensajes dirigidos
 
-Desde una familia o celebración, prepara título y mensaje y envíalo a su bandeja. Se guarda en `families/{uid}/inbox`; solo la cuenta destinataria puede leerlo. No hay envío a números o correos externos.
+Con el permiso Enviar mensajes, desde una familia o celebración prepara título y mensaje y envíalo a su bandeja. Se guarda en `families/{uid}/inbox`; solo la cuenta destinataria puede leerlo. El correo adicional es opcional, requiere proveedor activado, cuenta verificada y consentimiento de la familia; actualmente está pendiente de activación. No hay envío por SMS.
 
 La familia recibe el mensaje al abrir/sincronizar. Con recordatorios y permisos habilitados, puede presentarse un aviso local. **Esta versión sin servidor no envía push remoto inmediato con la app cerrada.** El panel lo explica antes de enviar y confirma solo el guardado, no la entrega o lectura. Nunca se incluye una credencial Expo privada en la app.
 
 ## Administradores
 
-En Administradores selecciona otra cuenta registrada y revisa la concesión o retirada. El diálogo explica el acceso y exige marcar la confirmación. La persona debe crear su cuenta y registrar su familia primero. En Admin → Administradores → Revisar permiso de administrador, marca la confirmación y pulsa Aplicar cambio de permiso. Para retirarlo usa Revisar retiro de permiso. El permiso corresponde a la cuenta familiar: si ambos integrantes la comparten, ambos tienen ese acceso. El cambio y su auditoría se escriben atómicamente. Nadie puede modificar su propio rol ni el de un propietario. La revocación bloquea las siguientes operaciones según las reglas, aun si la interfaz de otro dispositivo todavía no actualizó el tab. No revoca copias que una persona hubiera visto o guardado antes.
+En Admin → Abrir centro de configuración → Permisos busca otra cuenta registrada por correo o UID. Activa o desactiva Esta cuenta es administradora y elige sus permisos, marca la confirmación y pulsa Guardar permisos de esta cuenta. Se requiere Gestionar permisos de otros administradores. La persona debe crear su cuenta y registrar su familia primero. El permiso corresponde a la cuenta familiar: si ambos integrantes la comparten, ambos tienen ese acceso. El cambio y su auditoría se escriben atómicamente. Nadie puede modificar su propio rol ni el de un propietario, conceder permisos que no tiene ni modificar una cuenta con permisos superiores. La revocación bloquea las siguientes operaciones según las reglas, aun si la interfaz de otro dispositivo todavía no actualizó el tab. No revoca copias que una persona hubiera visto o guardado antes.
 
 ## Configuración, niveles y datos familiares
 
-El botón Configurar mensajes, niveles y perfiles abre la herramienta completa:
+El botón Abrir centro de configuración reúne las secciones permitidas para esa cuenta:
 
 - Aplicación: aviso general, cierre del recorrido, anuncio de nuevo nivel, contacto de soporte y pausa global. El número de versión evita sobrescribir cambios de otro administrador.
+- Correos: remitente, dirección para respuestas, plantillas, categorías y límites del servicio opcional. Las claves se configuran una sola vez fuera de la app.
 - Niveles: borradores, JSON de capítulos con 1–200 retos y 1–30 preguntas, validación, confirmación y publicación. Los publicados conservan retos, preguntas, orden y prerrequisito; las correcciones de presentación sí se permiten.
 - Familias: búsqueda exacta por correo del perfil registrado o UID, edición de nombres y fechas y pausa familiar. La zona horaria original se conserva. La fecha de matrimonio es obligatoria, también para las ediciones administrativas; los cumpleaños siguen siendo opcionales.
+- Permisos: accesos separados por administrador, protegidos por las reglas de Firestore.
 
 Para la primera carga pulsa Preparar los 30 retos originales del nivel 1, valida y confirma la publicación. Cargar catálogo inicial de bodas crea el documento solo si no existe, conservando cambios posteriores. No hace falta instalar gcloud para esas acciones; los scripts ADC son una alternativa del propietario.
 
@@ -52,3 +54,5 @@ Cada familia decide si participa. El alias y foto solo son públicos al particip
 Las pausas y cambios del catálogo llegan al sincronizar; no cancelan notificaciones locales de un teléfono que permanece cerrado. Las pruebas de reglas usan un emulador demo aislado. Sigue pendiente probar estos flujos con las cuentas reales y ambos teléfonos.
 
 El panel muestra el correo registrado y su estado de verificación. Las cuentas nuevas sin iniciar el recorrido no se marcan atrasadas. El correo puede confirmarse mediante el enlace de Firebase sin cambiar de Spark: hasta 1.000 verificaciones diarias según [las cuotas de Authentication](https://firebase.google.com/docs/auth/limits).
+
+Los nuevos administradores usan una lista explícita de seis permisos. Consultar familias agrupa perfiles, fechas y resúmenes porque comparten documentos; no incluye notas, cuestionarios o fotos individuales privadas. Roles de contenido/configuración pueden trabajar sin acceso a esas familias. No se permiten escaladas ni cambios al propietario. Desde el Centro de configuración se gestionan los accesos; no es necesario editar roles manualmente en Firebase. Los administradores antiguos conservan su acceso hasta que el propietario los revise.

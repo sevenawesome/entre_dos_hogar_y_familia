@@ -1,11 +1,13 @@
+import { hasPermission } from "../../domain/admin-permissions";
+import { AdminPermissionsEditor } from "../../components/AdminPermissionsEditor";
 import { useEffect, useState } from "react";
-import { Text, View, Pressable } from "react-native";
+import { Text, View, Pressable, Switch } from "react-native";
 import { router } from "expo-router";
 import { useApp } from "../../store";
 import {
   listManagedFamilies,
   sendFamilyMessage,
-  setAccountRole,
+  pauseOptionalEmails,
   type ManagedFamily,
 } from "../../services/spark-admin";
 import { friendlyError } from "../../services/api";
@@ -29,6 +31,10 @@ import type { QueryDocumentSnapshot } from "firebase/firestore";
 export default function Administration() {
   const app = useApp(),
     now = useNow();
+  const canView = app.demo || hasPermission(app, "families.view"),
+    canMessages = app.demo || hasPermission(app, "messages.send"),
+    canRoles = app.demo || hasPermission(app, "roles.manage"),
+    canSettings = app.demo || hasPermission(app, "settings.manage");
   const [rows, setRows] = useState<ManagedFamily[]>([]),
     [cursor, setCursor] = useState<QueryDocumentSnapshot>(),
     [more, setMore] = useState(false),
@@ -40,7 +46,7 @@ export default function Administration() {
     [title, setTitle] = useState("Un paso a la vez, juntos"),
     [body, setBody] = useState(""),
     [roleTarget, setRoleTarget] = useState<ManagedFamily | null>(null),
-    [confirmed, setConfirmed] = useState(false);
+    [byEmail, setByEmail] = useState(false);
   async function load(append = false) {
     if (app.demo && app.family) {
       const base = summaryFromProgress("demo", app.family.name, app.progress);
@@ -84,7 +90,10 @@ export default function Administration() {
       ]);
       return;
     }
-    if (!app.isAdmin) return;
+    if (!app.isAdmin || !canView) {
+      setRows([]);
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -99,8 +108,15 @@ export default function Administration() {
     }
   }
   useEffect(() => {
-    void Promise.resolve().then(() => load());
-  }, [app.uid, app.isAdmin, app.demo]); // eslint-disable-line react-hooks/exhaustive-deps
+    void Promise.resolve().then(() => {
+      if (!canMessages) setRecipient(null);
+      if (!canRoles) {
+        setRoleTarget(null);
+        setSection((old) => (old === "roles" ? "families" : old));
+      }
+      return load();
+    });
+  }, [app.uid, app.isAdmin, app.demo, app.permissions]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!app.isAdmin && !app.demo)
     return (
       <Screen>
@@ -173,8 +189,44 @@ export default function Administration() {
       )}
       {!!error && <Notice error text={error} />}
       {!!message && <Notice text={message} />}
-      {!recipient && !roleTarget && (
+      {!recipient && !roleTarget && canView && (
         <>
+          <Card>
+            <Text style={s.sectionTitle}>Correos opcionales</Text>
+            <Text style={s.body}>
+              {app.emailService.enabled
+                ? app.emailService.paused
+                  ? "Envío pausado."
+                  : "Servicio habilitado. Solo reciben correo las familias que lo autorizaron y verificaron su dirección."
+                : "Pendiente de configurar el proveedor y activar el envío. La bandeja de la app continúa disponible."}
+            </Text>
+            <Text style={s.small}>
+              Límite configurado: {app.emailService.dailyLimit} al día y{" "}
+              {app.emailService.monthlyLimit} al mes. Encolar no confirma
+              entrega.
+            </Text>
+            {app.emailService.enabled && canSettings && (
+              <Button
+                secondary
+                title={
+                  app.emailService.paused
+                    ? "Reanudar correos opcionales"
+                    : "Pausar correos opcionales"
+                }
+                disabled={app.demo || busy}
+                onPress={async () => {
+                  setBusy(true);
+                  try {
+                    await pauseOptionalEmails(!app.emailService.paused);
+                  } catch (e) {
+                    setError(friendlyError(e));
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              />
+            )}
+          </Card>
           <View style={{ flexDirection: "row", gap: 10 }}>
             {[
               [String(rows.length), "Familias cargadas"],
@@ -208,28 +260,30 @@ export default function Administration() {
               ["dates", "Celebraciones"],
               ["support", "Acompañamiento"],
               ["roles", "Administradores"],
-            ].map(([key, label]) => (
-              <Pressable
-                accessibilityRole="button"
-                key={key}
-                onPress={() => setSection(key)}
-                style={{
-                  padding: 12,
-                  borderRadius: 14,
-                  backgroundColor:
-                    section === key ? colors.violet : colors.lavender,
-                }}
-              >
-                <Text
+            ]
+              .filter(([key]) => key !== "roles" || canRoles)
+              .map(([key, label]) => (
+                <Pressable
+                  accessibilityRole="button"
+                  key={key}
+                  onPress={() => setSection(key)}
                   style={{
-                    color: section === key ? "white" : colors.violet,
-                    fontWeight: "600",
+                    padding: 12,
+                    borderRadius: 14,
+                    backgroundColor:
+                      section === key ? colors.violet : colors.lavender,
                   }}
                 >
-                  {label}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text
+                    style={{
+                      color: section === key ? "white" : colors.violet,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {label}
+                  </Text>
+                </Pressable>
+              ))}
           </View>
           <Button
             secondary
@@ -271,6 +325,7 @@ export default function Administration() {
                   <Button
                     secondary
                     title="Preparar un saludo"
+                    disabled={!canMessages}
                     onPress={() => {
                       setRecipient(rows.find((r) => r.uid === e.uid)!);
                       setBody(
@@ -345,12 +400,11 @@ export default function Administration() {
                             secondary
                             title={
                               r.role === "admin"
-                                ? "Revisar retiro de permiso"
+                                ? "Editar permisos del administrador"
                                 : "Revisar permiso de administrador"
                             }
                             onPress={() => {
                               setRoleTarget(r);
-                              setConfirmed(false);
                             }}
                           />
                         )}
@@ -391,6 +445,7 @@ export default function Administration() {
                         <Button
                           secondary
                           title="Escribir a esta familia"
+                          disabled={!canMessages}
                           onPress={() => {
                             setRecipient(r);
                             setBody("");
@@ -413,12 +468,12 @@ export default function Administration() {
           )}
         </>
       )}
-      {recipient && (
+      {recipient && canMessages && (
         <Card style={{ backgroundColor: colors.sage }}>
           <Text style={s.sectionTitle}>
             Un mensaje para {recipient.family.name}
           </Text>
-          <Notice text="Se guardará en su bandeja. Lo recibirán al abrir o sincronizar la app. Esta versión sin servidor no envía un push remoto inmediato con la app cerrada." />
+          <Notice text="Se guardará en su bandeja. Lo recibirán al abrir o sincronizar la app. El aviso por teléfono se presenta al sincronizar; no hay un push remoto inmediato con la app cerrada." />
           <Field
             label="Título del mensaje"
             value={title}
@@ -432,6 +487,27 @@ export default function Administration() {
             multiline
             maxLength={1200}
           />
+          <View style={[s.row, { gap: 16 }]}>
+            <Text style={[s.body, { flex: 1 }]}>
+              Enviar también por correo si la familia lo autorizó
+            </Text>
+            <Switch
+              accessibilityLabel="Enviar también por correo"
+              value={byEmail}
+              disabled={
+                app.demo ||
+                !app.emailService.enabled ||
+                app.emailService.paused ||
+                !app.emailService.adminMessagesEnabled ||
+                busy
+              }
+              onValueChange={setByEmail}
+            />
+          </View>
+          <Text style={s.small}>
+            El correo se pone en cola para el siguiente ciclo de envío, sujeto
+            al consentimiento y la cuota. No es un push inmediato.
+          </Text>
           <Button
             title="Enviar a la bandeja de esta familia"
             disabled={app.demo || !body.trim() || !title.trim()}
@@ -440,8 +516,11 @@ export default function Administration() {
               setBusy(true);
               setError("");
               try {
-                await sendFamilyMessage(recipient.uid, title, body);
-                setMessage(`Mensaje guardado para ${recipient.family.name}.`);
+                await sendFamilyMessage(recipient.uid, title, body, byEmail);
+                setMessage(
+                  `Mensaje guardado para ${recipient.family.name}.${byEmail ? " Correo en cola; la entrega no está confirmada." : ""}`,
+                );
+                setByEmail(false);
                 setRecipient(null);
               } catch (e) {
                 setError(friendlyError(e));
@@ -457,64 +536,28 @@ export default function Administration() {
           />
         </Card>
       )}
-      {roleTarget && (
-        <Card style={{ backgroundColor: colors.blush }}>
-          <Text style={s.sectionTitle}>
-            {roleTarget.role === "admin" ? "Retirar acceso" : "Conceder acceso"}
-            : {roleTarget.family.name}
-          </Text>
-          <Text style={s.body}>
-            Un administrador puede ver perfiles y fechas familiares, revisar
-            resúmenes de progreso, enviar mensajes y administrar permisos de
-            otras cuentas. Si la pareja comparte esta cuenta, ambos tendrán el
-            mismo permiso. Las notas y respuestas siguen privadas.
-          </Text>
-          <Pressable
-            accessibilityRole="checkbox"
-            accessibilityState={{ checked: confirmed }}
-            onPress={() => setConfirmed(!confirmed)}
-          >
-            <Text style={s.link}>
-              {confirmed ? "☑" : "☐"} Confirmo el cambio para esta cuenta
-            </Text>
-          </Pressable>
-          <Button
-            title="Aplicar cambio de permiso"
-            disabled={app.demo || !confirmed}
-            busy={busy}
-            onPress={async () => {
-              setBusy(true);
-              setError("");
-              try {
-                await setAccountRole(
-                  roleTarget.uid,
-                  roleTarget.role === "admin" ? "member" : "admin",
-                );
-                setRoleTarget(null);
-                setMessage(
-                  "Permiso actualizado. Las reglas verifican el rol en cada operación.",
-                );
-                await load();
-              } catch (e) {
-                setError(friendlyError(e));
-              } finally {
-                setBusy(false);
-              }
+      {roleTarget && canRoles && (
+        <>
+          <AdminPermissionsEditor
+            initialQuery={roleTarget.uid}
+            onDone={() => {
+              setRoleTarget(null);
+              void load();
             }}
           />
           <Button
             secondary
-            title="Cancelar cambio"
+            title="Cerrar permisos"
             onPress={() => setRoleTarget(null)}
           />
-        </Card>
+        </>
       )}
       {!recipient && !roleTarget && (
         <Card>
           <Text style={s.sectionTitle}>La app y sus próximos capítulos</Text>
           <Button
             secondary
-            title="Configurar mensajes, niveles y perfiles"
+            title="Abrir centro de configuración"
             onPress={() => router.push("/admin")}
           />
           <Text style={s.small}>

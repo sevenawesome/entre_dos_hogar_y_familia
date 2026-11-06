@@ -110,12 +110,22 @@ function complete(db, uid = "a", old = [], total = 0, id = "reto-1") {
   });
   return batch.commit();
 }
-async function auditedWrite(db, path, data, action, target) {
+async function auditedWrite(
+  db,
+  path,
+  data,
+  action,
+  target,
+  actor = data.updatedBy ?? data.senderUid ?? "administrator",
+) {
   const a = doc(collection(db, "adminAudit")),
     b = writeBatch(db);
-  b.set(doc(db, path), { ...data, auditId: a.id });
+  b.set(doc(db, path), {
+    ...data,
+    [action === "family.profile.update" ? "adminAuditId" : "auditId"]: a.id,
+  });
   b.set(a, {
-    actorUid: "administrator",
+    actorUid: actor,
     action,
     target,
     at: serverTimestamp(),
@@ -308,6 +318,14 @@ test("admin can grant and revoke another account with an immutable audit", async
       "roles/a",
       {
         role: "admin",
+        permissions: [
+          "families.view",
+          "families.edit",
+          "messages.send",
+          "content.manage",
+          "settings.manage",
+          "roles.manage",
+        ],
         updatedAt: serverTimestamp(),
         updatedBy: "administrator",
       },
@@ -322,6 +340,7 @@ test("admin can grant and revoke another account with an immutable audit", async
       "roles/a",
       {
         role: "member",
+        permissions: [],
         updatedAt: serverTimestamp(),
         updatedBy: "administrator",
       },
@@ -339,6 +358,7 @@ test("owner cannot be demoted through the app", async () => {
       "roles/owner",
       {
         role: "member",
+        permissions: [],
         updatedAt: serverTimestamp(),
         updatedBy: "administrator",
       },
@@ -1037,4 +1057,275 @@ test("portrait edit metadata cannot bypass size, consent or multi-person validat
       updatedAt: serverTimestamp(),
     }),
   );
+});
+
+const optionalPrefs = (enabled = true) => ({
+  enabled,
+  challenges: enabled,
+  celebrations: enabled,
+  adminMessages: enabled,
+  hour: 20,
+  minute: 0,
+  timezone: family.timezone,
+  version: 1,
+  nextDueAt: Timestamp.fromMillis(Date.now() + 3600000),
+  updatedAt: serverTimestamp(),
+});
+const verifiedContext = (uid) =>
+  env
+    .authenticatedContext(uid, {
+      email: `${uid}@example.com`,
+      email_verified: true,
+    })
+    .firestore();
+test("optional email needs self consent, verified Auth and a ready service; the owner cannot opt another family in", async () => {
+  await createFamily();
+  const ref = doc(ctx("a"), "emailPreferences", "a");
+  await assertSucceeds(setDoc(ref, optionalPrefs(false)));
+  await assertFails(setDoc(ref, { ...optionalPrefs(), version: 2 }));
+  await seed("config/email", { enabled: true, paused: false });
+  await assertFails(setDoc(ref, { ...optionalPrefs(), version: 2 }));
+  await assertSucceeds(
+    setDoc(doc(verifiedContext("a"), "emailPreferences", "a"), {
+      ...optionalPrefs(),
+      version: 2,
+    }),
+  );
+  await assertFails(
+    updateDoc(doc(ctx("owner"), "emailPreferences", "a"), {
+      enabled: true,
+      version: 3,
+      updatedAt: serverTimestamp(),
+    }),
+  );
+  await assertSucceeds(setDoc(ref, { ...optionalPrefs(false), version: 3 }));
+});
+test("email queues are private and only an authorized administrator may enqueue the exact audited inbox message", async () => {
+  await createFamily();
+  await seed("config/email", { enabled: true, paused: false });
+  await seed("emailPreferences/a", optionalPrefs());
+  const db = ctx("administrator"),
+    id = "mail-message",
+    audit = "mail-audit";
+  function outgoing(extra = {}) {
+    const batch = writeBatch(db),
+      message = {
+        title: "Ánimo",
+        body: "Un paso juntos",
+        senderUid: "administrator",
+        createdAt: serverTimestamp(),
+        auditId: audit,
+      };
+    batch.set(doc(db, "families", "a", "inbox", id), message);
+    batch.set(doc(db, "emailQueue", id), {
+      ...message,
+      uid: "a",
+      state: "pending",
+      ...extra,
+    });
+    batch.set(doc(db, "adminAudit", audit), {
+      actorUid: "administrator",
+      action: "message.send",
+      target: "a",
+      at: serverTimestamp(),
+    });
+    return batch.commit();
+  }
+  await assertFails(outgoing({ to: "other@example.com" }));
+  await assertSucceeds(outgoing());
+  await assertSucceeds(getDoc(doc(ctx("a"), "emailQueue", id)));
+  await assertFails(getDoc(doc(ctx("b"), "emailQueue", id)));
+  await assertFails(
+    setDoc(doc(ctx("a"), "mailJobs", "fake"), { uid: "a", state: "accepted" }),
+  );
+  await seed("emailPreferences/a", optionalPrefs(false));
+  await assertFails(outgoing());
+});
+test("email delivery metadata is cleaned only by its family during account deletion", async () => {
+  await createFamily();
+  await seed("emailQueue/q", { uid: "a", state: "accepted" });
+  await seed("mailJobs/j", { uid: "a", state: "accepted" });
+  await assertFails(deleteDoc(doc(ctx("a"), "mailJobs", "j")));
+  await seed("accountDeletion/a", { requestedAt: Timestamp.now() });
+  await assertSucceeds(deleteDoc(doc(ctx("a"), "mailJobs", "j")));
+  await assertSucceeds(deleteDoc(doc(ctx("a"), "emailQueue", "q")));
+});
+test("content-only admin cannot read family profiles, summaries or manage roles", async () => {
+  await createFamily();
+  await seed("roles/content", {
+    role: "admin",
+    permissions: ["content.manage"],
+  });
+  await seed("levels/draft", { ...level, id: "draft", published: false });
+  await assertSucceeds(getDoc(doc(ctx("content"), "levels", "draft")));
+  await assertFails(getDoc(doc(ctx("content"), "families", "a")));
+  await assertFails(getDoc(doc(ctx("content"), "tracking", "a")));
+  await assertFails(getDoc(doc(ctx("content"), "roles", "a")));
+});
+test("family reader cannot edit profiles, send messages, publish content or change configuration", async () => {
+  await createFamily();
+  await seed("roles/reader", { role: "admin", permissions: ["families.view"] });
+  const db = ctx("reader");
+  await assertSucceeds(getDoc(doc(db, "families", "a")));
+  await assertSucceeds(getDoc(doc(db, "tracking", "a")));
+  await assertFails(
+    auditedWrite(
+      db,
+      "families/a",
+      { ...family, partner1: "Cambiado" },
+      "family.profile.update",
+      "a",
+      "reader",
+    ),
+  );
+  await assertFails(
+    auditedWrite(
+      db,
+      "families/a/inbox/msg",
+      {
+        title: "Hola",
+        body: "Mensaje",
+        senderUid: "reader",
+        createdAt: serverTimestamp(),
+      },
+      "message.send",
+      "a",
+    ),
+  );
+  await assertFails(
+    auditedWrite(
+      db,
+      "config/app",
+      { version: 1 },
+      "app.settings.update",
+      "config/app",
+    ),
+  );
+});
+test("delegated role managers cannot escalate through omitted fields or grant permissions they do not have", async () => {
+  await createFamily();
+  await seed("roles/manager", {
+    role: "admin",
+    permissions: ["families.view", "roles.manage"],
+  });
+  const db = ctx("manager");
+  const role = {
+    role: "admin",
+    updatedAt: serverTimestamp(),
+    updatedBy: "manager",
+  };
+  await assertFails(auditedWrite(db, "roles/a", role, "role.update", "a"));
+  await assertFails(
+    auditedWrite(
+      db,
+      "roles/a",
+      { ...role, permissions: ["settings.manage"] },
+      "role.update",
+      "a",
+    ),
+  );
+  await assertSucceeds(
+    auditedWrite(
+      db,
+      "roles/a",
+      { ...role, permissions: ["families.view"] },
+      "role.update",
+      "a",
+    ),
+  );
+  await assertSucceeds(getDoc(doc(ctx("a"), "tracking", "a")));
+  await seed("roles/a", { role: "admin", permissions: ["content.manage"] });
+  await assertFails(
+    auditedWrite(
+      db,
+      "roles/a",
+      {
+        role: "member",
+        permissions: [],
+        updatedAt: serverTimestamp(),
+        updatedBy: "manager",
+      },
+      "role.update",
+      "a",
+    ),
+  );
+});
+test("revoking a permission takes effect without changing the existing authentication token", async () => {
+  await createFamily();
+  await seed("roles/operator", {
+    role: "admin",
+    permissions: ["families.view"],
+  });
+  const db = ctx("operator");
+  await assertSucceeds(getDoc(doc(db, "families", "a")));
+  await seed("roles/operator", { role: "admin", permissions: [] });
+  await assertFails(getDoc(doc(db, "families", "a")));
+});
+
+test("settings operator configures mail in app but cannot activate the backend, store API keys or force consent", async () => {
+  await createFamily();
+  await seed("roles/settings", {
+    role: "admin",
+    permissions: ["settings.manage"],
+  });
+  const db = ctx("settings");
+  const settings = {
+    version: 1,
+    paused: false,
+    fromName: "ENTRE DOS",
+    fromEmail: "",
+    replyTo: "sevenawesome.srl@gmail.com",
+    automaticEnabled: true,
+    adminMessagesEnabled: true,
+    dailyLimit: 90,
+    monthlyLimit: 2700,
+    subjectPrefix: "",
+    birthdayTemplate: "Feliz cumpleaños {person}",
+    anniversaryTemplate: "Felicidades {years}",
+    challengeTemplate: "Reto {challenge}",
+    finishTemplate: "Reflexión {levelTitle}",
+  };
+  await assertSucceeds(
+    auditedWrite(
+      db,
+      "config/email",
+      settings,
+      "email.settings.update",
+      "config/email",
+      "settings",
+    ),
+  );
+  const old = (await getDoc(doc(db, "config", "email"))).data();
+  await assertFails(
+    auditedWrite(
+      db,
+      "config/email",
+      { ...old, version: 2, enabled: true },
+      "email.settings.update",
+      "config/email",
+      "settings",
+    ),
+  );
+  await assertFails(
+    auditedWrite(
+      db,
+      "config/email",
+      { ...old, version: 2, resendApiKey: "not-a-real-key" },
+      "email.settings.update",
+      "config/email",
+      "settings",
+    ),
+  );
+  await assertSucceeds(
+    auditedWrite(
+      db,
+      "config/email",
+      { ...old, version: 2, subjectPrefix: "Familias" },
+      "email.settings.update",
+      "config/email",
+      "settings",
+    ),
+  );
+  await assertFails(getDoc(doc(db, "families", "a")));
+  await assertFails(setDoc(doc(db, "emailPreferences", "a"), optionalPrefs()));
 });
