@@ -78,8 +78,8 @@ export const helpSections = [
     body: "Si olvidaron la contraseña, escriban su correo en la pantalla de acceso y pulsen «Olvidé la contraseña». Recibirán un enlace para elegir otra; revisen también spam. Con la sesión iniciada, vayan a Nosotros → Seguridad de su cuenta → Cambiar contraseña: necesitarán la actual y confirmar la nueva. También pueden solicitar recuperación por correo desde ahí. El cambio afecta a la cuenta compartida: usen la nueva contraseña en ambos teléfonos cuando deban iniciar sesión de nuevo. La familia y el progreso se conservan.",
   },
   {
-    title: "Correos opcionales",
-    body: "En Nosotros pueden elegir correos de retos pendientes, celebraciones y mensajes del equipo. Empiezan apagados y requieren confirmar la dirección compartida. Solo se habilitan cuando el servicio está configurado. Los resúmenes no incluyen notas, respuestas ni fotos; los procesa el servicio de Cloudflare y los envía Resend a la dirección verificada. Cada correo permite darse de baja. Su envío depende del horario aproximado y la cuota disponible. Los avisos del teléfono y los correos de acceso funcionan de forma independiente.",
+    title: "Correos de su cuenta",
+    body: "Al completar el registro y verificar la dirección compartida podrán recibir una bienvenida, una felicitación al conseguir cada nivel y avisos manuales del equipo. La administración configura estos envíos; no se mandan correos diarios de retos, cumpleaños ni aniversarios. Cloudflare prepara el envío y Resend lo manda a la dirección verificada, sin notas, cuestionarios ni fotos. Cada correo incluye un enlace de baja que la administración respeta. La entrega depende de la cuota y del proveedor. Los avisos del teléfono y los correos de acceso de Firebase son independientes.",
   },
   {
     title: "Una cuenta y datos compartidos",

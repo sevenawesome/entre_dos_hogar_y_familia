@@ -78,7 +78,15 @@ export async function saveSparkFamily(uid: string, family: Family) {
         ),
         updatedAt: serverTimestamp(),
       });
-    if (!summary.exists())
+    if (!summary.exists()) {
+      tx.set(doc(databaseRef, "mailEvents", `welcome-${uid}`), {
+        uid,
+        kind: "welcome",
+        levelId: null,
+        state: "pending",
+        createdAt: serverTimestamp(),
+        nextAttemptAt: serverTimestamp(),
+      });
       tx.set(summaryRef, {
         uid,
         familyName: family.name,
@@ -93,7 +101,7 @@ export async function saveSparkFamily(uid: string, family: Family) {
         totalCompleted: 0,
         finishedCount: 0,
       });
-    else
+    } else
       tx.update(summaryRef, {
         familyName: family.name,
         lastActivityAt: serverTimestamp(),
@@ -243,6 +251,14 @@ export async function finishSparkLevel(
     const clean = Object.fromEntries(
       level.questions.map((q) => [q.id, answers[q.id].trim()]),
     );
+    tx.set(doc(databaseRef, "mailEvents", `level-${uid}-${levelId}`), {
+      uid,
+      kind: "levelCompleted",
+      levelId,
+      state: "pending",
+      createdAt: serverTimestamp(),
+      nextAttemptAt: serverTimestamp(),
+    });
     tx.update(progressRef, {
       answers: clean,
       finishedAt: new Date().toISOString(),
@@ -347,7 +363,7 @@ export async function deleteSparkAccount() {
       await batch.commit();
     }
   }
-  for (const root of ["emailQueue", "mailJobs"]) {
+  for (const root of ["emailQueue", "mailJobs", "mailEvents"]) {
     for (;;) {
       const page = await getDocs(
         query(

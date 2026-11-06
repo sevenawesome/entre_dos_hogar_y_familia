@@ -92,6 +92,14 @@ function setup() {
     lastCompletedAt: null,
   });
   repo.seed("journeys/a", { startedAt: now });
+  repo.seed("mailEvents/welcome-a", {
+    uid: "a",
+    kind: "welcome",
+    levelId: null,
+    state: "pending",
+    createdAt: now,
+    nextAttemptAt: now,
+  });
   repo.seed("emailPreferences/a", {
     enabled: true,
     challenges: true,
@@ -135,7 +143,7 @@ function transport() {
 function job(payload, extra = {}) {
   return {
     uid: "a",
-    categories: ["challenges"],
+    categories: ["welcome"],
     consentVersion: 1,
     payload,
     createdAt: now,
@@ -155,14 +163,14 @@ test("missing secrets or disabled sending never calls the mail provider", async 
   await runCycle(repo, { ...env, RESEND_API_KEY: undefined }, now, t.fetcher);
   assert.equal(t.sent.length, 0);
 });
-test("one daily digest uses the verified Auth address and cannot be duplicated by resetting preferences", async () => {
+test("one welcome uses verified Auth address and cannot duplicate after another device retries", async () => {
   const repo = setup(),
     t = transport();
   repo.docs.get("tracking/a").data.email = "untrusted@example.com";
   await runCycle(repo, env, now, t.fetcher);
   assert.equal(t.sent.length, 1);
   assert.deepEqual(t.sent[0].body.to, ["family@example.com"]);
-  assert.match(t.sent[0].body.text, /Escucharnos|Feliz aniversario/);
+  assert.match(t.sent[0].body.text, /Bienvenidos/);
   assert.equal(repo.docs.get("mailRuntime/day-2026-11-06").data.count, 1);
   assert.ok(repo.calls < 49, `Bounded calls: ${repo.calls}`);
   repo.docs.get("emailPreferences/a").data.nextDueAt = new Date(
@@ -173,7 +181,7 @@ test("one daily digest uses the verified Auth address and cannot be duplicated b
   assert.ok(
     repo.masks.some(
       (m) =>
-        m.includes("finishedAt") &&
+        m.includes("name") &&
         !m.includes("answers") &&
         !m.includes("completions"),
     ),
@@ -202,7 +210,7 @@ test("daily and monthly caps are atomic and conservative under overlapping reser
     payload = await emailPayload(
       "a",
       "family@example.com",
-      { subject: "Test", lines: ["Body"], categories: ["challenges"] },
+      { subject: "Test", lines: ["Body"], categories: ["welcome"] },
       env,
       now,
     );
@@ -223,7 +231,7 @@ test("retry reuses an identical payload and idempotency key; it never retries ou
     payload = await emailPayload(
       "a",
       "family@example.com",
-      { subject: "Test", lines: ["Body"], categories: ["challenges"] },
+      { subject: "Test", lines: ["Body"], categories: ["welcome"] },
       env,
       now,
     ),
@@ -266,7 +274,7 @@ test("withdrawing consent or changing the verified address cancels an already re
       payload = await emailPayload(
         "a",
         "family@example.com",
-        { subject: "Test", lines: ["Body"], categories: ["challenges"] },
+        { subject: "Test", lines: ["Body"], categories: ["welcome"] },
         env,
         now,
       ),
@@ -283,26 +291,66 @@ test("withdrawing consent or changing the verified address cancels an already re
     assert.equal(repo.docs.get("mailJobs/x").data.state, "suppressed");
   }
 });
-test("completing a pending challenge before a retry prevents a stale reminder", async () => {
+test("welcome waits for verification without quota and sends once when verified", async () => {
   const repo = setup(),
     t = transport();
-  await runCycle(repo, env, now, async () => {
-    throw new Error("local lost response");
-  });
-  const pending = [...repo.docs.values()].find((d) =>
-    d.path.startsWith("mailJobs/"),
-  );
-  assert.ok(pending);
-  repo.docs.get("tracking/a").data.totalCompleted = 1;
-  await deliverJob(
-    repo,
-    pending,
-    env,
-    new Date(now.getTime() + 16 * 60000),
-    t.fetcher,
-  );
+  repo.accounts.get("a").verified = false;
+  await runCycle(repo, env, now, t.fetcher);
   assert.equal(t.sent.length, 0);
-  assert.equal(repo.docs.get(pending.path).data.state, "suppressed");
+  assert.equal(repo.docs.has("mailRuntime/day-2026-11-06"), false);
+  assert.equal(repo.docs.get("mailEvents/welcome-a").data.state, "pending");
+  repo.accounts.get("a").verified = true;
+  await runCycle(repo, env, new Date(now.getTime() + 3600000), t.fetcher);
+  assert.equal(t.sent.length, 1);
+  await runCycle(repo, env, new Date(now.getTime() + 7200000), t.fetcher);
+  assert.equal(t.sent.length, 1);
+});
+test("level mail requires the final questionnaire and reads no private answers", async () => {
+  for (const finished of [false, true]) {
+    const repo = setup(),
+      t = transport();
+    repo.docs.delete("mailEvents/welcome-a");
+    repo.seed("mailEvents/level-a-l1", {
+      uid: "a",
+      kind: "levelCompleted",
+      levelId: "l1",
+      state: "pending",
+      createdAt: now,
+      nextAttemptAt: now,
+    });
+    repo.seed("families/a/progress/l1", {
+      finishedAt: finished ? now.toISOString() : null,
+      answers: { private: "never included" },
+    });
+    await runCycle(repo, env, now, t.fetcher);
+    assert.equal(t.sent.length, finished ? 1 : 0);
+    if (finished) {
+      assert.match(t.sent[0].body.text, /Primero/);
+      assert.doesNotMatch(t.sent[0].body.text, /never included/);
+      assert.ok(
+        repo.masks.some(
+          (m) => m.includes("finishedAt") && !m.includes("answers"),
+        ),
+      );
+    }
+  }
+});
+test("no daily emails and notification pause does not pause independent mail", async () => {
+  const repo = setup(),
+    t = transport();
+  repo.docs.delete("mailEvents/welcome-a");
+  await runCycle(repo, env, now, t.fetcher);
+  assert.equal(t.sent.length, 0);
+  repo.seed("mailEvents/welcome-a", {
+    uid: "a",
+    kind: "welcome",
+    state: "pending",
+    createdAt: now,
+    nextAttemptAt: now,
+  });
+  repo.docs.get("config/app").data.notificationsEnabled = false;
+  await runCycle(repo, env, now, t.fetcher);
+  assert.equal(t.sent.length, 1);
 });
 test("administrator email obeys the target consent, current admin role and fixed recipient", async () => {
   for (const allowed of [true, false]) {
@@ -349,7 +397,7 @@ test("unsubscribe GET is safe for scanners, POST opts out, and forged or expired
     200,
   );
   assert.equal(repo.docs.get("emailPreferences/a").data.enabled, false);
-  assert.equal(repo.docs.get("emailPreferences/a").data.adminMessages, false);
+  assert.equal(repo.docs.get("emailPreferences/a").data.unsubscribed, true);
   assert.equal(
     (
       await unsubscribe(
@@ -373,17 +421,26 @@ test("unsubscribe GET is safe for scanners, POST opts out, and forged or expired
     400,
   );
 });
-test("bad timezone or interrupted deletion cannot leave a permanently blocking due subscriber", async () => {
-  for (const kind of ["zone", "deleted"]) {
-    const repo = setup(),
-      t = transport();
-    if (kind === "zone")
-      repo.docs.get("emailPreferences/a").data.timezone = "not/a-zone";
-    else repo.seed("accountDeletion/a", {});
-    await runCycle(repo, env, now, t.fetcher);
-    assert.equal(t.sent.length, 0);
-    assert.equal(repo.docs.get("emailPreferences/a").data.enabled, false);
-  }
+test("signed unsubscribe works without a preference document and prevents all event sends", async () => {
+  const repo = setup(),
+    t = transport();
+  repo.docs.delete("emailPreferences/a");
+  const token = await unsubscribeToken(
+    "a",
+    now.getTime() + 86400000,
+    env.UNSUBSCRIBE_SECRET,
+  );
+  await unsubscribe(
+    new Request(`${env.PUBLIC_BASE_URL}/unsubscribe?uid=a&token=${token}`, {
+      method: "POST",
+    }),
+    env,
+    repo,
+    now,
+  );
+  assert.equal(repo.docs.get("emailPreferences/a").data.unsubscribed, true);
+  await runCycle(repo, env, now, t.fetcher);
+  assert.equal(t.sent.length, 0);
 });
 test("Firestore conversion preserves dates and the transport scopes requests to the configured project", async () => {
   const data = { at: now, n: 3, list: [true, "a"], map: { empty: null } };
@@ -471,7 +528,7 @@ test("runtime settings customize sender, reply-to, templates and limits while Gm
     fromName: "Hogar y Familia",
     fromEmail: "avisos@example.com",
     replyTo: "sevenawesome.srl@gmail.com",
-    birthdayTemplate: "Celebramos a {person}",
+    welcomeTemplate: "Bienvenida {family}",
     subjectPrefix: "Nuestra comunidad",
     dailyLimit: 1,
   });
@@ -480,7 +537,7 @@ test("runtime settings customize sender, reply-to, templates and limits while Gm
   assert.equal(t.sent[0].body.from, "Hogar y Familia <avisos@example.com>");
   assert.equal(t.sent[0].body.reply_to, "sevenawesome.srl@gmail.com");
   assert.match(t.sent[0].body.subject, /Nuestra comunidad/);
-  assert.match(t.sent[0].body.text, /Celebramos a Ana/);
+  assert.match(t.sent[0].body.text, /Bienvenida Familia/);
   const payload = t.sent[0].body;
   assert.equal(
     await reserveJob(repo, "over-custom-limit", job(payload), now),
@@ -511,4 +568,42 @@ test("queued mail is suppressed if a granular send permission was revoked", asyn
   await runCycle(repo, env, new Date(now.getTime() + 10 * 60000), t.fetcher);
   assert.equal(t.sent.length, 0);
   assert.equal(repo.docs.get("emailQueue/revoked").data.state, "suppressed");
+});
+
+test("notification-only sender cannot use email even when already queued", async () => {
+  const repo = setup(),
+    t = transport();
+  repo.docs.delete("mailEvents/welcome-a");
+  repo.seed("roles/admin", {
+    role: "admin",
+    permissions: ["families.view", "messages.send"],
+  });
+  repo.seed("emailQueue/separate", {
+    uid: "a",
+    senderUid: "admin",
+    title: "Hola",
+    body: "Mensaje",
+    createdAt: now,
+    state: "pending",
+  });
+  await runCycle(repo, env, now, t.fetcher);
+  assert.equal(t.sent.length, 0);
+  assert.equal(repo.docs.get("emailQueue/separate").data.state, "suppressed");
+});
+test("a new verified registration receives its welcome without user preference toggles", async () => {
+  const repo = setup(),
+    t = transport();
+  repo.docs.delete("emailPreferences/a");
+  await runCycle(repo, env, now, t.fetcher);
+  assert.equal(t.sent.length, 1);
+  assert.equal(repo.docs.get("mailEvents/welcome-a").data.state, "accepted");
+});
+test("administrator can disable a category and its event is retired without consuming quota", async () => {
+  const repo = setup(),
+    t = transport();
+  repo.docs.get("config/email").data.welcomeEnabled = false;
+  await runCycle(repo, env, now, t.fetcher);
+  assert.equal(t.sent.length, 0);
+  assert.equal(repo.docs.get("mailEvents/welcome-a").data.state, "suppressed");
+  assert.equal(repo.docs.has("mailRuntime/day-2026-11-06"), false);
 });

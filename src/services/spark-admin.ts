@@ -99,45 +99,21 @@ export async function listManagedFamilies(after?: QueryDocumentSnapshot) {
   );
   return { rows, cursor: page.docs.at(-1), hasMore: page.size === 20 };
 }
+function validateMessage(title: string, body: string) {
+  if (!title.trim() || title.length > 100 || !body.trim() || body.length > 1200)
+    throw new Error("Escribe un título y un mensaje de hasta 1200 caracteres.");
+}
 export async function sendFamilyMessage(
   uid: string,
   title: string,
   body: string,
-  byEmail = false,
 ) {
   const { database, actor } = await requireAdmin("messages.send");
-  if (!title.trim() || title.length > 100 || !body.trim() || body.length > 1200)
-    throw new Error("Escribe un título y un mensaje de hasta 1200 caracteres.");
-  const messageRef = doc(collection(database, "families", uid, "inbox")),
-    audit = doc(collection(database, "adminAudit"));
-  if (byEmail) {
-    const [prefs, service] = await Promise.all([
-      getDoc(doc(database, "emailPreferences", uid)),
-      getDoc(doc(database, "config", "email")),
-    ]);
-    if (!prefs.data()?.enabled || !prefs.data()?.adminMessages)
-      throw new Error(
-        "Esta familia no ha autorizado mensajes por correo. Puedes usar su bandeja.",
-      );
-    if (
-      !service.data()?.enabled ||
-      service.data()?.paused ||
-      service.data()?.adminMessagesEnabled === false
-    )
-      throw new Error("El servicio de correos no está activo.");
-  }
-  const batch = writeBatch(database);
-  if (byEmail)
-    batch.set(doc(database, "emailQueue", messageRef.id), {
-      uid,
-      title: title.trim(),
-      body: body.trim(),
-      senderUid: actor,
-      createdAt: serverTimestamp(),
-      auditId: audit.id,
-      state: "pending",
-    });
-  batch.set(messageRef, {
+  validateMessage(title, body);
+  const ref = doc(collection(database, "families", uid, "inbox")),
+    audit = doc(collection(database, "adminAudit")),
+    batch = writeBatch(database);
+  batch.set(ref, {
     title: title.trim(),
     body: body.trim(),
     senderUid: actor,
@@ -146,6 +122,86 @@ export async function sendFamilyMessage(
   });
   batch.set(audit, auditData(actor, "message.send", uid));
   await batch.commit();
+}
+export async function familyEmailStatus(uid: string) {
+  const { database } = await requireAdmin("emails.send");
+  const pref = (await getDoc(doc(database, "emailPreferences", uid))).data();
+  return {
+    enabled: pref?.enabled !== false,
+    unsubscribed: pref?.unsubscribed === true,
+  };
+}
+export async function setFamilyEmailDelivery(uid: string, enabled: boolean) {
+  const { database, actor } = await requireAdmin("emails.send"),
+    ref = doc(database, "emailPreferences", uid),
+    audit = doc(collection(database, "adminAudit"));
+  await runTransaction(database, async (tx) => {
+    const old = await tx.get(ref);
+    if (enabled && old.data()?.unsubscribed)
+      throw new Error(
+        "Esta familia solicitó la baja desde un correo. No se puede reactivar desde la administración.",
+      );
+    tx.set(ref, {
+      ...old.data(),
+      enabled,
+      version: (old.data()?.version ?? 0) + 1,
+      updatedAt: serverTimestamp(),
+      updatedBy: actor,
+      auditId: audit.id,
+    });
+    tx.set(audit, auditData(actor, "email.preferences.update", uid));
+  });
+}
+export async function sendFamilyEmail(
+  uid: string,
+  title: string,
+  body: string,
+) {
+  const { database, actor } = await requireAdmin("emails.send");
+  validateMessage(title, body);
+  const [pref, service] = await Promise.all([
+    getDoc(doc(database, "emailPreferences", uid)),
+    getDoc(doc(database, "config", "email")),
+  ]);
+  if (pref.data()?.enabled === false || pref.data()?.unsubscribed)
+    throw new Error("Los correos están desactivados para esta familia.");
+  if (
+    !service.data()?.enabled ||
+    service.data()?.paused ||
+    service.data()?.adminMessagesEnabled === false
+  )
+    throw new Error("El servicio de correos no está activo.");
+  const ref = doc(collection(database, "emailQueue")),
+    audit = doc(collection(database, "adminAudit")),
+    batch = writeBatch(database);
+  batch.set(ref, {
+    uid,
+    title: title.trim(),
+    body: body.trim(),
+    senderUid: actor,
+    createdAt: serverTimestamp(),
+    auditId: audit.id,
+    state: "pending",
+  });
+  batch.set(audit, auditData(actor, "email.send", uid));
+  await batch.commit();
+}
+export async function mailUsage() {
+  const { database, permissionData } = await requireAdmin();
+  if (
+    !hasPermission(permissionData, "emails.send") &&
+    !hasPermission(permissionData, "settings.manage")
+  )
+    throw new Error("No tienes permiso para consultar correos.");
+  const day = new Date().toISOString().slice(0, 10);
+  const [daily, monthly] = await Promise.all([
+    getDoc(doc(database, "mailRuntime", `day-${day}`)),
+    getDoc(doc(database, "mailRuntime", `month-${day.slice(0, 7)}`)),
+  ]);
+  return {
+    daily: Number(daily.data()?.count ?? 0),
+    monthly: Number(monthly.data()?.count ?? 0),
+  };
 }
 export async function setAccountRole(
   uid: string,

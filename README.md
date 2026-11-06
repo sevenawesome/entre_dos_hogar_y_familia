@@ -100,7 +100,7 @@ Para publicar se necesitan las cuentas de las tiendas, identidad legal, polític
 | `catalogs/anniversaries` | Catálogo de bodas; copia inicial empaquetada como respaldo. |
 | `adminAudit/{id}` | Actor, acción, destino y fecha; creación atómica con cambios, inmutable desde la app. |
 | `accountDeletion/{uid}` | Marcador mínimo para impedir recreación tras eliminar la cuenta. |
-| `config/email`, `emailPreferences/{uid}` | Ajustes sin secretos y consentimiento propio; correos opcionales apagados inicialmente. |
+| `config/email`, `emailPreferences/{uid}` | Ajustes sin secretos y recepción gestionada por administradores; bajas firmadas respetadas; envío inicialmente apagado. |
 | `emailQueue/{id}`, `mailJobs/{id}`, `mailRuntime/{id}` | Cola, trabajos con idempotencia y presupuesto atómico del Worker opcional. |
 
 Una cuenta con `families.view` accede a nombres, fechas y resúmenes para acompañamiento, sin notas, cuestionarios ni fotos individuales privadas. Los permisos de configuración o contenido pueden concederse sin acceso a las familias. Solo `roles.manage` permite gestionar otros administradores, sin conceder accesos superiores a los propios ni cambiar cuentas con permisos superiores, su propio rol o el de un propietario. El propietario de infraestructura conserva las facultades de la consola/Admin SDK.
@@ -130,6 +130,8 @@ Las fuentes/tradiciones del catálogo están en [docs/FUENTES_BODAS.md](docs/FUE
 
 `functions/src` conserva la arquitectura anterior como referencia y para pruebas de regresión; **no está conectada al cliente ni incluida en el despliegue actual**. Sus requisitos de Blaze/Expo Push no corresponden a la versión Spark.
 
-Correos incluidos en Firebase Spark: [150 recuperaciones y 1.000 verificaciones al día](https://firebase.google.com/docs/auth/limits), sujetos a las protecciones del proveedor. El Worker opcional para retos, celebraciones y mensajes ya está publicado y conectado con sus tres secretos; el envío sigue desactivado hasta completar la verificación/consentimiento de la familia de prueba y comprobar recepción/baja. La solicitud de recuperación conserva una respuesta genérica para no revelar si existe la cuenta.
+Correos incluidos en Firebase Spark: [150 recuperaciones y 1.000 verificaciones al día](https://firebase.google.com/docs/auth/limits), sujetos a las protecciones del proveedor. El Worker para bienvenida, niveles conseguidos y mensajes manuales está publicado y conectado con sus tres secretos. No envía correos diarios. El envío sigue desactivado hasta confirmar el correo de prueba y comprobar recepción/baja de forma controlada. La solicitud de recuperación conserva una respuesta genérica para no revelar si existe la cuenta.
 
 El [centro de configuración, permisos y activación del correo](docs/CORREOS_Y_PERMISOS.md) reúne ajustes, remitente/respuestas, plantillas, cuotas y accesos por administrador. Firebase continúa en Spark; la cuenta propietaria tiene acceso completo y los permisos se aplican en reglas, cliente y servicio de correo. Los secretos quedan fuera de Firebase/Expo.
+
+Admin ahora organiza ocho pestañas y siete permisos, con notificaciones y correo como canales independientes. Nosotros conserva seguridad/verificación y avisos del teléfono, sin controles de recepción de correo. La bienvenida y el cierre de nivel crean eventos únicos en transacciones de Firestore; el servidor verifica Auth y respeta cuotas y bajas. Ver [Administración](docs/ADMINISTRACION.md) y [Correo y permisos](docs/CORREOS_Y_PERMISOS.md).

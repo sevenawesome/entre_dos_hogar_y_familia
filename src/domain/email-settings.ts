@@ -4,15 +4,14 @@ export interface EmailSettings {
   fromName: string;
   fromEmail: string;
   replyTo: string;
-  automaticEnabled: boolean;
+  welcomeEnabled: boolean;
+  completionEnabled: boolean;
   adminMessagesEnabled: boolean;
   dailyLimit: number;
   monthlyLimit: number;
   subjectPrefix: string;
-  birthdayTemplate: string;
-  anniversaryTemplate: string;
-  challengeTemplate: string;
-  finishTemplate: string;
+  welcomeTemplate: string;
+  completionTemplate: string;
 }
 export const defaultEmailSettings: EmailSettings = {
   version: 0,
@@ -20,19 +19,16 @@ export const defaultEmailSettings: EmailSettings = {
   fromName: "ENTRE DOS",
   fromEmail: "",
   replyTo: "sevenawesome.srl@gmail.com",
-  automaticEnabled: true,
+  welcomeEnabled: true,
+  completionEnabled: true,
   adminMessagesEnabled: true,
   dailyLimit: 90,
   monthlyLimit: 2700,
   subjectPrefix: "",
-  birthdayTemplate:
-    "¡Feliz cumpleaños, {person}! Hoy es un buen día para celebrar en familia.",
-  anniversaryTemplate:
-    "¡Feliz aniversario! Hoy celebran {years} años de matrimonio. Regálense un momento juntos.",
-  challengeTemplate:
-    "Su reto pendiente del nivel {level}: «{challenge}». Sigue esperándolos hasta que lo completen juntos. Abran ENTRE DOS para hacerlo y guardar su avance.",
-  finishTemplate:
-    "Ya compartieron todos los retos de «{levelTitle}». Respondan juntos la reflexión final en ENTRE DOS para conseguir su nivel.",
+  welcomeTemplate:
+    "¡Bienvenidos, {family}! Su historia empieza con un pequeño paso. Abran ENTRE DOS y pulsen «Comenzar nuestro primer reto» para comenzar juntos hoy.",
+  completionTemplate:
+    "¡Felicidades, {family}! Consiguieron «{levelTitle}». Cada reto compartido cuenta. Abran ENTRE DOS para celebrar su avance y descubrir el siguiente nivel disponible.",
 };
 export function validateEmailSettings(value: unknown): EmailSettings {
   const input = value as EmailSettings;
@@ -52,7 +48,8 @@ export function validateEmailSettings(value: unknown): EmailSettings {
     );
   for (const k of [
     "paused",
-    "automaticEnabled",
+    "welcomeEnabled",
+    "completionEnabled",
     "adminMessagesEnabled",
   ] as const)
     if (typeof input[k] !== "boolean")
@@ -79,10 +76,8 @@ export function validateEmailSettings(value: unknown): EmailSettings {
   )
     throw new Error("El prefijo del asunto admite hasta 40 caracteres.");
   const variables = {
-    birthdayTemplate: ["person"],
-    anniversaryTemplate: ["years"],
-    challengeTemplate: ["level", "challenge"],
-    finishTemplate: ["levelTitle"],
+    welcomeTemplate: ["family"],
+    completionTemplate: ["family", "levelTitle"],
   };
   for (const k of Object.keys(variables) as (keyof typeof variables)[]) {
     if (

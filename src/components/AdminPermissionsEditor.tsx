@@ -96,7 +96,11 @@ export function AdminPermissionsEditor({
       <Field
         label="Correo registrado o UID de la cuenta"
         value={query}
-        onChangeText={setQuery}
+        onChangeText={(value) => {
+          setQuery(value);
+          setTarget(null);
+          setConfirmed(false);
+        }}
         autoCapitalize="none"
       />
       <Button
@@ -156,9 +160,9 @@ export function AdminPermissionsEditor({
               </View>
             ))}
           <Text style={s.small}>
-            Editar perfiles, enviar mensajes y gestionar permisos requieren
-            consultar las familias. Solo puedes conceder permisos que tú tienes.
-            Las notas y cuestionarios siguen privados.
+            Editar perfiles, enviar notificaciones o correos y gestionar
+            permisos requieren consultar las familias. Solo puedes conceder
+            permisos que tú tienes. Las notas y cuestionarios siguen privados.
           </Text>
           <Pressable
             accessibilityRole="checkbox"

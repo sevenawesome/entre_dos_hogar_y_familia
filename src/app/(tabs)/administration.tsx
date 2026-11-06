@@ -1,13 +1,13 @@
 import { hasPermission } from "../../domain/admin-permissions";
 import { AdminPermissionsEditor } from "../../components/AdminPermissionsEditor";
+import { AdminConfiguration } from "../../components/AdminConfiguration";
+import { AdminDeliveryCenter } from "../../components/AdminDeliveryCenter";
 import { useEffect, useState } from "react";
-import { Text, View, Pressable, Switch } from "react-native";
-import { router } from "expo-router";
+import { Text, View, Pressable } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
 import { useApp } from "../../store";
 import {
   listManagedFamilies,
-  sendFamilyMessage,
-  pauseOptionalEmails,
   type ManagedFamily,
 } from "../../services/spark-admin";
 import { friendlyError } from "../../services/api";
@@ -21,7 +21,6 @@ import {
   Heading,
   Card,
   Button,
-  Field,
   Notice,
   Ring,
   colors,
@@ -30,23 +29,73 @@ import {
 import type { QueryDocumentSnapshot } from "firebase/firestore";
 export default function Administration() {
   const app = useApp(),
-    now = useNow();
+    now = useNow(),
+    { section: requested } = useLocalSearchParams<{ section?: string }>();
   const canView = app.demo || hasPermission(app, "families.view"),
-    canMessages = app.demo || hasPermission(app, "messages.send"),
-    canRoles = app.demo || hasPermission(app, "roles.manage"),
-    canSettings = app.demo || hasPermission(app, "settings.manage");
+    canRoles = app.demo || hasPermission(app, "roles.manage");
+  const tabs = (
+    [
+      [
+        "families",
+        "Familias",
+        "families.view",
+        "Consultar el progreso y administrar los perfiles familiares.",
+      ],
+      [
+        "dates",
+        "Fechas",
+        "families.view",
+        "Próximos cumpleaños y aniversarios de las familias cargadas.",
+      ],
+      [
+        "support",
+        "Seguimiento",
+        "families.view",
+        "Identificar a quienes necesitan acompañamiento para continuar los retos.",
+      ],
+      [
+        "notifications",
+        "Notificaciones",
+        "messages.send",
+        "Mensajes para la bandeja y avisos al sincronizar la app.",
+      ],
+      [
+        "emails",
+        "Correos",
+        "emails.send",
+        "Bienvenidas, niveles conseguidos y correos personalizados; cuota y remitente.",
+      ],
+      [
+        "roles",
+        "Administradores",
+        "roles.manage",
+        "Crear administradores, elegir sus permisos o retirar su acceso.",
+      ],
+      [
+        "levels",
+        "Niveles",
+        "content.manage",
+        "Preparar y publicar nuevos retos sin volver a publicar la app.",
+      ],
+      [
+        "settings",
+        "Configuración",
+        "settings.manage",
+        "Mensajes de la aplicación, soporte y recordatorios del teléfono.",
+      ],
+    ] as const
+  ).filter(
+    ([key, , permission]) =>
+      app.demo ||
+      hasPermission(app, permission) ||
+      (key === "emails" && hasPermission(app, "settings.manage")),
+  );
+  const section = tabs.find((x) => x[0] === requested)?.[0] ?? tabs[0]?.[0];
   const [rows, setRows] = useState<ManagedFamily[]>([]),
     [cursor, setCursor] = useState<QueryDocumentSnapshot>(),
     [more, setMore] = useState(false),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState(""),
-    [message, setMessage] = useState("");
-  const [section, setSection] = useState("families"),
-    [recipient, setRecipient] = useState<ManagedFamily | null>(null),
-    [title, setTitle] = useState("Un paso a la vez, juntos"),
-    [body, setBody] = useState(""),
-    [roleTarget, setRoleTarget] = useState<ManagedFamily | null>(null),
-    [byEmail, setByEmail] = useState(false);
+    [error, setError] = useState("");
   async function load(append = false) {
     if (app.demo && app.family) {
       const base = summaryFromProgress("demo", app.family.name, app.progress);
@@ -108,22 +157,8 @@ export default function Administration() {
     }
   }
   useEffect(() => {
-    void Promise.resolve().then(() => {
-      if (!canMessages) setRecipient(null);
-      if (!canRoles) {
-        setRoleTarget(null);
-        setSection((old) => (old === "roles" ? "families" : old));
-      }
-      return load();
-    });
+    void Promise.resolve().then(() => load());
   }, [app.uid, app.isAdmin, app.demo, app.permissions]); // eslint-disable-line react-hooks/exhaustive-deps
-  if (!app.isAdmin && !app.demo)
-    return (
-      <Screen>
-        <Heading title="Administración" />
-        <Notice text="Esta sección requiere un permiso administrativo activo." />
-      </Screen>
-    );
   const awaiting = rows.filter(
     (r) =>
       r.summary &&
@@ -162,102 +197,73 @@ export default function Administration() {
     })
     .filter((e) => e.days <= 30)
     .sort((a, b) => a.days - b.days);
+  if (!app.isAdmin && !app.demo)
+    return (
+      <Screen>
+        <Heading title="Administración" />
+        <Notice text="Esta sección requiere un permiso administrativo activo." />
+      </Screen>
+    );
   const shown = section === "support" ? awaiting : rows;
   return (
-    <Screen
-      key={
-        recipient
-          ? `message-${recipient.uid}`
-          : roleTarget
-            ? `role-${roleTarget.uid}`
-            : "overview"
-      }
-    >
+    <Screen key={section}>
       <Heading
         eyebrow="DEPARTAMENTO DE HOGAR Y FAMILIA"
-        title={
-          recipient
-            ? "Un mensaje de ánimo"
-            : roleTarget
-              ? "Permisos de la cuenta"
-              : "Acompañar familias"
-        }
-        subtitle="Ver sus pasos, celebrar sus fechas y acercarse con un mensaje de ánimo."
+        title="Administración"
+        subtitle="Cada tarea en su lugar. Cada familia, acompañada."
       />
       {app.demo && (
-        <Notice text="Vista de ejemplo · datos ficticios y acciones de solo lectura. No se contacta a ninguna familia." />
+        <Notice text="Vista de ejemplo · datos ficticios. No se guardan cambios ni se contacta a familias." />
+      )}
+      <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+        {tabs.map(([key, label]) => (
+          <Pressable
+            key={key}
+            accessibilityRole="button"
+            accessibilityState={{ selected: section === key }}
+            onPress={() => router.setParams({ section: key })}
+            style={{
+              paddingVertical: 13,
+              paddingHorizontal: 15,
+              borderRadius: 16,
+              backgroundColor:
+                section === key ? colors.violet : colors.lavender,
+            }}
+          >
+            <Text
+              style={{
+                fontWeight: "600",
+                color: section === key ? "white" : colors.violet,
+              }}
+            >
+              {label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+      {!tabs.length ? (
+        <Notice text="El propietario todavía no te ha asignado secciones administrativas." />
+      ) : (
+        <Text style={s.body}>{tabs.find((x) => x[0] === section)?.[3]}</Text>
       )}
       {!!error && <Notice error text={error} />}
-      {!!message && <Notice text={message} />}
-      {!recipient && !roleTarget && (
-        <Card style={{ backgroundColor: colors.lavender }}>
-          <Text style={s.sectionTitle}>Administrar ENTRE DOS</Text>
-          <Text style={s.body}>
-            {canRoles
-              ? "Elige qué puede ver o cambiar cada administrador y configura la app desde aquí."
-              : "Abre las secciones de configuración disponibles para tu cuenta."}
-          </Text>
-          {canRoles && (
-            <Button
-              title="Gestionar permisos"
-              onPress={() =>
-                router.push({
-                  pathname: "/admin",
-                  params: { section: "roles" },
-                })
-              }
-            />
-          )}
-          <Button
-            secondary
-            title="Abrir centro de configuración"
-            onPress={() => router.push("/admin")}
-          />
-        </Card>
+      {section === "roles" && canRoles && <AdminPermissionsEditor />}
+      {section === "notifications" && (
+        <AdminDeliveryCenter key="notifications" />
       )}
-      {!recipient && !roleTarget && canView && (
+      {section === "emails" && <AdminDeliveryCenter key="emails" email />}
+      {section === "levels" && <AdminConfiguration section="levels" />}
+      {section === "settings" && <AdminConfiguration section="app" />}
+      {section === "families" && canView && (
+        <AdminConfiguration section="families" />
+      )}
+      {canView && ["families", "dates", "support"].includes(section ?? "") && (
         <>
-          <Card>
-            <Text style={s.sectionTitle}>Correos opcionales</Text>
-            <Text style={s.body}>
-              {app.emailService.enabled
-                ? app.emailService.paused
-                  ? "Envío pausado."
-                  : "Servicio habilitado. Solo reciben correo las familias que lo autorizaron y verificaron su dirección."
-                : "Pendiente de configurar el proveedor y activar el envío. La bandeja de la app continúa disponible."}
-            </Text>
-            <Text style={s.small}>
-              Límite configurado: {app.emailService.dailyLimit} al día y{" "}
-              {app.emailService.monthlyLimit} al mes. Encolar no confirma
-              entrega.
-            </Text>
-            {app.emailService.enabled && canSettings && (
-              <Button
-                secondary
-                title={
-                  app.emailService.paused
-                    ? "Reanudar correos opcionales"
-                    : "Pausar correos opcionales"
-                }
-                disabled={app.demo || busy}
-                onPress={async () => {
-                  setBusy(true);
-                  try {
-                    await pauseOptionalEmails(!app.emailService.paused);
-                  } catch (e) {
-                    setError(friendlyError(e));
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              />
-            )}
-          </Card>
-          <View style={{ flexDirection: "row", gap: 10 }}>
+          <View style={{ flexDirection: "row", gap: 8 }}>
             {[
-              [String(rows.length), "Familias cargadas"],
-              [String(awaiting.length), "Para acompañar"],
-              [String(events.length), "Fechas en 30 días"],
+              [rows.length, "Familias cargadas"],
+              [awaiting.length, "Para acompañar"],
+              [events.length, "Fechas en 30 días"],
             ].map(([value, label]) => (
               <Card
                 key={label}
@@ -269,9 +275,9 @@ export default function Administration() {
               >
                 <Text
                   style={{
-                    fontSize: 27,
-                    color: colors.violet,
+                    fontSize: 26,
                     fontWeight: "700",
+                    color: colors.violet,
                   }}
                 >
                   {value}
@@ -279,37 +285,6 @@ export default function Administration() {
                 <Text style={s.small}>{label}</Text>
               </Card>
             ))}
-          </View>
-          <View style={{ flexDirection: "row", gap: 7, flexWrap: "wrap" }}>
-            {[
-              ["families", "Familias"],
-              ["dates", "Celebraciones"],
-              ["support", "Acompañamiento"],
-              ["roles", "Administradores"],
-            ]
-              .filter(([key]) => key !== "roles" || canRoles)
-              .map(([key, label]) => (
-                <Pressable
-                  accessibilityRole="button"
-                  key={key}
-                  onPress={() => setSection(key)}
-                  style={{
-                    padding: 12,
-                    borderRadius: 14,
-                    backgroundColor:
-                      section === key ? colors.violet : colors.lavender,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: section === key ? "white" : colors.violet,
-                      fontWeight: "600",
-                    }}
-                  >
-                    {label}
-                  </Text>
-                </Pressable>
-              ))}
           </View>
           <Button
             secondary
@@ -319,17 +294,8 @@ export default function Administration() {
           />
           {section === "dates" ? (
             <>
-              <Text style={s.small}>
-                Próximos 30 días de las familias cargadas. Fechas privadas para
-                el equipo administrador, incluidos los cumpleaños familiares que
-                hayan registrado.
-              </Text>
               {!events.length && (
-                <Card>
-                  <Text style={s.body}>
-                    Todavía no hay celebraciones próximas en esta página.
-                  </Text>
-                </Card>
+                <Notice text="No hay celebraciones próximas entre las familias cargadas." />
               )}
               {events.map((e) => (
                 <Card
@@ -348,58 +314,31 @@ export default function Administration() {
                   </Text>
                   <Text style={s.sectionTitle}>{e.family}</Text>
                   <Text style={s.body}>{e.text}</Text>
-                  <Button
-                    secondary
-                    title="Preparar un saludo"
-                    disabled={!canMessages}
-                    onPress={() => {
-                      setRecipient(rows.find((r) => r.uid === e.uid)!);
-                      setBody(
-                        `¡Felicidades, ${e.family}! Les deseamos un día lleno de cariño y gratitud.`,
-                      );
-                    }}
-                  />
                 </Card>
               ))}
             </>
           ) : (
             <>
               {section === "support" && (
-                <Notice text="Siete días o más sin completar un reto desde el último avance o registro. Es una señal para acompañar, no una penalización ni una clasificación pública." />
+                <Notice text="Siete días o más sin avanzar desde el último reto o registro: una señal para acompañar, sin penalizaciones ni clasificación pública." />
               )}
               {!shown.length && !busy && (
-                <Card>
-                  <Text style={s.body}>
-                    No hay familias en esta vista. Al registrarse en la app
-                    aparecerán aquí.
-                  </Text>
-                </Card>
+                <Notice text="No hay familias en esta vista." />
               )}
               {shown.map((r) => {
-                const status = r.summary
-                    ? {
-                        ...supportStatus(r.summary, now),
-                        needsSupport:
-                          r.summary.finishedCount < app.levels.length &&
-                          supportStatus(r.summary, now).needsSupport,
-                      }
-                    : { days: null, needsSupport: false },
-                  level = app.levels.find((l) => l.id === r.summary?.levelId),
+                const level = app.levels.find(
+                    (l) => l.id === r.summary?.levelId,
+                  ),
                   percent = level
                     ? Math.round(
                         (r.summary!.completedCount / level.challenges.length) *
                           100,
                       )
-                    : 0;
+                    : 0,
+                  status = r.summary ? supportStatus(r.summary, now) : null;
                 return (
                   <Card key={r.uid}>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        gap: 12,
-                        alignItems: "center",
-                      }}
-                    >
+                    <View style={s.row}>
                       <Avatar name={r.family.name} size={48} />
                       <View style={{ flex: 1, gap: 4 }}>
                         <Text style={s.sectionTitle}>{r.family.name}</Text>
@@ -407,78 +346,28 @@ export default function Administration() {
                           {r.family.partner1} y {r.family.partner2}
                         </Text>
                       </View>
-                      {section !== "roles" && (
-                        <Ring value={percent} size={64} />
-                      )}
+                      <Ring value={percent} size={64} />
                     </View>
-                    {section === "roles" ? (
-                      <>
-                        <Text style={s.body}>
-                          {r.role === "owner"
-                            ? "Propietario"
-                            : r.role === "admin"
-                              ? "Administrador"
-                              : "Miembro"}
-                        </Text>
-                        <Text style={s.small}>{r.email || r.uid}</Text>
-                        {r.role !== "owner" && r.uid !== app.uid && (
-                          <Button
-                            secondary
-                            title={
-                              r.role === "admin"
-                                ? "Editar permisos del administrador"
-                                : "Revisar permiso de administrador"
-                            }
-                            onPress={() => {
-                              setRoleTarget(r);
-                            }}
-                          />
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <Text style={s.body}>
-                          {r.summary?.levelOrder
-                            ? `Nivel ${r.summary.levelOrder} · ${r.summary.completedCount}${level ? `/${level.challenges.length}` : ""} retos`
-                            : "Todavía no comenzaron"}
-                        </Text>
-                        <Text style={s.small}>
-                          {r.summary?.totalCompleted ?? 0} retos en total ·{" "}
-                          {r.summary?.finishedCount ?? 0} niveles conseguidos
-                        </Text>
-                        <Text selectable style={s.small}>
-                          {r.email} ·{" "}
-                          {r.summary?.emailVerified
-                            ? "Correo verificado"
-                            : "Correo por verificar"}
-                        </Text>
-                        <Text
-                          style={[
-                            s.small,
-                            {
-                              color: status.needsSupport
-                                ? colors.rose
-                                : colors.muted,
-                            },
-                          ]}
-                        >
-                          {status.needsSupport
-                            ? `♡ Necesitan acompañamiento · ${status.days} días sin avanzar`
-                            : status.days !== null
-                              ? `Último avance: hace ${status.days} días`
-                              : "Sin avance registrado"}
-                        </Text>
-                        <Button
-                          secondary
-                          title="Escribir a esta familia"
-                          disabled={!canMessages}
-                          onPress={() => {
-                            setRecipient(r);
-                            setBody("");
-                          }}
-                        />
-                      </>
-                    )}
+                    <Text style={s.label}>
+                      {r.summary?.levelOrder
+                        ? `Nivel ${r.summary.levelOrder} · ${r.summary.completedCount}${level ? `/${level.challenges.length}` : ""} retos`
+                        : "Todavía no comenzaron"}
+                    </Text>
+                    <Text style={s.small}>
+                      {r.summary?.totalCompleted ?? 0} retos en total ·{" "}
+                      {r.summary?.finishedCount ?? 0} niveles conseguidos
+                    </Text>
+                    <Text selectable style={s.small}>
+                      {r.email} ·{" "}
+                      {r.summary?.emailVerified
+                        ? "Correo verificado"
+                        : "Correo por verificar"}
+                    </Text>
+                    <Text style={s.small}>
+                      {status?.days !== null && status?.days !== undefined
+                        ? `Último avance: hace ${status.days} días`
+                        : "Sin avance registrado"}
+                    </Text>
                   </Card>
                 );
               })}
@@ -492,97 +381,11 @@ export default function Administration() {
               onPress={() => load(true)}
             />
           )}
-        </>
-      )}
-      {recipient && canMessages && (
-        <Card style={{ backgroundColor: colors.sage }}>
-          <Text style={s.sectionTitle}>
-            Un mensaje para {recipient.family.name}
-          </Text>
-          <Notice text="Se guardará en su bandeja. Lo recibirán al abrir o sincronizar la app. El aviso por teléfono se presenta al sincronizar; no hay un push remoto inmediato con la app cerrada." />
-          <Field
-            label="Título del mensaje"
-            value={title}
-            onChangeText={setTitle}
-            maxLength={100}
-          />
-          <Field
-            label="Mensaje de acompañamiento"
-            value={body}
-            onChangeText={setBody}
-            multiline
-            maxLength={1200}
-          />
-          <View style={[s.row, { gap: 16 }]}>
-            <Text style={[s.body, { flex: 1 }]}>
-              Enviar también por correo si la familia lo autorizó
-            </Text>
-            <Switch
-              accessibilityLabel="Enviar también por correo"
-              value={byEmail}
-              disabled={
-                app.demo ||
-                !app.emailService.enabled ||
-                app.emailService.paused ||
-                !app.emailService.adminMessagesEnabled ||
-                busy
-              }
-              onValueChange={setByEmail}
-            />
-          </View>
           <Text style={s.small}>
-            El correo se pone en cola para el siguiente ciclo de envío, sujeto
-            al consentimiento y la cuota. No es un push inmediato.
+            Datos privados para administradores con permiso. Las fechas y cifras
+            corresponden a las familias cargadas, por páginas de 20.
           </Text>
-          <Button
-            title="Enviar a la bandeja de esta familia"
-            disabled={app.demo || !body.trim() || !title.trim()}
-            busy={busy}
-            onPress={async () => {
-              setBusy(true);
-              setError("");
-              try {
-                await sendFamilyMessage(recipient.uid, title, body, byEmail);
-                setMessage(
-                  `Mensaje guardado para ${recipient.family.name}.${byEmail ? " Correo en cola; la entrega no está confirmada." : ""}`,
-                );
-                setByEmail(false);
-                setRecipient(null);
-              } catch (e) {
-                setError(friendlyError(e));
-              } finally {
-                setBusy(false);
-              }
-            }}
-          />
-          <Button
-            secondary
-            title="Cerrar mensaje"
-            onPress={() => setRecipient(null)}
-          />
-        </Card>
-      )}
-      {roleTarget && canRoles && (
-        <>
-          <AdminPermissionsEditor
-            initialQuery={roleTarget.uid}
-            onDone={() => {
-              setRoleTarget(null);
-              void load();
-            }}
-          />
-          <Button
-            secondary
-            title="Cerrar permisos"
-            onPress={() => setRoleTarget(null)}
-          />
         </>
-      )}
-      {!recipient && !roleTarget && (
-        <Text style={s.small}>
-          Los datos de esta sección son privados para la administración. Se
-          cargan por páginas para cuidar el consumo de Firebase Spark.
-        </Text>
       )}
     </Screen>
   );

@@ -1,43 +1,51 @@
-# Correos opcionales y permisos administrativos
+# Administración, correos y permisos
 
-Firebase continúa en Spark. El usuario creó las cuentas de Resend/Cloudflare y verificó `correo.sevenawesome.com` en Resend. El Worker está publicado en `https://entre-dos-correo.sevenawesome-srl.workers.dev`, **con el envío desactivado**. Los tres secretos están cargados en Cloudflare, sin copiarlos al repositorio ni mostrar sus valores. La cuenta de servicio dedicada pudo autenticarse, consultar Firestore y Authentication y ejecutar las consultas indexadas de las colas. Faltan la verificación del correo de la familia propietaria, su consentimiento y la prueba controlada de envío/baja. No se han enviado correos personalizados reales de prueba.
+Firebase permanece en Spark. El Worker `entre-dos-correo` está publicado en `https://entre-dos-correo.sevenawesome-srl.workers.dev` con **SEND_ENABLED=false**. Resend tiene verificado `correo.sevenawesome.com` y los tres secretos ya están cargados únicamente en Cloudflare. No se han enviado correos personalizados reales de prueba ni se han cambiado roles reales durante esta reorganización.
 
-## Centro de configuración
+## Una administración con ocho secciones
 
-En **Admin → Abrir centro de configuración** (el botón está al inicio del panel; **Gestionar permisos** abre directamente la sección de accesos):
+| Pestaña | Contenido | Permiso |
+| --- | --- | --- |
+| Familias | Búsqueda exacta por correo/UID, perfiles y progreso resumido; edición y pausa familiar con permiso adicional. | `families.view`, editar: `families.edit` |
+| Fechas | Cumpleaños y aniversarios en los próximos 30 días de las familias cargadas. | `families.view` |
+| Seguimiento | Familias que llevan siete días o más sin avanzar. | `families.view` |
+| Notificaciones | Mensaje a la bandeja; aviso local al sincronizar. No usa Resend. | `messages.send` |
+| Correos | Búsqueda de destinatario, control administrativo de recepción, borrador y confirmación; consumo diario/mensual UTC. | `emails.send` |
+| Administradores | Buscar cuenta registrada, crear administrador, elegir permisos, retirarlos. | `roles.manage` |
+| Niveles | Borradores, validación y publicación; catálogo de bodas. | `content.manage` |
+| Configuración | Mensajes de la app, soporte y habilitación de avisos del teléfono. | `settings.manage` |
 
-- Aplicación: avisos, mensajes de cierre/nuevos niveles, soporte y pausa de recordatorios.
-- Correos: nombre/remitente y dirección para respuestas, pausa, resúmenes automáticos, mensajes administrativos, límites y cuatro plantillas de texto con variables. Las claves del proveedor no aparecen ni se guardan en Firebase o Expo.
-- Niveles: borradores, publicación, retos, reflexión final y catálogo de bodas.
-- Familias: búsqueda, consulta y edición según el permiso concedido. La fecha de matrimonio sigue siendo obligatoria.
-- Permisos: buscar una cuenta registrada y elegir sus accesos. Los cambios se auditan y las reglas los verifican en cada operación.
+En **Correos → Ajustes de correo**, `settings.manage` permite cambiar remitente dentro del dominio verificado, respuesta, pausa, categorías, límites y plantillas. Puede acceder a esos ajustes sin permiso para enviar a familias. El propietario ve todo. Los demás solo ven las secciones concedidas. Las rutas antiguas `/admin?section=...` redirigen a la sección correspondiente del mismo panel.
 
-El contacto inicial es `sevenawesome.srl@gmail.com`. Puede cambiarse desde Aplicación; la dirección para respuestas se cambia en Correos.
+Para crear un administrador: Admin → Administradores → buscar correo o UID de una cuenta que ya registró su familia → activar «Esta cuenta es administradora» → elegir permisos → confirmar → guardar. Para retirarlo, apagar esa opción y guardar. Los permisos de notificaciones y correos son independientes. Los permisos dependientes incluyen consultar familias. No se permite cambiar el propio rol, modificar al propietario, conceder permisos superiores a los propios ni modificar un administrador con permisos superiores. Las reglas comprueban los permisos vigentes en cada operación; el Worker los vuelve a comprobar antes de enviar. Los administradores anteriores sin lista explícita conservan su acceso hasta que el propietario lo edite.
 
-| Permiso | Acceso |
-| --- | --- |
-| `families.view` | Perfiles familiares, fechas/celebraciones y resúmenes de progreso; las notas, cuestionarios y fotos individuales privadas no se muestran. |
-| `families.edit` | Editar perfiles y pausar recordatorios; requiere consultar familias. |
-| `messages.send` | Escribir a la bandeja y, con consentimiento, encolar correo; requiere consultar familias. |
-| `content.manage` | Gestionar niveles, borradores y catálogo de bodas. |
-| `settings.manage` | Cambiar la configuración del producto y del correo. |
-| `roles.manage` | Gestionar otros administradores; requiere consultar familias y no permite conceder permisos superiores a los propios ni modificar una cuenta con permisos superiores. |
+## Política de correo para cuidar la cuota
 
-El propietario conserva todos los accesos y su rol no puede cambiarse desde la app. Nadie cambia su propio permiso desde el panel. Los administradores anteriores sin lista explícita conservan sus permisos hasta que el propietario los revise. Los nuevos se crean con permisos explícitos; por defecto solo consulta de familias. Un permiso se aplica a toda la cuenta familiar compartida.
+- Firebase envía verificación al crear la cuenta y recuperación cuando se solicita. No consumen Resend y tienen sus propias cuotas de Authentication.
+- **Bienvenida personalizada:** evento único al registrar la familia; espera a que Auth confirme la dirección. Un registro por sí solo no comienza los retos. La bienvenida invita a comenzar de inmediato.
+- **Nivel conseguido:** evento único al terminar todos los retos y el cuestionario. No se envía al completar solo el último reto.
+- **Correo manual:** únicamente desde Admin → Correos, con destinatario encontrado, asunto/cuerpo, revisión y confirmación. No crea una notificación en la bandeja.
+- No hay correos diarios de retos, cumpleaños ni aniversarios. Esos avisos siguen en los teléfonos. La pausa de notificaciones no pausa los correos y viceversa.
 
-## Experiencia de la familia
+Nosotros conserva la verificación, recuperación y cambio de contraseña, pero ya no tiene interruptores de recepción de correo. El administrador controla `emailPreferences/{uid}.enabled`; la ausencia del documento permite los avisos transaccionales descritos al registrarse. Una baja firmada desde el correo establece `unsubscribed=true`; las reglas impiden anularla desde la app, incluso al administrador. Las preferencias antiguas desactivadas se respetan hasta una decisión administrativa; las categorías y horarios diarios antiguos ya no se procesan.
 
-**Nosotros → También por correo** permite elegir retos/cierre del nivel, celebraciones y mensajes del equipo, con horario aproximado. Todas las opciones empiezan apagadas y requieren correo verificado y servicio habilitado. Los recordatorios del teléfono continúan independientes.
+Cada correo lleva enlace de baja: GET muestra confirmación sin cambiar nada; POST firmado desactiva futuros envíos, aunque no existiera un documento de recepción. No afecta a los correos de acceso de Firebase. Se usan avisos sobre la cuenta y el programa, sin campañas publicitarias.
 
-El resumen diario recuerda el mismo reto hasta completarlo, respeta las 24 horas desde el completado y deja de recordar retos cuando no quedan niveles. Cumpleaños y aniversario se agrupan en el mismo resumen; no se envían fechas completas de nacimiento, notas, respuestas ni fotos. Los mensajes administrativos van por separado si se autorizan.
+## Eventos, cuotas e idempotencia
 
-Cada correo incluye un enlace de baja. Abrirlo muestra una confirmación; un POST firmado desactiva los correos opcionales. También admite la baja de un clic del cliente de correo. Los enlaces caducan a los 90 días; siempre puede usarse Nosotros. Darse de baja no afecta los correos de acceso de Firebase.
+`mailEvents/welcome-{uid}` se crea en la misma transacción del primer perfil/resumen. `mailEvents/level-{uid}-{levelId}` se crea junto al cierre del nivel. Las reglas exigen esa prueba, el UID propio y timestamps del servidor. Los clientes no pueden crear eventos arbitrarios, repetirlos, cambiar destinatarios ni reiniciarlos. Dos dispositivos que confirman el mismo cierre generan el mismo evento.
+
+El cron revisa trabajo pendiente cada diez minutos y procesa como máximo una entrega por ciclo, alternando eventos y correos manuales. No recorre todas las familias. Las cuotas predeterminadas de la implementación son 90 reservas diarias y 2700 mensuales, compartidas, con límites reducibles desde Admin. No equivalen a una promesa de entrega ni sustituyen las cuotas del proveedor y de Firebase Spark. Consulta los [límites de Cloudflare](https://developers.cloudflare.com/workers/platform/limits/) y el [plan de Resend](https://resend.com/pricing).
+
+Los presupuestos UTC se reservan atómicamente y no se devuelven automáticamente ante un fallo. Los reintentos usan contenido y clave idénticos dentro de 23 horas. Después queda `review_required` y no se reenvía automáticamente. La bienvenida pendiente de verificación caduca a los 30 días; los eventos de nivel y mensajes manuales a los dos días. Se comprueban dirección verificada y habilitada de Auth, recepción/baja y versión, eliminación y permiso vigente del emisor. Los trabajos de categorías diarias antiguas se suprimen. `accepted` significa aceptado por Resend, no entregado ni leído; no hay webhook de entrega/rebote.
+
+El Worker solo lee nombre familiar, título del nivel y `finishedAt` para preparar eventos. No lee notas, respuestas ni fotos. El contenido del trabajo se elimina al finalizar; eliminar la cuenta limpia recepción, eventos, cola y trabajos propios. El endpoint público solo expone salud y baja firmada, sin una API abierta para enviar correos. Nunca se guardan claves privadas en Firebase ni Expo.
 
 ## Qué falta para activarlo
 
 1. Completado por el usuario: cuentas gratuitas en [Resend](https://resend.com/) y [Cloudflare](https://dash.cloudflare.com/), y autorización de Wrangler.
 2. Completado: `correo.sevenawesome.com` verificado en Resend, con DNS en GoDaddy. Remitente configurado: `avisos@correo.sevenawesome.com`. **No se puede verificar gmail.com**: el Gmail indicado sirve para recibir respuestas, soporte y registrar las cuentas.
-3. Completado por el usuario: cuenta de servicio `entre-dos-correo@entre-dos-db.iam.gserviceaccount.com`, con `roles/datastore.user` (Usuario de Cloud Datastore) y `roles/firebaseauth.viewer` (Visualizador de Firebase Authentication). Se verificaron los IDs en la política IAM: ambos sin condiciones y ningún rol adicional. No usar Owner/Editor. Su clave se mantiene fuera del repositorio y de este chat. La cuenta puede consultar datos de Firestore por IAM; el código solo necesita familia/fechas, resúmenes y metadatos de cierre, catálogo, preferencias, roles y cola, sin leer notas/respuestas ni fotos.
+3. Completado por el usuario: cuenta de servicio `entre-dos-correo@entre-dos-db.iam.gserviceaccount.com`, con `roles/datastore.user` (Usuario de Cloud Datastore) y `roles/firebaseauth.viewer` (Visualizador de Firebase Authentication). Se verificaron los IDs en la política IAM: ambos sin condiciones y ningún rol adicional. No usar Owner/Editor. Su clave se mantiene fuera del repositorio y de este chat. La cuenta puede consultar datos de Firestore por IAM; el código solo necesita nombre familiar, metadatos de cierre del nivel, título del nivel, estado de correo, roles y cola, sin leer notas/respuestas ni fotos.
 4. Completado: `email-worker/wrangler.jsonc` fija la cuenta Cloudflare autorizada, proyecto, `PUBLIC_BASE_URL` y `FROM_EMAIL` reales. `SEND_ENABLED` continúa en `false` durante la configuración. El dominio de ese remitente limita las direcciones que se pueden elegir luego desde Admin.
 5. Completado: los tres secretos están cargados **en Cloudflare**, no en `.env` de Expo ni en Firebase. Para cargar o renovar la clave de envío en otra instalación:
 
@@ -62,27 +70,10 @@ npx firebase-tools@latest deploy --only firestore --project entre-dos-db
 npx --yes wrangler@4.158.0 deploy --config email-worker/wrangler.jsonc
 ```
 
-7. `/health` ya responde `configured: true, sending: false`. Antes de la prueba, la familia propietaria debe usar **Nosotros → Su correo de contacto → Enviar enlace de verificación**, abrir el enlace recibido y volver a **Ya confirmé mi correo**. Después configurar los textos y remitente desde Admin. Cambiar `SEND_ENABLED` a `true` y desplegar cuando se decida comenzar el envío; es un interruptor del servidor que la app no puede eludir. El primer ciclo publica el estado del servicio en Firebase. Probar primero con la familia propietaria y su consentimiento, confirmando recepción y baja antes de invitar a otras familias.
+7. `/health` ya responde `configured: true, sending: false`. Antes de la prueba, la familia propietaria debe usar **Nosotros → Su correo de contacto → Enviar enlace de verificación**, abrir el enlace recibido y volver a **Ya confirmé mi correo**. Después configurar los textos y remitente desde Admin. Cambiar `SEND_ENABLED` a `true` y desplegar cuando se decida comenzar el envío; es un interruptor del servidor que la app no puede eludir. El primer ciclo publica el estado del servicio en Firebase. Probar primero con la familia propietaria confirmando recepción y baja antes de invitar a otras familias.
 
 La cuenta de Firebase y sus verificaciones/recuperaciones funcionan sin estos pasos adicionales. No hacen falta contraseñas de Gmail para esta integración.
 
-## Límites y entrega
+## Validación
 
-- Resend ofrece una [cuota gratuita](https://resend.com/pricing). Esta implementación limita por defecto a 90 reservas diarias y 2700 mensuales para dejar margen; desde Admin se pueden reducir esos límites, sin superar esos máximos. Los presupuestos son compartidos, no por familia.
-- Un Worker con [Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/) revisa trabajo pendiente cada diez minutos. Procesa una entrega por ciclo y alterna resúmenes/mensajes; no es una entrega inmediata ni se garantiza que todos reciban correo si se llena la cuota. El plan Free también tiene [límites propios](https://developers.cloudflare.com/workers/platform/limits/).
-- No se recorren todas las familias: se consultan preferencias vencidas/colas con límites e índices. Las lecturas y escrituras consumen cuota de Firestore Spark.
-- Los presupuestos se reservan de manera atómica. Reservas fallidas no se devuelven automáticamente: el cálculo es conservador.
-- Los reintentos conservan el mismo contenido y clave de idempotencia. Solo se reintenta dentro de 23 horas; un resultado ambiguo más antiguo queda para revisión y no vuelve a enviarse automáticamente. Los mensajes de la cola que superan dos días se omiten.
-- Se comprueban dirección verificada, consentimiento/versión, eliminación de cuenta y permiso vigente del emisor. Para un resumen en reintento también se comprueban avance, perfil y fecha local, evitando recordar un reto que ya se completó.
-- `accepted` significa aceptado por Resend, **no entregado ni leído**. No se ha implementado un webhook de rebotes/entregas. El contenido del trabajo se elimina al finalizar; la eliminación de cuenta limpia preferencias, cola y trabajos propios.
-- No se guardan claves de Resend/Google en Expo ni en documentos públicos. El endpoint público solo ofrece estado y baja firmada; no acepta peticiones arbitrarias de envío.
-
-## Verificación sin correo real
-
-```powershell
-npm run check
-npm run test:email
-npx firebase-tools@latest emulators:exec --only firestore,auth --project demo-entre-dos "npm run test:firebase"
-```
-
-`test:email` empaqueta el Worker en modo seco y usa repositorio/transporte locales de prueba; no llama Resend ni Google con credenciales reales. El empaquetado local no equivale a verificar ejecución/CPU/entrega en la infraestructura de Cloudflare: esa comprobación queda para activar las cuentas.
+`npm run check` comprueba tipos, lint y dominio; `npm run test:email` usa transporte simulado y reservas concurrentes; `npm run test:firebase` requiere los emuladores de Auth y Firestore. La comprobación local no envía correo real. Antes de activar el servidor faltan confirmar el correo de prueba y autorizar una prueba controlada de recepción/baja. El despliegue conserva `SEND_ENABLED=false`.

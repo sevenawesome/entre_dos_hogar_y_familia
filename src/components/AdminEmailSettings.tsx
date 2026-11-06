@@ -18,10 +18,11 @@ export function AdminEmailSettings() {
   return (
     <Card>
       <Text style={s.sectionTitle}>Remitente, límites y mensajes</Text>
+      <Notice text="Se envía una bienvenida por registro verificado y una felicitación por nivel conseguido. Los retos diarios, cumpleaños y aniversarios usan los avisos del teléfono y no consumen correos." />
       <Notice
         text={
           service.enabled
-            ? "Servicio habilitado. Cada familia elige qué correos recibir."
+            ? "Servicio habilitado. La administración controla los envíos; se respetan las bajas solicitadas desde los correos."
             : "Envío pendiente de activación. Puedes guardar estos ajustes mientras se configuran las cuentas del proveedor."
         }
       />
@@ -58,8 +59,9 @@ export function AdminEmailSettings() {
       />
       {(
         [
-          ["paused", "Pausar todos los correos opcionales"],
-          ["automaticEnabled", "Enviar resúmenes de retos y celebraciones"],
+          ["paused", "Pausar todos los correos"],
+          ["welcomeEnabled", "Enviar bienvenida tras verificar la cuenta"],
+          ["completionEnabled", "Felicitar al conseguir un nivel"],
           ["adminMessagesEnabled", "Permitir mensajes del equipo por correo"],
         ] as const
       ).map(([key, label]) => (
@@ -100,13 +102,11 @@ export function AdminEmailSettings() {
       />
       {(
         [
-          ["birthdayTemplate", "Saludo de cumpleaños · variable {person}"],
-          ["anniversaryTemplate", "Saludo de aniversario · variable {years}"],
+          ["welcomeTemplate", "Bienvenida · variable {family}"],
           [
-            "challengeTemplate",
-            "Reto pendiente · variables {level} y {challenge}",
+            "completionTemplate",
+            "Nivel conseguido · variables {family} y {levelTitle}",
           ],
-          ["finishTemplate", "Reflexión final · variable {levelTitle}"],
         ] as const
       ).map(([key, label]) => (
         <Field

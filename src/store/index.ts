@@ -3,9 +3,7 @@ import {
   type AdminPermission,
 } from "../domain/admin-permissions";
 import {
-  emailDefaults,
   emailServiceOff,
-  type EmailPreferences,
   type EmailServiceStatus,
 } from "../domain/email-reminders";
 import {
@@ -58,7 +56,6 @@ interface State {
   email: string | null;
   emailVerified: boolean;
   verificationMessage: string | null;
-  emailPreferences: EmailPreferences;
   emailService: EmailServiceStatus;
 }
 const initialState: State = {
@@ -86,7 +83,6 @@ const initialState: State = {
   email: null,
   emailVerified: false,
   verificationMessage: null,
-  emailPreferences: emailDefaults("UTC"),
   emailService: emailServiceOff,
 };
 const slice = createSlice({
@@ -121,11 +117,7 @@ const slice = createSlice({
       state.email = null;
       state.emailVerified = false;
       state.verificationMessage = null;
-      state.emailPreferences = emailDefaults("UTC");
       state.emailService = emailServiceOff;
-    },
-    emailPreferences(state, action: PayloadAction<EmailPreferences>) {
-      state.emailPreferences = action.payload;
     },
     emailService(state, action: PayloadAction<EmailServiceStatus>) {
       state.emailService = action.payload;

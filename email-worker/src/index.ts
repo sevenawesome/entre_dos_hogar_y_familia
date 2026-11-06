@@ -5,13 +5,11 @@ import {
 } from "../../src/domain/email-settings";
 import { hasPermission } from "../../src/domain/admin-permissions";
 import {
-  dailyEmailDraft,
-  emailDay,
-  nextEmailDate,
+  eventEmailDraft,
   type EmailDraft,
   type EmailPreferences,
 } from "../../src/domain/email-reminders";
-import type { Family, FamilySummary, Level } from "../../src/domain/types";
+
 import {
   googleRepository,
   b64,
@@ -130,30 +128,27 @@ export async function unsubscribe(
     !(await validToken(uid, token, env.UNSUBSCRIBE_SECRET, now))
   )
     return new Response(
-      "Enlace inválido o vencido. También puedes desactivar los correos desde Nosotros en ENTRE DOS.",
+      "Enlace inválido o vencido. Contacta al equipo de ENTRE DOS para recibir ayuda.",
       { status: 400, headers },
     );
   if (request.method === "GET")
     return new Response(
-      '<!doctype html><html lang="es"><meta name="viewport" content="width=device-width"><title>Correos de ENTRE DOS</title><body style="font:18px system-ui;max-width:550px;margin:60px auto;padding:24px"><h1>Sus correos, a su ritmo.</h1><p>Confirma para dejar de recibir correos opcionales de retos, celebraciones y administración. Los correos de acceso seguirán disponibles.</p><form method="post"><button style="padding:18px;border:0;border-radius:14px;background:#B82E63;color:white;font-size:18px">Dejar de recibir correos opcionales</button></form></body></html>',
+      '<!doctype html><html lang="es"><meta name="viewport" content="width=device-width"><title>Correos de ENTRE DOS</title><body style="font:18px system-ui;max-width:550px;margin:60px auto;padding:24px"><h1>Sus correos, a su ritmo.</h1><p>Confirma para dejar de recibir correos de bienvenida, niveles conseguidos y administración. Los correos de acceso seguirán disponibles.</p><form method="post"><button style="padding:18px;border:0;border-radius:14px;background:#B82E63;color:white;font-size:18px">Dejar de recibir correos opcionales</button></form></body></html>',
       { headers },
     );
   if (request.method !== "POST")
     return new Response("Método no permitido", { status: 405, headers });
   const pref = await repo.get(`emailPreferences/${uid}`);
   if (
-    pref &&
     !(await repo.commit([
       {
-        path: pref.path,
-        version: pref.version,
+        path: `emailPreferences/${uid}`,
+        version: pref?.version ?? null,
         data: {
-          ...pref.data,
+          ...pref?.data,
           enabled: false,
-          challenges: false,
-          celebrations: false,
-          adminMessages: false,
-          version: Number(pref.data.version) + 1,
+          unsubscribed: true,
+          version: Number(pref?.data.version ?? 0) + 1,
           updatedAt: now,
         },
       },
@@ -164,7 +159,7 @@ export async function unsubscribe(
       headers,
     });
   return new Response(
-    "<html lang=es><title>Baja confirmada</title><p>Correos opcionales desactivados. Pueden volver a elegirlos desde Nosotros en ENTRE DOS.</p></html>",
+    "<html lang=es><title>Baja confirmada</title><p>Correos opcionales desactivados. La baja se respetará también en los envíos del equipo.</p></html>",
     { headers },
   );
 }
@@ -197,7 +192,7 @@ export async function emailPayload(
   );
   const link = `${env.PUBLIC_BASE_URL}/unsubscribe?uid=${encodeURIComponent(uid)}&token=${encodeURIComponent(token)}`;
   const text = `ENTRE DOS · By Departamento de Hogar y Familia\n\n${draft.lines.join("\n\n")}\n\nDejar de recibir correos opcionales: ${link}\nCreado por SevenAwesome · https://www.sevenawesome.com/`;
-  const html = `<!doctype html><html lang="es"><body style="margin:0;background:#FFF6F8;color:#343047;font:16px Arial,sans-serif"><div style="max-width:560px;margin:auto;padding:32px"><h1 style="color:#B82E63">♡ ENTRE DOS</h1><p>By Departamento de Hogar y Familia</p><div style="background:white;border-radius:22px;padding:26px"><h2>${escapeHtml(draft.subject)}</h2>${draft.lines.map((line) => `<p style="line-height:1.7">${escapeHtml(line).replace(/\n/g, "<br>")}</p>`).join("")}</div><p style="font-size:13px;line-height:1.7">Reciben este correo porque su cuenta familiar lo autorizó. <a href="${escapeHtml(link)}">Dejar de recibir correos opcionales</a>.</p><p style="font-size:13px">Creado por <a href="https://www.sevenawesome.com/">SevenAwesome</a></p></div></body></html>`;
+  const html = `<!doctype html><html lang="es"><body style="margin:0;background:#FFF6F8;color:#343047;font:16px Arial,sans-serif"><div style="max-width:560px;margin:auto;padding:32px"><h1 style="color:#B82E63">♡ ENTRE DOS</h1><p>By Departamento de Hogar y Familia</p><div style="background:white;border-radius:22px;padding:26px"><h2>${escapeHtml(draft.subject)}</h2>${draft.lines.map((line) => `<p style="line-height:1.7">${escapeHtml(line).replace(/\n/g, "<br>")}</p>`).join("")}</div><p style="font-size:13px;line-height:1.7">Reciben este correo sobre su cuenta y participación en ENTRE DOS. <a href="${escapeHtml(link)}">Dejar de recibir correos opcionales</a>.</p><p style="font-size:13px">Creado por <a href="https://www.sevenawesome.com/">SevenAwesome</a></p></div></body></html>`;
   return {
     from,
     reply_to: settings.replyTo,
@@ -221,9 +216,7 @@ interface Job extends Data {
   terminal: boolean;
   attempts: number;
   queueId?: string;
-  progressKey?: string;
-  familyVersion?: string;
-  localDay?: string;
+  eventId?: string;
 }
 async function stop(
   repo: Repository,
@@ -246,8 +239,12 @@ async function stop(
       },
     },
   ]);
-  if (saved && job.data.queueId) {
-    const q = await repo.get(`emailQueue/${job.data.queueId}`);
+  if (saved && (job.data.queueId || job.data.eventId)) {
+    const q = await repo.get(
+      job.data.queueId
+        ? `emailQueue/${job.data.queueId}`
+        : `mailEvents/${job.data.eventId}`,
+    );
     if (q)
       await repo.commit([
         {
@@ -263,32 +260,19 @@ async function stop(
       ]);
   }
 }
-async function eligible(repo: Repository, job: Job, now: Date) {
+async function eligible(repo: Repository, job: Job, _now: Date) {
   const prefs = await repo.get<EmailPreferences>(`emailPreferences/${job.uid}`);
   if (
-    !prefs?.data.enabled ||
-    prefs.data.version !== job.consentVersion ||
-    job.categories.some((c) => !prefs.data[c])
+    prefs?.data.enabled === false ||
+    prefs?.data.unsubscribed ||
+    (prefs?.data.version ?? 0) !== job.consentVersion ||
+    !job.categories.length ||
+    job.categories.some(
+      (c) => !["welcome", "levelCompleted", "adminMessages"].includes(c),
+    )
   )
     return false;
   if (await repo.get(`accountDeletion/${job.uid}`)) return false;
-  if (job.familyVersion) {
-    const [family, summary, controls, app] = await Promise.all([
-      repo.get(`families/${job.uid}`),
-      repo.get(`tracking/${job.uid}`),
-      repo.get(`familyControls/${job.uid}`),
-      repo.get("config/app"),
-    ]);
-    if (
-      family?.version !== job.familyVersion ||
-      `${summary?.data.totalCompleted}|${summary?.data.finishedCount}` !==
-        job.progressKey ||
-      controls?.data.remindersPaused ||
-      app?.data.notificationsEnabled === false ||
-      emailDay(prefs.data.timezone, now) !== job.localDay
-    )
-      return false;
-  }
   const account = await repo.account(job.uid);
   return (
     !!account?.verified &&
@@ -312,18 +296,24 @@ export async function deliverJob(
     await stop(repo, job, "review_required", now);
     return;
   }
-  const config = await repo.get("config/email"),
-    appConfig = await repo.get("config/app");
+  const config = await repo.get("config/email");
   if (
-    appConfig?.data.notificationsEnabled === false ||
     !config?.data.enabled ||
-    (job.data.queueId
-      ? config.data.adminMessagesEnabled === false
-      : config.data.automaticEnabled === false) ||
     config.data.paused ||
     env.SEND_ENABLED !== "true"
   )
     return;
+  if (
+    (job.data.categories.includes("adminMessages") &&
+      config.data.adminMessagesEnabled === false) ||
+    (job.data.categories.includes("welcome") &&
+      config.data.welcomeEnabled === false) ||
+    (job.data.categories.includes("levelCompleted") &&
+      config.data.completionEnabled === false)
+  ) {
+    await stop(repo, job, "suppressed", now);
+    return;
+  }
   if (!(await eligible(repo, job.data, now))) {
     await stop(repo, job, "suppressed", now);
     return;
@@ -333,7 +323,7 @@ export async function deliverJob(
       sender = q?.data.senderUid as string | undefined,
       role = sender ? await repo.get(`roles/${sender}`) : null;
     if (
-      !hasPermission(role?.data ?? {}, "messages.send") ||
+      !hasPermission(role?.data ?? {}, "emails.send") ||
       !!(sender && (await repo.get(`accountDeletion/${sender}`)))
     ) {
       await stop(repo, job, "suppressed", now);
@@ -425,170 +415,110 @@ export async function reserveJob(
 }
 async function automatic(
   repo: Repository,
-  pref: Document<EmailPreferences>,
+  event: Document,
   env: Env,
   now: Date,
   fetcher = fetch,
 ) {
-  const uid = pref.path.split("/").at(-1)!;
-  if (!pref.data.enabled) return;
-  const [family, summary, journey, deleted, controls] = await Promise.all([
-    repo.get<Family>(`families/${uid}`),
-    repo.get<FamilySummary>(`tracking/${uid}`),
-    repo.get(`journeys/${uid}`),
-    repo.get(`accountDeletion/${uid}`),
-    repo.get(`familyControls/${uid}`),
-  ]);
-  if (!family || !summary || deleted) {
-    await repo.commit([
-      {
-        path: pref.path,
-        version: pref.version,
-        data: {
-          ...pref.data,
-          enabled: false,
-          version: pref.data.version + 1,
-          nextDueAt: new Date(now.getTime() + DAY),
-          updatedAt: now,
-        },
-      },
-    ]);
-    return;
-  }
-  let next: Date;
-  try {
-    next = nextEmailDate(
-      pref.data.timezone,
-      pref.data.hour,
-      pref.data.minute,
-      now,
-    );
-  } catch {
-    await repo.commit([
-      {
-        path: pref.path,
-        version: pref.version,
-        data: {
-          ...pref.data,
-          enabled: false,
-          version: pref.data.version + 1,
-          nextDueAt: new Date(now.getTime() + DAY),
-          updatedAt: now,
-        },
-      },
-    ]);
-    return;
-  }
-  const advance = () =>
+  const uid = String(event.data.uid),
+    kind = event.data.kind,
+    eventId = event.path.split("/").at(-1)!;
+  const finish = (state: string) =>
     repo.commit([
       {
-        path: pref.path,
-        version: pref.version,
-        data: { ...pref.data, nextDueAt: next },
+        path: event.path,
+        version: event.version,
+        data: { uid, state, createdAt: event.data.createdAt, finishedAt: now },
       },
     ]);
-  if (controls?.data.remindersPaused) {
-    await advance();
+  const [family, pref, deleted] = await Promise.all([
+    repo.get<{ name: string }>(`families/${uid}`, ["name"]),
+    repo.get<EmailPreferences>(`emailPreferences/${uid}`),
+    repo.get(`accountDeletion/${uid}`),
+  ]);
+  if (
+    !family ||
+    deleted ||
+    pref?.data.enabled === false ||
+    pref?.data.unsubscribed ||
+    !["welcome", "levelCompleted"].includes(String(kind))
+  ) {
+    await finish("suppressed");
     return;
   }
-  const [catalog, progress] = await Promise.all([
-    repo.query<Level>(
-      "levels",
-      [{ field: "published", op: "EQUAL", value: true }],
-      200,
-      ["id", "title", "order", "prerequisiteId", "published"],
-    ),
-    repo.query<{ levelId: string; finishedAt: unknown }>(
-      `families/${uid}/progress`,
-      [],
-      200,
-      ["levelId", "finishedAt"],
-    ),
-  ]);
-  const finished = progress
-      .filter((p) => p.data.finishedAt)
-      .map((p) => p.data.levelId),
-    levels = catalog.map(
-      (p) =>
-        ({
-          ...p.data,
-          challenges: [],
-          questions: [],
-          subtitle: "",
-          description: "",
-        }) as Level,
-    );
-  const current = levels
-    .sort((a, b) => a.order - b.order)
-    .find(
-      (l) =>
-        !finished.includes(l.id) &&
-        (!l.prerequisiteId || finished.includes(l.prerequisiteId)),
-    );
-  if (current) {
-    const detail = await repo.get<Pick<Level, "challenges">>(
-      `levels/${current.id}`,
-      ["challenges"],
-    );
-    current.challenges = detail?.data.challenges ?? [];
-  }
-  const normalized = {
-    ...summary.data,
-    lastCompletedAt: summary.data.lastCompletedAt
-      ? new Date(when(summary.data.lastCompletedAt)).toISOString()
-      : null,
-  };
-  const settings = settingsOf((await repo.get("config/email"))?.data);
-  const draft = dailyEmailDraft(
-    family.data,
-    pref.data,
-    normalized,
-    levels,
-    finished,
-    !!journey || summary.data.totalCompleted > 0,
-    now,
-    settings,
-  );
-  if (!draft) {
-    await advance();
+  // A verified account can claim its welcome later. Event IDs make concurrent devices idempotent.
+  const maxAge = kind === "welcome" ? 30 * DAY : 2 * DAY;
+  if (now.getTime() - when(event.data.createdAt) > maxAge) {
+    await finish("expired");
     return;
   }
   const account = await repo.account(uid);
-  if (!account?.verified || account.disabled || !account.email) {
-    await advance();
+  if (account?.disabled) {
+    await finish("suppressed");
     return;
   }
-  const id = `auto-${uid}-${emailDay(pref.data.timezone, now)}`;
-  const payload = await emailPayload(
-    uid,
-    account.email,
-    draft,
-    env,
-    now,
-    settings,
-  );
+  if (!account?.verified || !account.email) {
+    await repo.commit([
+      {
+        path: event.path,
+        version: event.version,
+        data: {
+          ...event.data,
+          nextAttemptAt: new Date(now.getTime() + 3600000),
+        },
+      },
+    ]);
+    return;
+  }
+  let levelTitle = "";
+  if (kind === "levelCompleted") {
+    const id = String(event.data.levelId),
+      [level, progress] = await Promise.all([
+        repo.get<{ title: string }>(`levels/${id}`, ["title"]),
+        repo.get(`families/${uid}/progress/${id}`, ["finishedAt"]),
+      ]);
+    if (!level || !progress?.data.finishedAt) {
+      await finish("suppressed");
+      return;
+    }
+    levelTitle = level.data.title;
+  }
+  const settings = settingsOf((await repo.get("config/email"))?.data),
+    draft = eventEmailDraft(
+      kind as "welcome" | "levelCompleted",
+      family.data.name,
+      levelTitle,
+      settings,
+    );
+  if (!draft) {
+    await finish("suppressed");
+    return;
+  }
   const job = await reserveJob(
     repo,
-    id,
+    `event-${eventId}`,
     {
       uid,
+      eventId,
       categories: draft.categories,
-      consentVersion: pref.data.version,
-      payload,
+      consentVersion: pref?.data.version ?? 0,
+      payload: await emailPayload(
+        uid,
+        account.email,
+        draft,
+        env,
+        now,
+        settings,
+      ),
       createdAt: now,
       nextAttemptAt: now,
       terminal: false,
       attempts: 0,
-      familyVersion: family.version,
-      progressKey: `${summary.data.totalCompleted}|${summary.data.finishedCount}`,
-      localDay: emailDay(pref.data.timezone, now),
     },
     now,
   );
-  if (job) {
-    await advance();
-    await deliverJob(repo, job, env, now, fetcher);
-  }
+  if (job?.data.terminal) await finish(String(job.data.state ?? "accepted"));
+  else if (job) await deliverJob(repo, job, env, now, fetcher);
 }
 async function administrator(
   repo: Repository,
@@ -604,9 +534,9 @@ async function administrator(
     account = await repo.account(uid);
   if (
     now.getTime() - when(q.data.createdAt) > 2 * DAY ||
-    !pref?.data.enabled ||
-    !pref.data.adminMessages ||
-    !hasPermission(sender?.data ?? {}, "messages.send") ||
+    pref?.data.enabled === false ||
+    pref?.data.unsubscribed ||
+    !hasPermission(sender?.data ?? {}, "emails.send") ||
     deleted ||
     !!(await repo.get(`accountDeletion/${String(q.data.senderUid)}`)) ||
     !account?.verified ||
@@ -649,7 +579,7 @@ async function administrator(
         uid,
         queueId,
         categories: draft.categories,
-        consentVersion: pref.data.version,
+        consentVersion: pref?.data.version ?? 0,
         payload,
         createdAt: now,
         nextAttemptAt: now,
@@ -711,14 +641,7 @@ export async function runCycle(
       },
     },
   ]);
-  const appConfig = await repo.get("config/app");
-  if (
-    !configured ||
-    env.SEND_ENABLED !== "true" ||
-    status?.data.paused ||
-    appConfig?.data.notificationsEnabled === false
-  )
-    return;
+  if (!configured || env.SEND_ENABLED !== "true" || status?.data.paused) return;
   const retry = await repo.query<Job>(
     "mailJobs",
     [
@@ -732,12 +655,11 @@ export async function runCycle(
     return;
   }
   const auto = async () => {
-    if (!settings.automaticEnabled) return false;
-    const due = await repo.query<EmailPreferences>(
-      "emailPreferences",
+    const due = await repo.query(
+      "mailEvents",
       [
-        { field: "enabled", op: "EQUAL", value: true },
-        { field: "nextDueAt", op: "LESS_THAN_OR_EQUAL", value: now },
+        { field: "state", op: "EQUAL", value: "pending" },
+        { field: "nextAttemptAt", op: "LESS_THAN_OR_EQUAL", value: now },
       ],
       1,
     );

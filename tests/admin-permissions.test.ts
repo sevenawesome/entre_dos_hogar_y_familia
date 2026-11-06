@@ -60,7 +60,7 @@ test("mail settings reject oversized quotas, injected headers and unknown templa
     { monthlyLimit: 3000 },
     { replyTo: "test@example.com\nBcc:other@example.com" },
     { fromName: "Name\nBcc" },
-    { challengeTemplate: "{privateAnswers}" },
+    { welcomeTemplate: "{privateAnswers}" },
   ])
     assert.throws(() =>
       validateEmailSettings({ ...defaultEmailSettings, ...change }),
@@ -75,4 +75,25 @@ test("contact Gmail is configurable as reply-to and text variables never evaluat
     renderEmailText("Hola {person}", { person: "<script>" }),
     "Hola <script>",
   );
+});
+
+test("notification and email permissions grant different channels", () => {
+  assert.equal(
+    hasPermission(
+      { role: "admin", permissions: ["messages.send"] },
+      "emails.send",
+    ),
+    false,
+  );
+  assert.equal(
+    hasPermission(
+      { role: "admin", permissions: ["emails.send"] },
+      "messages.send",
+    ),
+    false,
+  );
+  assert.deepEqual(normalizePermissions(["emails.send"]), [
+    "families.view",
+    "emails.send",
+  ]);
 });

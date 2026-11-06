@@ -15,25 +15,25 @@
       ]
     },
     {
-      "collectionGroup": "emailPreferences",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "enabled",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "nextDueAt",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
       "collectionGroup": "mailJobs",
       "queryScope": "COLLECTION",
       "fields": [
         {
           "fieldPath": "terminal",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "nextAttemptAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "mailEvents",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "state",
           "order": "ASCENDING"
         },
         {

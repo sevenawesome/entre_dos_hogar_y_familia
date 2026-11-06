@@ -2,6 +2,7 @@ export const adminPermissions = [
   "families.view",
   "families.edit",
   "messages.send",
+  "emails.send",
   "content.manage",
   "settings.manage",
   "roles.manage",
@@ -10,7 +11,8 @@ export type AdminPermission = (typeof adminPermissions)[number];
 export const permissionLabels: Record<AdminPermission, string> = {
   "families.view": "Consultar familias, progreso y celebraciones",
   "families.edit": "Editar perfiles y pausar recordatorios",
-  "messages.send": "Enviar mensajes a familias",
+  "messages.send": "Enviar notificaciones de la app",
+  "emails.send": "Enviar correos y gestionar destinatarios",
   "content.manage": "Gestionar niveles y catálogo de bodas",
   "settings.manage": "Configurar la aplicación y los correos",
   "roles.manage": "Gestionar permisos de otros administradores",
@@ -42,7 +44,12 @@ export function normalizePermissions(input: AdminPermission[]) {
   const selected = new Set(input);
   if (
     input.some((p) =>
-      ["families.edit", "messages.send", "roles.manage"].includes(p),
+      [
+        "families.edit",
+        "messages.send",
+        "emails.send",
+        "roles.manage",
+      ].includes(p),
     )
   )
     selected.add("families.view");

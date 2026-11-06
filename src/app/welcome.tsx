@@ -190,6 +190,13 @@ export default function Welcome() {
           secureTextEntry
           autoComplete={signup ? "new-password" : "current-password"}
         />
+        {signup && (
+          <Text style={s.small}>
+            Recibirán un enlace de verificación, una bienvenida tras verificar
+            su correo y una felicitación al conseguir cada nivel. El equipo
+            podrá enviar avisos sobre su cuenta y el programa.
+          </Text>
+        )}
         {!!error && <Notice text={error} error />}
         {!!info && <Notice text={info} />}
         <Button

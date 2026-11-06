@@ -1,5 +1,5 @@
 import { effectivePermissions } from "../domain/admin-permissions";
-import { emailDefaults, emailServiceOff } from "../domain/email-reminders";
+import { emailServiceOff } from "../domain/email-reminders";
 import {
   collection,
   doc,
@@ -51,20 +51,6 @@ export function subscribeSocial(uid: string, onError: (e: Error) => void) {
             ...emailServiceOff,
             ...data,
             lastRunAt: data.lastRunAt?.toDate?.().toISOString(),
-          }),
-        );
-      },
-      onError,
-    ),
-    onSnapshot(
-      doc(db!, "emailPreferences", uid),
-      (snap) => {
-        const { updatedAt: _updated, ...data } = snap.data() ?? {};
-        store.dispatch(
-          actions.emailPreferences({
-            ...emailDefaults("UTC"),
-            ...data,
-            nextDueAt: data.nextDueAt?.toDate?.().toISOString() ?? null,
           }),
         );
       },

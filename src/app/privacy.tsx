@@ -69,15 +69,16 @@ export default function Privacy() {
         </Text>
         <Text style={s.sectionTitle}>Correos opcionales</Text>
         <Text style={s.body}>
-          Solo se activan si lo eligen y verifican su correo. Cloudflare procesa
-          las preferencias, fechas familiares y resúmenes necesarios para
-          preparar los avisos; Resend recibe la dirección y el contenido que
-          debe enviar. No se envían notas, cuestionarios ni fotos. Pueden
-          incluir el título del reto, nombres de quienes cumplen años, años de
-          matrimonio y mensajes autorizados del equipo. Pueden darse de baja
-          desde el correo o desde Nosotros. La aplicación guarda preferencias,
-          cola y estados técnicos de envío; un estado aceptado no confirma
-          entrega ni lectura.
+          Al completar el registro y verificar su dirección podrán recibir una
+          bienvenida, una felicitación al conseguir cada nivel y avisos manuales
+          del equipo sobre su cuenta o el programa. La administración configura
+          estos envíos y sus límites. No se mandan correos diarios de retos,
+          cumpleaños ni aniversarios. Cloudflare prepara el envío; Resend recibe
+          su dirección y el mensaje. No se envían notas, cuestionarios ni fotos.
+          Cada correo incluye un enlace de baja que la administración no puede
+          anular. Los correos de verificación y recuperación de Firebase siguen
+          disponibles. Se conservan colas y estados técnicos; un envío aceptado
+          no confirma entrega ni lectura.
         </Text>
         <Text style={s.sectionTitle}>Eliminar la cuenta</Text>
         <Text style={s.body}>

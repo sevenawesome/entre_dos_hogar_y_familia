@@ -57,7 +57,12 @@ async function seed(path, data) {
     setDoc(doc(c.firestore(), path), data),
   );
 }
-async function createFamily(uid = "a", profile = family, start = true) {
+async function createFamily(
+  uid = "a",
+  profile = family,
+  start = true,
+  mail = false,
+) {
   const db = ctx(uid),
     batch = writeBatch(db);
   batch.set(doc(db, "families", uid), profile);
@@ -74,6 +79,15 @@ async function createFamily(uid = "a", profile = family, start = true) {
     totalCompleted: 0,
     finishedCount: 0,
   });
+  if (mail)
+    batch.set(doc(db, "mailEvents", `welcome-${uid}`), {
+      uid,
+      kind: "welcome",
+      levelId: null,
+      state: "pending",
+      createdAt: serverTimestamp(),
+      nextAttemptAt: serverTimestamp(),
+    });
   await batch.commit();
   if (start)
     await setDoc(doc(db, "journeys", uid), {
@@ -1059,87 +1073,159 @@ test("portrait edit metadata cannot bypass size, consent or multi-person validat
   );
 });
 
-const optionalPrefs = (enabled = true) => ({
-  enabled,
-  challenges: enabled,
-  celebrations: enabled,
-  adminMessages: enabled,
-  hour: 20,
-  minute: 0,
-  timezone: family.timezone,
-  version: 1,
-  nextDueAt: Timestamp.fromMillis(Date.now() + 3600000),
-  updatedAt: serverTimestamp(),
-});
-const verifiedContext = (uid) =>
-  env
-    .authenticatedContext(uid, {
-      email: `${uid}@example.com`,
-      email_verified: true,
-    })
-    .firestore();
-test("optional email needs self consent, verified Auth and a ready service; the owner cannot opt another family in", async () => {
+const optionalPrefs = (enabled = true) => ({ enabled, version: 1 });
+test("mail delivery is admin controlled and neither clients nor admins may erase signed unsubscribes", async () => {
   await createFamily();
-  const ref = doc(ctx("a"), "emailPreferences", "a");
-  await assertSucceeds(setDoc(ref, optionalPrefs(false)));
-  await assertFails(setDoc(ref, { ...optionalPrefs(), version: 2 }));
-  await seed("config/email", { enabled: true, paused: false });
-  await assertFails(setDoc(ref, { ...optionalPrefs(), version: 2 }));
+  await assertFails(
+    setDoc(doc(ctx("a"), "emailPreferences", "a"), optionalPrefs()),
+  );
+  await seed("roles/mailer", {
+    role: "admin",
+    permissions: ["families.view", "emails.send"],
+  });
+  const db = ctx("mailer"),
+    value = {
+      enabled: false,
+      version: 1,
+      updatedAt: serverTimestamp(),
+      updatedBy: "mailer",
+    };
   await assertSucceeds(
-    setDoc(doc(verifiedContext("a"), "emailPreferences", "a"), {
-      ...optionalPrefs(),
-      version: 2,
-    }),
+    auditedWrite(
+      db,
+      "emailPreferences/a",
+      value,
+      "email.preferences.update",
+      "a",
+      "mailer",
+    ),
+  );
+  await assertSucceeds(
+    auditedWrite(
+      db,
+      "emailPreferences/a",
+      { ...value, enabled: true, version: 2 },
+      "email.preferences.update",
+      "a",
+      "mailer",
+    ),
+  );
+  await seed("emailPreferences/a", {
+    enabled: false,
+    unsubscribed: true,
+    version: 3,
+  });
+  await assertFails(
+    auditedWrite(
+      db,
+      "emailPreferences/a",
+      { ...value, enabled: true, version: 4, unsubscribed: true },
+      "email.preferences.update",
+      "a",
+      "mailer",
+    ),
   );
   await assertFails(
-    updateDoc(doc(ctx("owner"), "emailPreferences", "a"), {
-      enabled: true,
-      version: 3,
-      updatedAt: serverTimestamp(),
-    }),
+    auditedWrite(
+      db,
+      "emailPreferences/a",
+      { ...value, enabled: true, version: 4, unsubscribed: false },
+      "email.preferences.update",
+      "a",
+      "mailer",
+    ),
   );
-  await assertSucceeds(setDoc(ref, { ...optionalPrefs(false), version: 3 }));
 });
-test("email queues are private and only an authorized administrator may enqueue the exact audited inbox message", async () => {
+test("email and notification permissions are independent and queue creation never requires an inbox copy", async () => {
   await createFamily();
   await seed("config/email", { enabled: true, paused: false });
-  await seed("emailPreferences/a", optionalPrefs());
-  const db = ctx("administrator"),
-    id = "mail-message",
-    audit = "mail-audit";
-  function outgoing(extra = {}) {
-    const batch = writeBatch(db),
-      message = {
-        title: "Ánimo",
-        body: "Un paso juntos",
-        senderUid: "administrator",
-        createdAt: serverTimestamp(),
-        auditId: audit,
-      };
-    batch.set(doc(db, "families", "a", "inbox", id), message);
-    batch.set(doc(db, "emailQueue", id), {
-      ...message,
-      uid: "a",
-      state: "pending",
-      ...extra,
+  for (const [uid, permission] of [
+    ["mailer", "emails.send"],
+    ["notifier", "messages.send"],
+  ])
+    await seed(`roles/${uid}`, {
+      role: "admin",
+      permissions: ["families.view", permission],
     });
-    batch.set(doc(db, "adminAudit", audit), {
-      actorUid: "administrator",
-      action: "message.send",
-      target: "a",
-      at: serverTimestamp(),
-    });
-    return batch.commit();
-  }
-  await assertFails(outgoing({ to: "other@example.com" }));
-  await assertSucceeds(outgoing());
-  await assertSucceeds(getDoc(doc(ctx("a"), "emailQueue", id)));
-  await assertFails(getDoc(doc(ctx("b"), "emailQueue", id)));
+  const message = (uid) => ({
+    uid: "a",
+    title: "Ánimo",
+    body: "Un paso juntos",
+    senderUid: uid,
+    createdAt: serverTimestamp(),
+    state: "pending",
+  });
+  await assertSucceeds(
+    auditedWrite(
+      ctx("mailer"),
+      "emailQueue/q",
+      message("mailer"),
+      "email.send",
+      "a",
+      "mailer",
+    ),
+  );
+  await assertFails(
+    auditedWrite(
+      ctx("notifier"),
+      "emailQueue/q2",
+      message("notifier"),
+      "email.send",
+      "a",
+      "notifier",
+    ),
+  );
+  await assertFails(
+    auditedWrite(
+      ctx("mailer"),
+      "emailQueue/forged",
+      { ...message("mailer"), to: "other@example.com" },
+      "email.send",
+      "a",
+      "mailer",
+    ),
+  );
+  const { uid, state, ...inbox } = message("notifier");
+  await assertSucceeds(
+    auditedWrite(
+      ctx("notifier"),
+      "families/a/inbox/n",
+      inbox,
+      "message.send",
+      "a",
+      "notifier",
+    ),
+  );
+  await assertFails(
+    auditedWrite(
+      ctx("mailer"),
+      "families/a/inbox/n2",
+      { ...inbox, senderUid: "mailer" },
+      "message.send",
+      "a",
+      "mailer",
+    ),
+  );
+  await assertSucceeds(getDoc(doc(ctx("a"), "emailQueue", "q")));
+  await assertFails(getDoc(doc(ctx("b"), "emailQueue", "q")));
   await assertFails(
     setDoc(doc(ctx("a"), "mailJobs", "fake"), { uid: "a", state: "accepted" }),
   );
-  await seed("emailPreferences/a", optionalPrefs(false));
-  await assertFails(outgoing());
+  await seed("emailPreferences/a", {
+    enabled: false,
+    unsubscribed: true,
+    version: 1,
+  });
+  await assertFails(
+    auditedWrite(
+      ctx("mailer"),
+      "emailQueue/optout",
+      message("mailer"),
+      "email.send",
+      "a",
+      "mailer",
+    ),
+  );
 });
 test("email delivery metadata is cleaned only by its family during account deletion", async () => {
   await createFamily();
@@ -1275,15 +1361,14 @@ test("settings operator configures mail in app but cannot activate the backend, 
     fromName: "ENTRE DOS",
     fromEmail: "",
     replyTo: "sevenawesome.srl@gmail.com",
-    automaticEnabled: true,
+    welcomeEnabled: true,
+    completionEnabled: true,
     adminMessagesEnabled: true,
     dailyLimit: 90,
     monthlyLimit: 2700,
     subjectPrefix: "",
-    birthdayTemplate: "Feliz cumpleaños {person}",
-    anniversaryTemplate: "Felicidades {years}",
-    challengeTemplate: "Reto {challenge}",
-    finishTemplate: "Reflexión {levelTitle}",
+    welcomeTemplate: "Bienvenidos {family}",
+    completionTemplate: "Felicidades {family}: {levelTitle}",
   };
   await assertSucceeds(
     auditedWrite(
@@ -1328,4 +1413,76 @@ test("settings operator configures mail in app but cannot activate the backend, 
   );
   await assertFails(getDoc(doc(db, "families", "a")));
   await assertFails(setDoc(doc(db, "emailPreferences", "a"), optionalPrefs()));
+});
+
+test("welcome event requires the initial registration batch, is immutable and cannot target another family", async () => {
+  const db = ctx("a"),
+    event = {
+      uid: "a",
+      kind: "welcome",
+      levelId: null,
+      state: "pending",
+      createdAt: serverTimestamp(),
+      nextAttemptAt: serverTimestamp(),
+    };
+  await assertFails(setDoc(doc(db, "mailEvents", "welcome-a"), event));
+  await assertSucceeds(createFamily("a", family, true, true));
+  await assertFails(setDoc(doc(db, "mailEvents", "welcome-a"), event));
+  await assertFails(
+    setDoc(doc(db, "mailEvents", "welcome-b"), { ...event, uid: "b" }),
+  );
+  await assertFails(
+    setDoc(doc(db, "mailEvents", "level-a-nivel-1"), {
+      ...event,
+      kind: "levelCompleted",
+      levelId: "nivel-1",
+    }),
+  );
+  await assertFails(
+    updateDoc(doc(db, "mailEvents", "welcome-a"), { state: "pending" }),
+  );
+});
+
+test("owner may grant all seven permissions together and revoke admin access", async () => {
+  await createFamily();
+  const db = ctx("owner");
+  const permissions = [
+    "families.view",
+    "families.edit",
+    "messages.send",
+    "emails.send",
+    "content.manage",
+    "settings.manage",
+    "roles.manage",
+  ];
+  await assertSucceeds(
+    auditedWrite(
+      db,
+      "roles/a",
+      {
+        role: "admin",
+        permissions,
+        updatedAt: serverTimestamp(),
+        updatedBy: "owner",
+      },
+      "role.update",
+      "a",
+      "owner",
+    ),
+  );
+  await assertSucceeds(
+    auditedWrite(
+      db,
+      "roles/a",
+      {
+        role: "member",
+        permissions: [],
+        updatedAt: serverTimestamp(),
+        updatedBy: "owner",
+      },
+      "role.update",
+      "a",
+      "owner",
+    ),
+  );
 });
