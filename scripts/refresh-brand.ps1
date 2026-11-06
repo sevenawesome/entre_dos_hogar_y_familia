@@ -1,60 +1,67 @@
+# Build deterministic platform sizes from the approved supplied/generated brand masters.
+# No external downloads, credentials or native-project edits.
 Add-Type -AssemblyName System.Drawing
-function Draw-Mark($graphics, $notification) {
-  if (!$notification) {
-    $rect = New-Object Drawing.RectangleF(2, 2, 96, 96)
-    $gradient = New-Object Drawing.Drawing2D.LinearGradientBrush($rect, [Drawing.ColorTranslator]::FromHtml('#FF7864'), [Drawing.ColorTranslator]::FromHtml('#C12968'), [single]45)
-    $graphics.FillEllipse($gradient, 2, 2, 96, 96)
-    $gradient.Dispose()
+$ErrorActionPreference = 'Stop'
+Add-Type -ReferencedAssemblies System.Drawing -TypeDefinition @"
+using System.Drawing;
+public static class BrandMaskPixels {
+  public static void White(Bitmap bitmap) {
+    for (int y=0;y<bitmap.Height;y++) for(int x=0;x<bitmap.Width;x++) {
+      Color pixel=bitmap.GetPixel(x,y);
+      if(pixel.A>0) bitmap.SetPixel(x,y,Color.FromArgb(pixel.A,255,255,255));
+    }
   }
-  $heart = New-Object Drawing.Drawing2D.GraphicsPath
-  $heart.AddBezier(50, 73, 37, 64, 22, 54, 22, 41)
-  $heart.AddBezier(22, 41, 22, 25, 43, 25, 50, 38)
-  $heart.AddBezier(50, 38, 57, 25, 78, 25, 78, 41)
-  $heart.AddBezier(78, 41, 78, 54, 63, 64, 50, 73)
-  $heart.CloseFigure()
-  $pen = New-Object Drawing.Pen([Drawing.Color]::White, [single]4.5)
-  $pen.LineJoin = [Drawing.Drawing2D.LineJoin]::Round
-  if ($notification) { $graphics.FillPath([Drawing.Brushes]::White, $heart) } else { $graphics.DrawPath($pen, $heart) }
-  if (!$notification) {
-    $infinity = New-Object Drawing.Drawing2D.GraphicsPath
-    $infinity.AddBezier(35, 50, 40, 43, 46, 43, 50, 50)
-    $infinity.AddBezier(50, 50, 54, 57, 60, 57, 65, 50)
-    $infinity.AddBezier(65, 50, 60, 43, 54, 43, 50, 50)
-    $infinity.AddBezier(50, 50, 46, 57, 40, 57, 35, 50)
-    $goldPen = New-Object Drawing.Pen([Drawing.ColorTranslator]::FromHtml('#FFE4A5'), [single]3)
-    $graphics.DrawPath($goldPen, $infinity)
-    $goldPen.Dispose(); $infinity.Dispose()
-  }
-  $pen.Dispose(); $heart.Dispose()
 }
-function Make-Mark($path, $size, $transparent, $notification, $adaptive) {
-  $bitmap = New-Object Drawing.Bitmap($size, $size)
-  $graphics = [Drawing.Graphics]::FromImage($bitmap)
-  $graphics.SmoothingMode = [Drawing.Drawing2D.SmoothingMode]::AntiAlias
-  $graphics.Clear($(if ($transparent) { [Drawing.Color]::Transparent } else { [Drawing.ColorTranslator]::FromHtml('#FFF9F6') }))
-  $graphics.ScaleTransform($size / 100.0, $size / 100.0)
-  if ($adaptive) { $graphics.TranslateTransform(18, 18); $graphics.ScaleTransform(.64, .64) }
-  Draw-Mark $graphics $notification
-  $bitmap.Save((Join-Path (Get-Location) $path), [Drawing.Imaging.ImageFormat]::Png)
-  $graphics.Dispose(); $bitmap.Dispose()
+"@
+$assetRoot = Join-Path $PSScriptRoot '../assets'
+function Save-Image($source, $destination, $width, $height, $transparent = $false) {
+  $original = [Drawing.Image]::FromFile((Join-Path $assetRoot $source))
+  $format = if ($transparent) { [Drawing.Imaging.PixelFormat]::Format32bppArgb } else { [Drawing.Imaging.PixelFormat]::Format24bppRgb }
+  $bitmap = [Drawing.Bitmap]::new($width, $height, $format)
+  $g = [Drawing.Graphics]::FromImage($bitmap)
+  $g.Clear($(if ($transparent) { [Drawing.Color]::Transparent } else { [Drawing.ColorTranslator]::FromHtml('#FBF7EE') }))
+  $g.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+  $ratio = [Math]::Min($width / $original.Width, $height / $original.Height)
+  $w = [int]($original.Width * $ratio); $h = [int]($original.Height * $ratio)
+  $g.DrawImage($original, [int](($width-$w)/2), [int](($height-$h)/2), $w, $h)
+  if ($destination.EndsWith('.jpg')) {
+    $codec = [Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object MimeType -eq 'image/jpeg'
+    $parameters = [Drawing.Imaging.EncoderParameters]::new(1)
+    $parameters.Param[0] = [Drawing.Imaging.EncoderParameter]::new([Drawing.Imaging.Encoder]::Quality, [long]88)
+    $bitmap.Save((Join-Path $assetRoot $destination), $codec, $parameters)
+    $parameters.Dispose()
+  } else { $bitmap.Save((Join-Path $assetRoot $destination), [Drawing.Imaging.ImageFormat]::Png) }
+  $g.Dispose(); $bitmap.Dispose(); $original.Dispose()
 }
-Make-Mark 'assets/icon.png' 1024 $false $false $false
-Make-Mark 'assets/adaptive-icon.png' 1024 $true $false $true
-Make-Mark 'assets/favicon.png' 64 $false $false $false
-Make-Mark 'assets/notification-icon.png' 96 $true $true $false
-$bitmap = New-Object Drawing.Bitmap(1440, 440)
-$graphics = [Drawing.Graphics]::FromImage($bitmap)
-$graphics.Clear([Drawing.Color]::Transparent)
-$graphics.SmoothingMode = [Drawing.Drawing2D.SmoothingMode]::AntiAlias
-$graphics.TextRenderingHint = [Drawing.Text.TextRenderingHint]::AntiAliasGridFit
-$graphics.TranslateTransform(35, 35); $graphics.ScaleTransform(3.7, 3.7)
-Draw-Mark $graphics $false
-$graphics.ResetTransform()
-$titleFont = New-Object Drawing.Font('Georgia', [single]130, [Drawing.FontStyle]::Regular, [Drawing.GraphicsUnit]::Pixel)
-$byFont = New-Object Drawing.Font('Segoe UI', [single]35, [Drawing.FontStyle]::Regular, [Drawing.GraphicsUnit]::Pixel)
-$ink = New-Object Drawing.SolidBrush([Drawing.ColorTranslator]::FromHtml('#343047'))
-$rose = New-Object Drawing.SolidBrush([Drawing.ColorTranslator]::FromHtml('#BF385B'))
-$graphics.DrawString('ENTRE DOS', $titleFont, $ink, 440, 90)
-$graphics.DrawString('By Departamento de Hogar y Familia', $byFont, $rose, 456, 266)
-foreach ($path in @('assets/logo.png', 'assets/splash-icon.png')) { $bitmap.Save((Join-Path (Get-Location) $path), [Drawing.Imaging.ImageFormat]::Png) }
-$titleFont.Dispose(); $byFont.Dispose(); $ink.Dispose(); $rose.Dispose(); $graphics.Dispose(); $bitmap.Dispose()
+Save-Image 'brand/icon-square-source.png' 'icon.png' 1024 1024
+Save-Image 'brand/icon-square-source.png' 'favicon.png' 64 64
+Save-Image 'brand/logo-source.png' 'logo.png' 1200 600 $true
+Save-Image 'brand/splash-art-source.png' 'brand/splash-art.jpg' 1024 1536
+# Android adaptive layers: the supplied wordmark remains inside the central safe zone.
+$bitmap=[Drawing.Bitmap]::new(1024,1024); $g=[Drawing.Graphics]::FromImage($bitmap)
+$g.Clear([Drawing.Color]::Transparent);$g.InterpolationMode=[Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+$logo=[Drawing.Image]::FromFile((Join-Path $assetRoot 'logo.png'))
+$g.DrawImage($logo,192,330,640,320)
+foreach($name in @('adaptive-icon.png','android-icon-foreground.png')){$bitmap.Save((Join-Path $assetRoot $name),[Drawing.Imaging.ImageFormat]::Png)}
+$g.Clear([Drawing.Color]::Transparent); $g.DrawImage($logo,92,290,840,420)
+$bitmap.Save((Join-Path $assetRoot 'splash-icon.png'),[Drawing.Imaging.ImageFormat]::Png)
+$g.Clear([Drawing.ColorTranslator]::FromHtml('#FBF7EE'));$g.SmoothingMode=[Drawing.Drawing2D.SmoothingMode]::AntiAlias
+$wave=[Drawing.Drawing2D.GraphicsPath]::new();$wave.AddBezier(0,850,310,1030,670,670,1024,760);$wave.AddLine(1024,760,1024,1024);$wave.AddLine(1024,1024,0,1024);$wave.CloseFigure()
+$gold=[Drawing.SolidBrush]::new([Drawing.ColorTranslator]::FromHtml('#C79527'));$g.FillPath($gold,$wave)
+$g.TranslateTransform(0,35);$navy=[Drawing.SolidBrush]::new([Drawing.ColorTranslator]::FromHtml('#06264A'));$g.FillPath($navy,$wave);$g.ResetTransform()
+$bitmap.Save((Join-Path $assetRoot 'android-icon-background.png'),[Drawing.Imaging.ImageFormat]::Png)
+$gold.Dispose();$navy.Dispose();$wave.Dispose();$logo.Dispose();$g.Dispose();$bitmap.Dispose()
+# A legible monochrome version of the open heart; Android status-bar icons must be white + alpha.
+foreach($item in @(@('notification-icon.png',96),@('android-icon-monochrome.png',1024))) {
+  $size=[int]$item[1]; $b=[Drawing.Bitmap]::new($size,$size);$g=[Drawing.Graphics]::FromImage($b);$g.Clear([Drawing.Color]::Transparent)
+  $g.SmoothingMode=[Drawing.Drawing2D.SmoothingMode]::AntiAlias;$g.ScaleTransform($size/100.0,$size/100.0)
+  if($size -gt 100){$g.TranslateTransform(18,18);$g.ScaleTransform(.64,.64)}
+  $p=[Drawing.Drawing2D.GraphicsPath]::new()
+  $p.AddBezier(24,69,4,36,13,10,33,20);$p.AddBezier(33,20,43,26,48,42,50,48)
+  $p.AddBezier(50,48,56,16,76,2,85,15);$p.AddBezier(85,15,105,43,52,81,14,92)
+  $p.AddBezier(14,92,45,74,86,42,78,23);$p.AddBezier(78,23,73,12,58,35,51,58)
+  $p.AddBezier(51,58,47,44,34,25,25,29);$p.AddBezier(25,29,17,33,18,53,24,69);$p.CloseFigure()
+  $g.FillPath([Drawing.Brushes]::White,$p);[BrandMaskPixels]::White($b);$b.Save((Join-Path $assetRoot $item[0]),[Drawing.Imaging.ImageFormat]::Png)
+  $p.Dispose();$g.Dispose();$b.Dispose()
+}
+Write-Output 'Brand assets built: app/adaptive/notification icons, logo, native splash mark and optimized artwork.'

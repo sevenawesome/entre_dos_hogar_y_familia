@@ -26,7 +26,7 @@ export function EmailVerificationCard() {
   }
   return (
     <Card
-      style={{ backgroundColor: emailVerified ? colors.sage : colors.lavender }}
+      style={{ backgroundColor: emailVerified ? colors.sage : colors.mist }}
     >
       <Text style={s.sectionTitle}>Su correo de contacto</Text>
       <Text selectable style={s.body}>

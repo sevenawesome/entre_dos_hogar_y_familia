@@ -163,13 +163,13 @@ export function FamilyForm({
       <View
         style={{
           gap: 9,
-          backgroundColor: colors.lavender,
+          backgroundColor: colors.mist,
           padding: 17,
           borderRadius: 18,
         }}
       >
         <View style={s.row}>
-          <Ionicons name="calendar-outline" size={22} color={colors.violet} />
+          <Ionicons name="calendar-outline" size={22} color={colors.ocean} />
           <Text style={[s.label, { flex: 1 }]}>
             El día que empezó su historia
           </Text>

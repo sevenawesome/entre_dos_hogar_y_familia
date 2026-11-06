@@ -42,12 +42,12 @@ export default function Levels() {
               style={{
                 opacity: unlocked ? 1 : 0.7,
                 borderColor: isCurrent
-                  ? colors.violet
+                  ? colors.ocean
                   : finished
                     ? "#ACB99F"
                     : colors.line,
                 borderWidth: isCurrent ? 2 : 1,
-                backgroundColor: isCurrent ? colors.lavender : colors.white,
+                backgroundColor: isCurrent ? colors.mist : colors.white,
               }}
             >
               <View style={[s.row, { justifyContent: "space-between" }]}>
@@ -55,7 +55,7 @@ export default function Levels() {
                   style={[
                     s.tag,
                     isCurrent && {
-                      backgroundColor: colors.violet,
+                      backgroundColor: colors.ocean,
                       color: "#FFFFFF",
                     },
                   ]}
@@ -81,7 +81,7 @@ export default function Levels() {
                         : "lock-closed-outline"
                   }
                   size={26}
-                  color={finished ? colors.gold : colors.rose}
+                  color={finished ? colors.gold : colors.navy}
                 />
               </View>
               <Text style={s.eyebrow}>
@@ -169,7 +169,7 @@ export default function Levels() {
                           backgroundColor: done
                             ? colors.sage
                             : available
-                              ? colors.blush
+                              ? colors.champagne
                               : "#EEEDE7",
                           justifyContent: "center",
                           alignItems: "center",
@@ -184,7 +184,7 @@ export default function Levels() {
                         ) : (
                           <Text
                             style={{
-                              color: available ? colors.rose : colors.muted,
+                              color: available ? colors.navy : colors.muted,
                               fontSize: 12,
                             }}
                           >

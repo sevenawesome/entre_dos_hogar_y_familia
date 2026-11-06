@@ -16,19 +16,27 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Svg, { Circle } from "react-native-svg";
 export const colors = {
-  background: "#FFF9F6",
-  ink: "#343047",
-  muted: "#766B7D",
-  rose: "#BF385B",
-  blush: "#FFE3E8",
-  sage: "#E4F2ED",
-  line: "#F0DFE4",
+  background: "#FBF7EE",
+  ink: "#06264A",
+  muted: "#596C79",
+  sage: "#E5F2EE",
+  line: "#E5DFCF",
   white: "#FFFFFF",
-  gold: "#B8791E",
-  coral: "#FF7864",
-  violet: "#7942AD",
-  lavender: "#F0E7FB",
+  gold: "#A77819",
+  mist: "#E7F2F4",
+  navy: "#06264A",
+  ocean: "#1D6075",
+  sea: "#5AAEBB",
+  cream: "#FBF7EE",
+  champagne: "#F7ECD2",
+  sun: "#C79527",
 };
+export const gradients = {
+  ocean: ["#06264A", "#14536B"],
+  celebration: ["#0A3456", "#1D6075"],
+  sand: ["#FAE8BE", "#F9F2E2", "#E0F0F2"],
+  level: ["#E2F1F3", "#F7ECD2"],
+} as const;
 export const serif =
   Platform.OS === "ios"
     ? "Georgia"
@@ -165,7 +173,7 @@ export function Notice({
       <Ionicons
         name={error ? "alert-circle-outline" : "information-circle-outline"}
         size={20}
-        color={colors.rose}
+        color={colors.navy}
       />
       <Text style={[s.small, { flex: 1, color: colors.ink }]}>{text}</Text>
     </View>
@@ -206,7 +214,7 @@ export function Ring({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={colors.rose}
+          stroke={colors.gold}
           strokeWidth={7}
           fill="none"
           strokeDasharray={`${circumference}`}
@@ -255,7 +263,7 @@ export const s = StyleSheet.create({
   },
   title: { fontFamily: serif, fontSize: 36, lineHeight: 42, color: colors.ink },
   eyebrow: {
-    color: colors.rose,
+    color: colors.navy,
     fontSize: 11,
     letterSpacing: 2.1,
     fontWeight: "700",
@@ -274,7 +282,7 @@ export const s = StyleSheet.create({
   },
   button: {
     minHeight: 54,
-    backgroundColor: colors.rose,
+    backgroundColor: colors.navy,
     borderRadius: 16,
     paddingHorizontal: 20,
     paddingVertical: 14,
@@ -307,19 +315,19 @@ export const s = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     padding: 14,
-    backgroundColor: colors.blush,
+    backgroundColor: colors.champagne,
     borderRadius: 14,
   },
   divider: { height: 1, backgroundColor: colors.line },
   link: {
-    color: colors.rose,
+    color: colors.navy,
     fontSize: 14,
     fontWeight: "600",
     paddingVertical: 10,
   },
   tag: {
-    color: colors.rose,
-    backgroundColor: colors.blush,
+    color: colors.navy,
+    backgroundColor: colors.champagne,
     alignSelf: "flex-start",
     borderRadius: 8,
     overflow: "hidden",

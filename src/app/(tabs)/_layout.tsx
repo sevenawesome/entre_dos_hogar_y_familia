@@ -8,7 +8,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.rose,
+        tabBarActiveTintColor: colors.navy,
         tabBarInactiveTintColor: "#879087",
         tabBarStyle: {
           backgroundColor: colors.background,
@@ -28,7 +28,7 @@ export default function TabLayout() {
             <Ionicons
               name="sunny-outline"
               size={size}
-              color={focused ? colors.rose : colors.muted}
+              color={focused ? colors.navy : colors.muted}
             />
           ),
         }}
@@ -41,7 +41,7 @@ export default function TabLayout() {
             <Ionicons
               name="trail-sign-outline"
               size={size}
-              color={focused ? colors.rose : colors.muted}
+              color={focused ? colors.navy : colors.muted}
             />
           ),
         }}
@@ -55,7 +55,7 @@ export default function TabLayout() {
             <Ionicons
               name="book-outline"
               size={size}
-              color={focused ? colors.rose : colors.muted}
+              color={focused ? colors.navy : colors.muted}
             />
           ),
         }}
@@ -67,7 +67,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused, size }) => (
             <Ionicons
               name="heart-circle-outline"
-              color={focused ? colors.rose : colors.muted}
+              color={focused ? colors.navy : colors.muted}
               size={size}
             />
           ),
@@ -81,7 +81,7 @@ export default function TabLayout() {
             <Ionicons
               name="people-outline"
               size={size}
-              color={focused ? colors.rose : colors.muted}
+              color={focused ? colors.navy : colors.muted}
             />
           ),
         }}
@@ -94,7 +94,7 @@ export default function TabLayout() {
             <Ionicons
               name="information-circle-outline"
               size={size}
-              color={focused ? colors.rose : colors.muted}
+              color={focused ? colors.navy : colors.muted}
             />
           ),
         }}
@@ -107,7 +107,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused, size }) => (
             <Ionicons
               name="shield-checkmark-outline"
-              color={focused ? colors.rose : colors.muted}
+              color={focused ? colors.navy : colors.muted}
               size={size}
             />
           ),

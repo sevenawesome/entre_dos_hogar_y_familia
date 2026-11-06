@@ -25,9 +25,9 @@ export function localReminderPlan(
   const waiting = available && available > now;
   const challengeBody = challenge
     ? waiting
-      ? `Su próximo reto: «${challenge.title}». Disponible a partir del ${new Intl.DateTimeFormat("es", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: prefs.timezone }).format(available)}. Abran ENTRE DOS para verlo.`
+      ? `Su próximo reto: «${challenge.title}». Disponible a partir del ${new Intl.DateTimeFormat("es", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: prefs.timezone }).format(available)}. Abran Amor que permanece para verlo.`
       : `Su reto pendiente: «${challenge.title}». Háganlo juntos y marquen «Lo hicimos juntos» al terminar. Seguirá esperándolos hasta que lo completen.`
-    : "Su historia se cuida un día a la vez. Abran ENTRE DOS para ver su reto y progreso.";
+    : "Su historia se cuida un día a la vez. Abran Amor que permanece para ver su reto y progreso.";
   const plan: LocalReminder[] = hasPendingLevel
     ? [
         {

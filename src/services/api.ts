@@ -1,3 +1,4 @@
+import { migrateEmailBrand } from "../domain/email-settings";
 import { effectivePermissions } from "../domain/admin-permissions";
 import { emailServiceOff } from "../domain/email-reminders";
 import {
@@ -45,7 +46,7 @@ export function subscribeSocial(uid: string, onError: (e: Error) => void) {
     onSnapshot(
       doc(db!, "config", "email"),
       (snap) => {
-        const data = snap.data() ?? {};
+        const data = migrateEmailBrand(snap.data() ?? {});
         store.dispatch(
           actions.emailService({
             ...emailServiceOff,
@@ -149,7 +150,13 @@ export function subscribeAnniversaries(
     (snap) =>
       callback(
         snap.exists()
-          ? (snap.data() as AnniversaryCatalog)
+          ? ({
+              ...snap.data(),
+              note: String(snap.data()?.note ?? "").replace(
+                /ENTRE DOS|Entre dos|Entre Dos/g,
+                "Amor que permanece",
+              ),
+            } as AnniversaryCatalog)
           : bundledAnniversaries,
       ),
     onError,

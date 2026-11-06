@@ -231,7 +231,7 @@ export function AdminConfiguration({
                       : "create-outline"
                   }
                   size={22}
-                  color={colors.violet}
+                  color={colors.ocean}
                 />
                 <Text style={[s.label, { flex: 1 }]}>
                   Nivel {level.order}: {level.title}
@@ -327,7 +327,7 @@ export function AdminConfiguration({
                     <Ionicons
                       name={confirmed ? "checkbox" : "square-outline"}
                       size={25}
-                      color={colors.rose}
+                      color={colors.navy}
                     />
                     <Text style={[s.body, { flex: 1 }]}>
                       Revisé los retos y las preguntas y quiero publicar este

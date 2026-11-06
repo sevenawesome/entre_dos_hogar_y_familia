@@ -16,7 +16,7 @@ export interface EmailSettings {
 export const defaultEmailSettings: EmailSettings = {
   version: 0,
   paused: false,
-  fromName: "ENTRE DOS",
+  fromName: "Amor que permanece",
   fromEmail: "",
   replyTo: "sevenawesome.srl@gmail.com",
   welcomeEnabled: true,
@@ -26,9 +26,9 @@ export const defaultEmailSettings: EmailSettings = {
   monthlyLimit: 2700,
   subjectPrefix: "",
   welcomeTemplate:
-    "¡Bienvenidos, {family}! Su historia empieza con un pequeño paso. Abran ENTRE DOS y pulsen «Comenzar nuestro primer reto» para comenzar juntos hoy.",
+    "¡Bienvenidos, {family}! Su historia empieza con un pequeño paso. Abran Amor que permanece y pulsen «Comenzar nuestro primer reto» para comenzar juntos hoy.",
   completionTemplate:
-    "¡Felicidades, {family}! Consiguieron «{levelTitle}». Cada reto compartido cuenta. Abran ENTRE DOS para celebrar su avance y descubrir el siguiente nivel disponible.",
+    "¡Felicidades, {family}! Consiguieron «{levelTitle}». Cada reto compartido cuenta. Abran Amor que permanece para celebrar su avance y descubrir el siguiente nivel disponible.",
 };
 export function validateEmailSettings(value: unknown): EmailSettings {
   const input = value as EmailSettings;
@@ -107,3 +107,17 @@ export const renderEmailText = (
   template.replace(/\{([a-zA-Z]+)\}/g, (all, key) =>
     key in values ? String(values[key]) : all,
   );
+
+/** Preserve every other setting while upgrading labels from the previous product identity. */
+export function migrateEmailBrand<T extends Record<string, unknown>>(
+  input: T,
+): T {
+  const output: Record<string, unknown> = { ...input };
+  for (const key of ["fromName", "welcomeTemplate", "completionTemplate"])
+    if (typeof output[key] === "string")
+      output[key] = output[key].replace(
+        /ENTRE DOS|Entre dos|Entre Dos/g,
+        "Amor que permanece",
+      );
+  return output as T;
+}

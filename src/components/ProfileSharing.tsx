@@ -122,7 +122,7 @@ export function ProfileSharing() {
             gap: 16,
             padding: 14,
             borderRadius: 15,
-            backgroundColor: colors.lavender,
+            backgroundColor: colors.mist,
           }}
         >
           <Field

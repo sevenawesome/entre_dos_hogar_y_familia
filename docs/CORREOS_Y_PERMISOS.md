@@ -54,7 +54,7 @@ npx --yes wrangler@4.158.0 login
 npx --yes wrangler@4.158.0 secret put RESEND_API_KEY --config email-worker/wrangler.jsonc
 ```
 
-Crear la clave de Resend con nombre `ENTRE DOS`, permiso `Sending access` y restricción a `correo.sevenawesome.com`. Pegarla en la entrada protegida que solicita `secret put`, sin incluirla en el comando ni en el chat. `UNSUBSCRIBE_SECRET` ya se generó con 32 bytes aleatorios y se cargó directamente por entrada estándar; no hay copia local. No rotarlo de manera rutinaria: invalidaría enlaces de baja existentes. En una instalación nueva, generar un secreto aleatorio de al menos 32 caracteres y cargarlo con `wrangler secret put UNSUBSCRIBE_SECRET`.
+Crear la clave de Resend con nombre `Amor que permanece`, permiso `Sending access` y restricción a `correo.sevenawesome.com`. Pegarla en la entrada protegida que solicita `secret put`, sin incluirla en el comando ni en el chat. `UNSUBSCRIBE_SECRET` ya se generó con 32 bytes aleatorios y se cargó directamente por entrada estándar; no hay copia local. No rotarlo de manera rutinaria: invalidaría enlaces de baja existentes. En una instalación nueva, generar un secreto aleatorio de al menos 32 caracteres y cargarlo con `wrangler secret put UNSUBSCRIBE_SECRET`.
 
 La credencial de Google se validó contra el proyecto/cuenta esperados y se cargó directamente por entrada estándar desde su archivo privado, sin copiarla al proyecto ni mostrarla. La autenticación y las consultas se comprobaron sin enviar correos. Para renovar esa credencial, usar la ruta real a su archivo privado, **fuera del proyecto**:
 

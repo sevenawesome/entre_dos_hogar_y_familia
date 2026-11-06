@@ -10,7 +10,7 @@ import Svg, {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { getAnniversary } from "../domain/anniversary";
 import type { Family } from "../domain/types";
-import { Button, colors, s, serif } from "./ui";
+import { Button, colors, gradients, s, serif } from "./ui";
 import { useApp } from "../store";
 import { milestoneFor, milestoneTitle } from "../data/anniversaries";
 export function AnniversaryCard({
@@ -26,7 +26,7 @@ export function AnniversaryCard({
     return (
       <View
         style={{
-          backgroundColor: colors.lavender,
+          backgroundColor: colors.mist,
           borderRadius: 24,
           padding: 22,
           gap: 14,
@@ -35,7 +35,7 @@ export function AnniversaryCard({
         <View style={s.row}>
           <Ionicons
             name="heart-circle-outline"
-            color={colors.violet}
+            color={colors.ocean}
             size={30}
           />
           <Text style={[s.sectionTitle, { flex: 1 }]}>
@@ -74,7 +74,7 @@ export function AnniversaryCard({
   }).format(new Date(`${nextDate}T12:00:00Z`));
   return (
     <LinearGradient
-      colors={isToday ? ["#C52F67", "#813CAA"] : ["#753EB0", "#AC3C83"]}
+      colors={isToday ? gradients.celebration : gradients.ocean}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={{ borderRadius: 27, padding: 23, gap: 17, overflow: "hidden" }}
@@ -132,7 +132,7 @@ export function AnniversaryCard({
           >
             {isToday ? "Feliz aniversario." : "Cada vez más cerca."}
           </Text>
-          <Text style={{ fontSize: 13, lineHeight: 21, color: "#F9DFF2" }}>
+          <Text style={{ fontSize: 13, lineHeight: 21, color: "#E2F1F3" }}>
             {isToday
               ? `Hoy celebran ${years} ${years === 1 ? "año" : "años"} eligiéndose.`
               : `El ${dateLabel} celebran ${years} ${years === 1 ? "año" : "años"} de matrimonio.`}
@@ -152,7 +152,7 @@ export function AnniversaryCard({
             <Defs>
               <SvgGradient id="anniversary-gold" x1="0" y1="0" x2="1" y2="1">
                 <Stop offset="0" stopColor="#FFF2B6" />
-                <Stop offset="1" stopColor="#FFB677" />
+                <Stop offset="1" stopColor="#C79527" />
               </SvgGradient>
             </Defs>
             <Circle
@@ -189,7 +189,7 @@ export function AnniversaryCard({
           </Text>
           <Text
             style={{
-              color: "#F9DFF2",
+              color: "#E2F1F3",
               fontSize: 8.5,
               lineHeight: 11,
               textAlign: "center",
@@ -230,7 +230,7 @@ export function AnniversaryCard({
               <View style={{ flex: 1, gap: 5 }}>
                 <Text
                   style={{
-                    color: "#F4D4EF",
+                    color: "#C8E1E4",
                     fontSize: 9,
                     fontWeight: "700",
                     letterSpacing: 0.6,
@@ -280,7 +280,7 @@ export function AnniversaryCard({
           color="#FFE4AA"
         />
         <Text
-          style={{ color: "#F9DFF2", fontSize: 11, flex: 1, lineHeight: 18 }}
+          style={{ color: "#E2F1F3", fontSize: 11, flex: 1, lineHeight: 18 }}
         >
           {isToday
             ? "Regálense un momento y celebren su historia."

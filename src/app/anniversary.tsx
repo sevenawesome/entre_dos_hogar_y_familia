@@ -44,8 +44,8 @@ export default function AnniversaryDetails() {
       />
       {milestone && (
         <>
-          <Card style={{ backgroundColor: colors.lavender }}>
-            <Ionicons name="sparkles-outline" size={30} color={colors.violet} />
+          <Card style={{ backgroundColor: colors.mist }}>
+            <Ionicons name="sparkles-outline" size={30} color={colors.ocean} />
             <Text style={s.eyebrow}>QUÉ PUEDE REPRESENTAR</Text>
             <Text
               style={[
@@ -57,7 +57,7 @@ export default function AnniversaryDetails() {
             </Text>
           </Card>
           <Card>
-            <Text style={s.eyebrow}>UNA INVITACIÓN DE ENTRE DOS</Text>
+            <Text style={s.eyebrow}>UNA INVITACIÓN DE Amor que permanece</Text>
             <Text style={s.body}>{milestone.invitation}</Text>
           </Card>
         </>
@@ -75,11 +75,11 @@ export default function AnniversaryDetails() {
               {
                 borderWidth: 1,
                 borderColor:
-                  selectedYear === item.year ? colors.violet : colors.line,
+                  selectedYear === item.year ? colors.ocean : colors.line,
                 padding: 15,
                 borderRadius: 14,
                 backgroundColor:
-                  selectedYear === item.year ? colors.lavender : colors.white,
+                  selectedYear === item.year ? colors.mist : colors.white,
               },
             ]}
           >
@@ -87,14 +87,14 @@ export default function AnniversaryDetails() {
             <Text style={[s.body, { flex: 1, color: colors.ink }]}>
               {milestoneTitle(item.material, item.year)}
             </Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.violet} />
+            <Ionicons name="chevron-forward" size={16} color={colors.ocean} />
           </Pressable>
         ))}
       </View>
       <Text style={s.sectionTitle}>Fuentes del catálogo</Text>
       <Text style={s.small}>
         Nombres tradicionales contrastados con estas referencias. Las
-        reflexiones y propuestas están redactadas para ENTRE DOS.
+        reflexiones y propuestas están redactadas para Amor que permanece.
       </Text>
       {catalog.sources.map((source) => (
         <Pressable

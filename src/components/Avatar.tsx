@@ -26,13 +26,13 @@ export function Avatar({
         width: size,
         height: size,
         borderRadius: size / 2,
-        backgroundColor: colors.blush,
+        backgroundColor: colors.champagne,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
       <Text
-        style={{ fontSize: size / 3, color: colors.rose, fontWeight: "700" }}
+        style={{ fontSize: size / 3, color: colors.navy, fontWeight: "700" }}
       >
         {name
           .split(" ")

@@ -7,7 +7,7 @@ import { beginJourney } from "../services/actions";
 import { registerDevice, loadPreferences } from "../services/notifications";
 import { friendlyError } from "../services/api";
 import type { Level } from "../domain/types";
-import { Button, Notice, s } from "./ui";
+import { Button, Notice, s, gradients } from "./ui";
 export function StartJourneyCard({ level }: { level: Level }) {
   const { demo } = useApp();
   const [busy, setBusy] = useState(false),
@@ -50,7 +50,7 @@ export function StartJourneyCard({ level }: { level: Level }) {
   }
   return (
     <LinearGradient
-      colors={["#C12968", "#7942AD"]}
+      colors={gradients.ocean}
       style={{ borderRadius: 28, padding: 25, gap: 18 }}
     >
       <View
@@ -65,7 +65,7 @@ export function StartJourneyCard({ level }: { level: Level }) {
           01 ♡
         </Text>
       </View>
-      <Text style={[s.eyebrow, { color: "#FFE8EF" }]}>
+      <Text style={[s.eyebrow, { color: "#F5D898" }]}>
         AQUÍ EMPIEZA SU CAMINO
       </Text>
       <Text
@@ -85,7 +85,7 @@ export function StartJourneyCard({ level }: { level: Level }) {
         hacerlo juntos: seguirá pendiente hasta que lo completen. Después, el
         siguiente se abrirá 24 horas más tarde.
       </Text>
-      <Text style={[s.small, { color: "#FFF1F6" }]}>
+      <Text style={[s.small, { color: "#E2F1F3" }]}>
         Pediremos permiso para los avisos de este teléfono. Pueden cambiar su
         horario en Nosotros. Este botón aparece una sola vez por familia.
       </Text>

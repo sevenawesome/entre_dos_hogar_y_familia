@@ -9,7 +9,7 @@
   "vars": {
     "FIREBASE_PROJECT_ID": "entre-dos-db",
     "PUBLIC_BASE_URL": "https://entre-dos-correo.sevenawesome-srl.workers.dev",
-    "FROM_EMAIL": "ENTRE DOS <avisos@correo.sevenawesome.com>",
+    "FROM_EMAIL": "Amor que permanece <avisos@correo.sevenawesome.com>",
     "SEND_ENABLED": "false",
   },
   "observability": { "enabled": false },

@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="440" viewBox="0 0 1440 440" role="img" aria-label="Entre dos. By Departamento de Hogar y Familia">
-  <defs><linearGradient id="coral" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FF7864"/><stop offset="1" stop-color="#C12968"/></linearGradient></defs>
-  <g transform="translate(35 35) scale(3.7)"><circle cx="50" cy="50" r="48" fill="url(#coral)"/><path d="M50 73 C37 64 22 54 22 41 C22 25 43 25 50 38 C57 25 78 25 78 41 C78 54 63 64 50 73Z" fill="none" stroke="white" stroke-width="4.5" stroke-linejoin="round"/><path d="M35 50 C40 43 46 43 50 50 C54 57 60 57 65 50 C60 43 54 43 50 50 C46 57 40 57 35 50Z" fill="none" stroke="#FFE4A5" stroke-width="3" stroke-linecap="round"/></g>
-  <text x="455" y="235" fill="#343047" font-family="Georgia,serif" font-size="130">ENTRE DOS</text>
-  <text x="462" y="310" fill="#BF385B" font-family="Segoe UI,Arial,sans-serif" font-size="35" font-weight="600">By Departamento de Hogar y Familia</text>
-</svg>

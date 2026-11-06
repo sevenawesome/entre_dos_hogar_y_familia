@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Text, View, Pressable } from "react-native";
+import { Text, View, Pressable, Image } from "react-native";
 import { router } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -11,7 +10,7 @@ import { startDemo, store, actions } from "../store";
 import { requestEmailVerification } from "../services/email";
 import { requestPasswordRecovery } from "../services/account-security";
 import { friendlyError } from "../services/api";
-import { Brand, BrandMark } from "../components/Brand";
+import { Brand } from "../components/Brand";
 import { CreatorFooter } from "../components/CreatorFooter";
 import {
   Screen,
@@ -82,63 +81,47 @@ export default function Welcome() {
   }
   return (
     <Screen>
-      <View style={{ alignItems: "center", paddingTop: 20, gap: 15 }}>
-        <Brand />
-        <LinearGradient
-          colors={["#FFCABD", "#FFD9E5", "#EBD7FF"]}
+      <View
+        style={{
+          borderRadius: 28,
+          overflow: "hidden",
+          height: 505,
+          backgroundColor: colors.cream,
+          borderWidth: 1,
+          borderColor: colors.line,
+        }}
+      >
+        <Image
+          source={require("../../assets/brand/splash-art.jpg")}
+          resizeMode="cover"
+          style={{ position: "absolute", width: "100%", height: "100%" }}
+        />
+        <View
           style={{
-            height: 180,
-            width: "100%",
-            borderRadius: 100,
+            paddingHorizontal: 22,
+            paddingTop: 34,
             alignItems: "center",
-            justifyContent: "center",
-            marginTop: 12,
+            gap: 12,
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View
-              style={{
-                width: 83,
-                height: 112,
-                borderRadius: 50,
-                borderWidth: 2,
-                borderColor: colors.rose,
-                transform: [{ rotate: "-23deg" }],
-                marginRight: -21,
-              }}
-            />
-            <View
-              style={{
-                width: 83,
-                height: 112,
-                borderRadius: 50,
-                borderWidth: 2,
-                borderColor: colors.violet,
-                transform: [{ rotate: "23deg" }],
-              }}
-            />
-          </View>
-          <View style={{ position: "absolute" }}>
-            <BrandMark size={54} />
-          </View>
-        </LinearGradient>
-        <Text style={[s.eyebrow, { marginTop: 10 }]}>
-          UN MOMENTO PARA USTEDES
-        </Text>
-        <Text
-          style={{
-            fontFamily: serif,
-            fontSize: 38,
-            lineHeight: 43,
-            textAlign: "center",
-            color: colors.ink,
-          }}
-        >
-          El amor se cuida.{"\n"}Un día a la vez.
-        </Text>
+          <Brand />
+          <Text
+            style={{
+              fontFamily: serif,
+              fontSize: 23,
+              lineHeight: 28,
+              textAlign: "center",
+              color: colors.ink,
+            }}
+          >
+            Un día a la vez.{"\n"}Una vida juntos.
+          </Text>
+        </View>
+      </View>
+      <View style={{ alignItems: "center", gap: 10, marginTop: 4 }}>
+        <Text style={s.eyebrow}>SU AMOR MERECE ESTE MOMENTO</Text>
         <Text style={[s.body, { textAlign: "center" }]}>
-          Pequeños retos para volver a encontrarse,{"\n"}escucharse y crecer
-          juntos.
+          Pequeños retos para volver a encontrarse, escucharse y crecer juntos.
         </Text>
       </View>
       <View style={{ gap: 15, marginTop: 10 }}>
@@ -154,7 +137,7 @@ export default function Welcome() {
               style={{
                 flex: 1,
                 borderBottomWidth: 2,
-                borderBottomColor: signup === value ? colors.rose : colors.line,
+                borderBottomColor: signup === value ? colors.navy : colors.line,
                 paddingBottom: 12,
               }}
             >
@@ -162,7 +145,7 @@ export default function Welcome() {
                 style={{
                   textAlign: "center",
                   fontWeight: "600",
-                  color: signup === value ? colors.rose : colors.muted,
+                  color: signup === value ? colors.navy : colors.muted,
                 }}
               >
                 {value ? "Crear cuenta" : "Iniciar sesión"}

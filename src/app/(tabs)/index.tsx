@@ -30,6 +30,7 @@ import {
   SectionTitle,
   Notice,
   colors,
+  gradients,
   s,
   serif,
 } from "../../components/ui";
@@ -107,7 +108,7 @@ export default function Today() {
         <Text accessibilityRole="header" style={[s.title, { fontSize: 35 }]}>
           Hola, {family?.partner1}
           {"\n"}y {family?.partner2}{" "}
-          <Text style={{ color: colors.rose }}>♡</Text>
+          <Text style={{ color: colors.navy }}>♡</Text>
         </Text>
         <Text style={s.body}>Hoy también es un buen día para elegirse.</Text>
       </View>
@@ -130,7 +131,7 @@ export default function Today() {
             </Text>
           </View>
           <LinearGradient
-            colors={["#FFD0CB", "#FFE2EB", "#F6E5FC"]}
+            colors={gradients.sand}
             style={{
               borderRadius: 27,
               padding: 25,
@@ -146,7 +147,7 @@ export default function Today() {
                 width: 168,
                 height: 168,
                 borderWidth: 1,
-                borderColor: "#D5698D40",
+                borderColor: "#C7952740",
                 borderRadius: 100,
               }}
             />
@@ -158,7 +159,7 @@ export default function Today() {
                 width: 124,
                 height: 124,
                 borderWidth: 1,
-                borderColor: "#D5698D40",
+                borderColor: "#C7952740",
                 borderRadius: 100,
               }}
             />
@@ -175,7 +176,7 @@ export default function Today() {
               <Ionicons
                 name={challenge ? "sparkles-outline" : "ribbon-outline"}
                 size={25}
-                color={colors.rose}
+                color={colors.navy}
               />
             </View>
             <Text style={s.eyebrow}>
@@ -194,7 +195,7 @@ export default function Today() {
             >
               {challenge ? challenge.title : "Miren cuánto han crecido."}
             </Text>
-            <Text style={[s.body, { color: "#6F4E68" }]}>
+            <Text style={[s.body, { color: "#375469" }]}>
               {challenge
                 ? waiting
                   ? `Ya completaron su reto anterior. El siguiente se abre el ${nextText}.`
@@ -203,8 +204,8 @@ export default function Today() {
             </Text>
             {challenge && (
               <View style={s.row}>
-                <Ionicons name="time-outline" color={colors.rose} size={16} />
-                <Text style={[s.small, { color: "#7A4966" }]}>
+                <Ionicons name="time-outline" color={colors.navy} size={16} />
+                <Text style={[s.small, { color: "#506878" }]}>
                   {challenge.minutes} min sugeridos · Solo ustedes dos
                 </Text>
               </View>
@@ -257,7 +258,7 @@ export default function Today() {
               <Text style={s.body}>
                 {total} {total === 1 ? "reto compartido" : "retos compartidos"}
               </Text>
-              <Text style={[s.small, { color: colors.rose }]}>
+              <Text style={[s.small, { color: colors.navy }]}>
                 {finished}{" "}
                 {finished === 1 ? "nivel conseguido" : "niveles conseguidos"}
               </Text>
@@ -269,7 +270,7 @@ export default function Today() {
             style={[s.row, { justifyContent: "space-between", minHeight: 32 }]}
           >
             <Text style={s.label}>Explorar nuestro camino</Text>
-            <Ionicons name="arrow-forward" size={18} color={colors.rose} />
+            <Ionicons name="arrow-forward" size={18} color={colors.navy} />
           </Pressable>
         </Card>
       </View>

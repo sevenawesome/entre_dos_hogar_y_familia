@@ -7,7 +7,7 @@ export default function Onboarding() {
   return (
     <Screen>
       <Heading
-        eyebrow="BIENVENIDOS A ENTRE DOS"
+        eyebrow="BIENVENIDOS A Amor que permanece"
         title={
           family
             ? "Completemos su historia."

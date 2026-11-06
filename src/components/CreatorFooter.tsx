@@ -16,10 +16,10 @@ export function CreatorFooter() {
         }}
         style={[s.row, { gap: 6, minHeight: 44 }]}
       >
-        <Text style={{ fontWeight: "700", fontSize: 17, color: colors.violet }}>
+        <Text style={{ fontWeight: "700", fontSize: 17, color: colors.ocean }}>
           SevenAwesome
         </Text>
-        <Ionicons name="open-outline" size={15} color={colors.violet} />
+        <Ionicons name="open-outline" size={15} color={colors.ocean} />
       </Pressable>
       {error && (
         <Text style={s.small}>

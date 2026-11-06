@@ -43,14 +43,14 @@ export function AdminJourneyPreview({ settings }: { settings: AppSettings }) {
             key={key}
             onPress={() => setMode(key)}
             style={{
-              backgroundColor: mode === key ? colors.violet : colors.lavender,
+              backgroundColor: mode === key ? colors.ocean : colors.mist,
               borderRadius: 10,
               padding: 11,
             }}
           >
             <Text
               style={{
-                color: mode === key ? "#FFFFFF" : colors.violet,
+                color: mode === key ? "#FFFFFF" : colors.ocean,
                 fontSize: 12,
                 fontWeight: "600",
               }}

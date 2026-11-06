@@ -156,13 +156,13 @@ export default function FamilyScreen() {
               style={{
                 width: 56,
                 height: 56,
-                backgroundColor: colors.blush,
+                backgroundColor: colors.champagne,
                 borderRadius: 28,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons name="people-outline" size={27} color={colors.rose} />
+              <Ionicons name="people-outline" size={27} color={colors.navy} />
             </View>
             <View style={{ flex: 1, gap: 6 }}>
               <Text style={s.sectionTitle}>{family?.name}</Text>
@@ -175,13 +175,13 @@ export default function FamilyScreen() {
             style={[
               s.row,
               {
-                backgroundColor: colors.lavender,
+                backgroundColor: colors.mist,
                 padding: 14,
                 borderRadius: 14,
               },
             ]}
           >
-            <Ionicons name="calendar-outline" size={23} color={colors.violet} />
+            <Ionicons name="calendar-outline" size={23} color={colors.ocean} />
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={s.label}>Nuestro matrimonio</Text>
               <Text style={s.small}>
@@ -212,7 +212,7 @@ export default function FamilyScreen() {
             <Ionicons
               name="notifications-outline"
               size={23}
-              color={colors.rose}
+              color={colors.navy}
             />
             <Text style={[s.sectionTitle, { fontSize: 21, flex: 1 }]}>
               Retos y fechas especiales
@@ -225,7 +225,7 @@ export default function FamilyScreen() {
               setPreferences({ ...preferences, enabled });
               setMessage("");
             }}
-            trackColor={{ false: "#D2D5CB", true: colors.rose }}
+            trackColor={{ false: "#D2D5CB", true: colors.navy }}
           />
         </View>
         <Text style={s.body}>
@@ -267,7 +267,7 @@ export default function FamilyScreen() {
       <Card>
         <Text style={s.sectionTitle}>Conectar a mi pareja</Text>
         <Text style={s.body}>
-          Instalen Entre dos en ambos teléfonos e inicien sesión con el mismo
+          Instalen Amor que permanece en ambos teléfonos e inicien sesión con el mismo
           correo y contraseña. Comparten la familia, los retos y sus recuerdos.
         </Text>
         <Notice text="Sus notas y respuestas son compartidas: ambos podrán leerlas desde la cuenta familiar." />
@@ -320,7 +320,7 @@ export default function FamilyScreen() {
               <Text
                 style={[
                   s.small,
-                  { color: colors.rose, textAlign: "center", padding: 14 },
+                  { color: colors.navy, textAlign: "center", padding: 14 },
                 ]}
               >
                 Eliminar cuenta familiar y todos sus datos
@@ -336,7 +336,7 @@ export default function FamilyScreen() {
         <BirthdaysCard family={family} now={now} portraits={portraits} />
       )}
       <Text style={[s.small, { textAlign: "center" }]}>
-        Entre dos · Versión 1.0.0{"\n"}Hecho para los pequeños momentos.
+        Amor que permanece · Versión 1.0.0{"\n"}Hecho para los pequeños momentos.
       </Text>
       <CreatorFooter />
     </Screen>

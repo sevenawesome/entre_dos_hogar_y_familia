@@ -10,6 +10,7 @@ const {
 } = require("../functions/lib/src/domain/admin-permissions.js");
 const {
   defaultEmailSettings,
+  migrateEmailBrand,
   validateEmailSettings,
   renderEmailText,
 } = require("../functions/lib/src/domain/email-settings.js");
@@ -96,4 +97,27 @@ test("notification and email permissions grant different channels", () => {
     "families.view",
     "emails.send",
   ]);
+});
+
+test("rebranding upgrades old mail labels without resetting configured limits or custom sender names", () => {
+  const saved = {
+    fromName: "ENTRE DOS",
+    welcomeTemplate: "Bienvenidos a ENTRE DOS",
+    completionTemplate: "Texto propio para {family}",
+    version: 9,
+    paused: true,
+    dailyLimit: 12,
+  };
+  const result = migrateEmailBrand(saved);
+  assert.equal(result.fromName, "Amor que permanece");
+  assert.equal(result.welcomeTemplate, "Bienvenidos a Amor que permanece");
+  assert.equal(result.completionTemplate, saved.completionTemplate);
+  assert.equal(result.version, 9);
+  assert.equal(result.paused, true);
+  assert.equal(result.dailyLimit, 12);
+  assert.equal(
+    migrateEmailBrand({ fromName: "Departamento de Hogar" }).fromName,
+    "Departamento de Hogar",
+  );
+  assert.equal(saved.fromName, "ENTRE DOS");
 });

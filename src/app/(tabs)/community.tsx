@@ -241,7 +241,7 @@ export default function Community() {
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 14,
-                  backgroundColor: colors.blush,
+                  backgroundColor: colors.champagne,
                   padding: 14,
                   borderRadius: 16,
                 }}

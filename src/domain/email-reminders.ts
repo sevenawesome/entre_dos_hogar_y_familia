@@ -32,7 +32,7 @@ export function eventEmailDraft(
   if (kind === "welcome")
     return settings.welcomeEnabled
       ? {
-          subject: "Bienvenidos a ENTRE DOS ♡",
+          subject: "Bienvenidos a Amor que permanece ♡",
           lines: [renderEmailText(settings.welcomeTemplate, { family })],
           categories: ["welcome"],
         }
@@ -44,7 +44,7 @@ export function eventEmailDraft(
   )
     return null;
   return {
-    subject: "¡Consiguieron un nuevo nivel! ♡ · ENTRE DOS",
+    subject: "¡Consiguieron un nuevo nivel! ♡ · Amor que permanece",
     lines: [
       renderEmailText(settings.completionTemplate, { family, levelTitle }),
     ],

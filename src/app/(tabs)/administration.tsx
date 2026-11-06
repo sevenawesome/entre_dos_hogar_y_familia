@@ -227,13 +227,13 @@ export default function Administration() {
               paddingHorizontal: 15,
               borderRadius: 16,
               backgroundColor:
-                section === key ? colors.violet : colors.lavender,
+                section === key ? colors.ocean : colors.mist,
             }}
           >
             <Text
               style={{
                 fontWeight: "600",
-                color: section === key ? "white" : colors.violet,
+                color: section === key ? "white" : colors.ocean,
               }}
             >
               {label}
@@ -270,14 +270,14 @@ export default function Administration() {
                 style={{
                   flex: 1,
                   padding: 12,
-                  backgroundColor: colors.lavender,
+                  backgroundColor: colors.mist,
                 }}
               >
                 <Text
                   style={{
                     fontSize: 26,
                     fontWeight: "700",
-                    color: colors.violet,
+                    color: colors.ocean,
                   }}
                 >
                   {value}
@@ -301,7 +301,7 @@ export default function Administration() {
                 <Card
                   key={e.key}
                   style={{
-                    backgroundColor: e.days === 0 ? colors.blush : colors.white,
+                    backgroundColor: e.days === 0 ? colors.champagne : colors.white,
                   }}
                 >
                   <Text style={s.eyebrow}>

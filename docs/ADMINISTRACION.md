@@ -1,4 +1,4 @@
-# Administración de ENTRE DOS
+# Administración de Amor que permanece
 
 La pestaña Admin aparece para cuentas con rol `owner` o `admin`. Ahora contiene Familias, Fechas, Seguimiento, Notificaciones, Correos, Administradores, Niveles y Configuración. Solo muestra secciones permitidas para esa cuenta. Consulta la [guía completa de permisos y correo](CORREOS_Y_PERMISOS.md).
 

@@ -24,8 +24,8 @@ export default function Guide() {
         eyebrow={`BIENVENIDOS · ${step + 1} DE ${guideSteps.length}`}
         title={item.title}
       />
-      <Card style={{ backgroundColor: colors.lavender, paddingVertical: 30 }}>
-        <Ionicons name={item.icon} size={48} color={colors.violet} />
+      <Card style={{ backgroundColor: colors.mist, paddingVertical: 30 }}>
+        <Ionicons name={item.icon} size={48} color={colors.ocean} />
         <Text
           style={[s.body, { color: colors.ink, fontSize: 18, lineHeight: 29 }]}
         >
@@ -39,7 +39,7 @@ export default function Guide() {
             style={{
               width: index === step ? 25 : 8,
               height: 8,
-              backgroundColor: index === step ? colors.rose : colors.line,
+              backgroundColor: index === step ? colors.navy : colors.line,
               borderRadius: 5,
             }}
           />

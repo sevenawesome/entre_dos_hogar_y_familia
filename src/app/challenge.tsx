@@ -80,7 +80,7 @@ export default function Challenge() {
               borderRadius: 80,
             }}
           >
-            <Ionicons name="heart" size={58} color={colors.rose} />
+            <Ionicons name="heart" size={58} color={colors.navy} />
           </View>
           <Text style={[s.title, { textAlign: "center" }]}>
             Un poquito más cerca.
@@ -102,7 +102,7 @@ export default function Challenge() {
             subtitle={challenge.stage}
           />
           <View style={[s.row, { marginTop: -12 }]}>
-            <Ionicons name="time-outline" size={18} color={colors.rose} />
+            <Ionicons name="time-outline" size={18} color={colors.navy} />
             <Text style={s.small}>{challenge.minutes} minutos sugeridos</Text>
             <Text style={s.small}>·</Text>
             <Text style={s.small}>A su ritmo</Text>
@@ -165,7 +165,7 @@ export default function Challenge() {
                 <Ionicons
                   name={agreed ? "checkbox" : "square-outline"}
                   size={26}
-                  color={colors.rose}
+                  color={colors.navy}
                 />
                 <Text style={[s.body, { flex: 1, fontSize: 14 }]}>
                   Ambos participamos y estamos de acuerdo en marcarlo como

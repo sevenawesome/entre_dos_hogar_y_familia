@@ -30,7 +30,7 @@ export function PhotoViewer({
                 width: "100%",
                 borderRadius: 20,
                 overflow: "hidden",
-                backgroundColor: colors.blush,
+                backgroundColor: colors.champagne,
                 alignItems: "center",
               }
             : undefined
@@ -53,7 +53,7 @@ export function PhotoViewer({
               bottom: 10,
               right: 10,
               color: "white",
-              backgroundColor: "#343047B0",
+              backgroundColor: "#06264AB0",
               padding: 8,
               borderRadius: 10,
               fontSize: 12,
@@ -72,7 +72,7 @@ export function PhotoViewer({
         <SafeAreaView
           style={{
             flex: 1,
-            backgroundColor: "#171420F5",
+            backgroundColor: "#03172AF5",
             padding: 20,
             justifyContent: "center",
             gap: 18,

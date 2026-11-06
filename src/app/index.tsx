@@ -9,7 +9,7 @@ export default function Index() {
         backgroundColor: colors.background,
       }}
     >
-      <ActivityIndicator color={colors.rose} />
+      <ActivityIndicator color={colors.navy} />
     </View>
   );
 }

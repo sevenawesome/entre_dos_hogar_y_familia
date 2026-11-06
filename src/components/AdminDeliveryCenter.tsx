@@ -71,7 +71,7 @@ export function AdminDeliveryCenter({ email = false }: { email?: boolean }) {
   return (
     <View style={{ gap: 16 }}>
       {email && (
-        <Card style={{ backgroundColor: colors.lavender }}>
+        <Card style={{ backgroundColor: colors.mist }}>
           <Text style={s.sectionTitle}>Correos · cuidar cada envío</Text>
           <Text style={s.body}>
             {!app.emailService.enabled
@@ -120,11 +120,11 @@ export function AdminDeliveryCenter({ email = false }: { email?: boolean }) {
                   padding: 12,
                   borderRadius: 12,
                   backgroundColor:
-                    section === key ? colors.violet : colors.lavender,
+                    section === key ? colors.ocean : colors.mist,
                 }}
               >
                 <Text
-                  style={{ color: section === key ? "white" : colors.violet }}
+                  style={{ color: section === key ? "white" : colors.ocean }}
                 >
                   {label}
                 </Text>

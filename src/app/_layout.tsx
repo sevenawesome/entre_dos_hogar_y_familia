@@ -1,3 +1,5 @@
+import * as SplashScreen from "expo-splash-screen";
+import { BrandedLaunch } from "../components/BrandedLaunch";
 import { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import { Stack, router, useSegments } from "expo-router";
@@ -27,6 +29,8 @@ import {
 import { AppState } from "react-native";
 import { syncPublicProfile } from "../services/spark";
 import { syncEmailSummary } from "../services/email";
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function AppLayout() {
   const {
@@ -201,6 +205,7 @@ function AppLayout() {
       {!!error && <Notice error text={error} />}
       <Stack
         screenOptions={{
+          title: "Amor que permanece",
           headerShown: false,
           contentStyle: { backgroundColor: colors.background },
         }}
@@ -218,6 +223,9 @@ function AppLayout() {
           options={{ presentation: "modal" }}
         />
       </Stack>
+      <BrandedLaunch
+        ready={ready && (!uid || demo || familyLoaded || !!error)}
+      />
     </>
   );
 }

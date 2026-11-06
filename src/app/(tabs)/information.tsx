@@ -41,8 +41,8 @@ export default function Information() {
         title="Nuestros recuerdos y reflexiones"
         onPress={() => router.push("/(tabs)/memories")}
       />
-      <Card style={{ backgroundColor: colors.blush }}>
-        <Ionicons name="heart-outline" size={30} color={colors.rose} />
+      <Card style={{ backgroundColor: colors.champagne }}>
+        <Ionicons name="heart-outline" size={30} color={colors.navy} />
         <Text style={s.sectionTitle}>Su momento empieza aquí</Text>
         <Text style={s.body}>
           Repasen la bienvenida cuando lo necesiten. La guía completa permanece
@@ -69,7 +69,7 @@ export default function Information() {
             <Ionicons
               name={expanded === section.title ? "chevron-up" : "chevron-down"}
               size={18}
-              color={colors.rose}
+              color={colors.navy}
             />
           </Pressable>
           {expanded === section.title && (
@@ -110,7 +110,7 @@ export default function Information() {
           secondary
           icon="settings-outline"
           title={
-            demo ? "Vista previa de administración" : "Administrar ENTRE DOS"
+            demo ? "Vista previa de administración" : "Administrar Amor que permanece"
           }
           onPress={() => router.push("/(tabs)/administration")}
         />

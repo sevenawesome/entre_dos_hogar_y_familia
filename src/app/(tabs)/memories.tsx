@@ -27,7 +27,7 @@ export default function Memories() {
       />
       {!memories.length && (
         <Card style={{ alignItems: "center", paddingVertical: 40 }}>
-          <Ionicons name="book-outline" size={46} color={colors.rose} />
+          <Ionicons name="book-outline" size={46} color={colors.navy} />
           <Text style={s.sectionTitle}>Su historia empieza hoy</Text>
           <Text style={[s.body, { textAlign: "center" }]}>
             Después de su primer reto, encontrarán aquí el recuerdo de lo que

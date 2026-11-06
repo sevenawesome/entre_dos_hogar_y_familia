@@ -4,7 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useApp } from "../store";
 import { getJourney } from "../domain/journey";
-import { Button, Card, Notice, colors, s } from "./ui";
+import { Button, Card, Notice, colors, gradients, s } from "./ui";
 import type { Level, ProgressMap, AppSettings } from "../domain/types";
 export function JourneyBanner({
   preview,
@@ -23,11 +23,7 @@ export function JourneyBanner({
   if (journey.current)
     return (
       <LinearGradient
-        colors={
-          journey.state === "new"
-            ? ["#A72C67", "#723EB1"]
-            : ["#F0E5FA", "#FDE4EA"]
-        }
+        colors={journey.state === "new" ? gradients.ocean : gradients.level}
         style={{ padding: 20, borderRadius: 23, gap: 13 }}
       >
         <View style={s.row}>
@@ -44,7 +40,7 @@ export function JourneyBanner({
           >
             <Text
               style={{
-                color: journey.state === "new" ? "#FFFFFF" : colors.violet,
+                color: journey.state === "new" ? "#FFFFFF" : colors.ocean,
                 fontWeight: "700",
                 fontSize: 28,
               }}
@@ -56,7 +52,7 @@ export function JourneyBanner({
             <Text
               style={[
                 s.eyebrow,
-                { color: journey.state === "new" ? "#FFE2A6" : colors.violet },
+                { color: journey.state === "new" ? "#FFE2A6" : colors.ocean },
               ]}
             >
               {journey.state === "new"
@@ -80,7 +76,7 @@ export function JourneyBanner({
           </View>
         </View>
         {journey.state === "new" && (
-          <Text style={{ color: "#F8E8F7", lineHeight: 22, fontSize: 14 }}>
+          <Text style={{ color: "#E2F1F3", lineHeight: 22, fontSize: 14 }}>
             Nivel {journey.current.order}: {journey.current.title}.{" "}
             {journey.current.challenges.length} nuevos retos para seguir
             eligiéndose.
@@ -110,9 +106,7 @@ export function JourneyBanner({
     );
   if (journey.state === "completed")
     return (
-      <Card
-        style={{ backgroundColor: colors.lavender, borderColor: "#CBADE2" }}
-      >
+      <Card style={{ backgroundColor: colors.mist, borderColor: "#CBDDE0" }}>
         <Ionicons name="ribbon" size={44} color={colors.gold} />
         <Text style={s.eyebrow}>
           NIVEL {journey.latestCompleted?.order} CONSEGUIDO ·{" "}
@@ -138,7 +132,7 @@ export function JourneyBanner({
     );
   return (
     <Card>
-      <Ionicons name="leaf-outline" size={30} color={colors.violet} />
+      <Ionicons name="leaf-outline" size={30} color={colors.ocean} />
       <Text style={s.sectionTitle}>
         {journey.state === "locked"
           ? "Su siguiente capítulo los espera"

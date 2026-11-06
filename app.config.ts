@@ -18,7 +18,7 @@ if (process.env.EAS_BUILD_PROFILE === "production") {
     );
 }
 const config: ExpoConfig = {
-  name: "ENTRE DOS",
+  name: "Amor que permanece",
   slug: "entre-dos",
   version: "1.0.0",
   scheme: "entredos",
@@ -33,8 +33,10 @@ const config: ExpoConfig = {
   android: {
     package: "com.sevenawesome.entredos",
     adaptiveIcon: {
-      foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#FFF9F6",
+      foregroundImage: "./assets/android-icon-foreground.png",
+      backgroundImage: "./assets/android-icon-background.png",
+      monochromeImage: "./assets/android-icon-monochrome.png",
+      backgroundColor: "#FBF7EE",
     },
   },
   web: { bundler: "metro", favicon: "./assets/favicon.png" },
@@ -45,7 +47,7 @@ const config: ExpoConfig = {
       "expo-image-picker",
       {
         photosPermission:
-          "ENTRE DOS usa la foto que elijas para el perfil de tu familia.",
+          "Amor que permanece usa la foto que elijas para el perfil de tu familia.",
         cameraPermission: false,
         microphonePermission: false,
       },
@@ -54,7 +56,8 @@ const config: ExpoConfig = {
       "expo-notifications",
       {
         icon: "./assets/notification-icon.png",
-        color: "#BF385B",
+        largeIcon: "./assets/icon.png",
+        color: "#06264A",
         defaultChannel: "retos",
       },
     ],
@@ -62,9 +65,9 @@ const config: ExpoConfig = {
       "expo-splash-screen",
       {
         image: "./assets/splash-icon.png",
-        imageWidth: 320,
+        imageWidth: 300,
         resizeMode: "contain",
-        backgroundColor: "#FFF9F6",
+        backgroundColor: "#FBF7EE",
       },
     ],
   ],

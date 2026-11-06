@@ -1,5 +1,6 @@
 import {
   defaultEmailSettings,
+  migrateEmailBrand,
   validateEmailSettings,
   type EmailSettings,
 } from "../../src/domain/email-settings";
@@ -46,7 +47,9 @@ function ready(env: Env) {
   );
 }
 function settingsOf(data: Data | undefined) {
-  return validateEmailSettings({ ...defaultEmailSettings, ...data });
+  return validateEmailSettings(
+    migrateEmailBrand({ ...defaultEmailSettings, ...data }),
+  );
 }
 function senderFor(env: Env, settings: EmailSettings) {
   const original = env.FROM_EMAIL.match(/<([^<>\s]+@([^<>\s@]+))>/),
@@ -128,12 +131,12 @@ export async function unsubscribe(
     !(await validToken(uid, token, env.UNSUBSCRIBE_SECRET, now))
   )
     return new Response(
-      "Enlace inválido o vencido. Contacta al equipo de ENTRE DOS para recibir ayuda.",
+      "Enlace inválido o vencido. Contacta al equipo de Amor que permanece para recibir ayuda.",
       { status: 400, headers },
     );
   if (request.method === "GET")
     return new Response(
-      '<!doctype html><html lang="es"><meta name="viewport" content="width=device-width"><title>Correos de ENTRE DOS</title><body style="font:18px system-ui;max-width:550px;margin:60px auto;padding:24px"><h1>Sus correos, a su ritmo.</h1><p>Confirma para dejar de recibir correos de bienvenida, niveles conseguidos y administración. Los correos de acceso seguirán disponibles.</p><form method="post"><button style="padding:18px;border:0;border-radius:14px;background:#B82E63;color:white;font-size:18px">Dejar de recibir correos opcionales</button></form></body></html>',
+      '<!doctype html><html lang="es"><meta name="viewport" content="width=device-width"><title>Correos de Amor que permanece</title><body style="font:18px system-ui;max-width:550px;margin:60px auto;padding:24px"><h1>Sus correos, a su ritmo.</h1><p>Confirma para dejar de recibir correos de bienvenida, niveles conseguidos y administración. Los correos de acceso seguirán disponibles.</p><form method="post"><button style="padding:18px;border:0;border-radius:14px;background:#A77819;color:white;font-size:18px">Dejar de recibir correos opcionales</button></form></body></html>',
       { headers },
     );
   if (request.method !== "POST")
@@ -191,8 +194,8 @@ export async function emailPayload(
     env.UNSUBSCRIBE_SECRET!,
   );
   const link = `${env.PUBLIC_BASE_URL}/unsubscribe?uid=${encodeURIComponent(uid)}&token=${encodeURIComponent(token)}`;
-  const text = `ENTRE DOS · By Departamento de Hogar y Familia\n\n${draft.lines.join("\n\n")}\n\nDejar de recibir correos opcionales: ${link}\nCreado por SevenAwesome · https://www.sevenawesome.com/`;
-  const html = `<!doctype html><html lang="es"><body style="margin:0;background:#FFF6F8;color:#343047;font:16px Arial,sans-serif"><div style="max-width:560px;margin:auto;padding:32px"><h1 style="color:#B82E63">♡ ENTRE DOS</h1><p>By Departamento de Hogar y Familia</p><div style="background:white;border-radius:22px;padding:26px"><h2>${escapeHtml(draft.subject)}</h2>${draft.lines.map((line) => `<p style="line-height:1.7">${escapeHtml(line).replace(/\n/g, "<br>")}</p>`).join("")}</div><p style="font-size:13px;line-height:1.7">Reciben este correo sobre su cuenta y participación en ENTRE DOS. <a href="${escapeHtml(link)}">Dejar de recibir correos opcionales</a>.</p><p style="font-size:13px">Creado por <a href="https://www.sevenawesome.com/">SevenAwesome</a></p></div></body></html>`;
+  const text = `Amor que permanece · By Departamento de Hogar y Familia\n\n${draft.lines.join("\n\n")}\n\nDejar de recibir correos opcionales: ${link}\nCreado por SevenAwesome · https://www.sevenawesome.com/`;
+  const html = `<!doctype html><html lang="es"><body style="margin:0;background:#FBF7EE;color:#06264A;font:16px Arial,sans-serif"><div style="max-width:560px;margin:auto;padding:32px"><h1 style="color:#A77819">♡ Amor que permanece</h1><p>By Departamento de Hogar y Familia</p><div style="background:white;border-radius:22px;padding:26px"><h2>${escapeHtml(draft.subject)}</h2>${draft.lines.map((line) => `<p style="line-height:1.7">${escapeHtml(line).replace(/\n/g, "<br>")}</p>`).join("")}</div><p style="font-size:13px;line-height:1.7">Reciben este correo sobre su cuenta y participación en Amor que permanece. <a href="${escapeHtml(link)}">Dejar de recibir correos opcionales</a>.</p><p style="font-size:13px">Creado por <a href="https://www.sevenawesome.com/">SevenAwesome</a></p></div></body></html>`;
   return {
     from,
     reply_to: settings.replyTo,
@@ -707,7 +710,7 @@ export default {
     if (new URL(request.url).pathname !== "/unsubscribe")
       return Response.json(
         {
-          service: "ENTRE DOS correo",
+          service: "Amor que permanece correo",
           configured: ready(env),
           sending: ready(env) && env.SEND_ENABLED === "true",
         },

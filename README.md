@@ -1,6 +1,6 @@
-# ENTRE DOS
+# Amor que permanece
 
-App móvil para parejas: React Native, Expo SDK 58, TypeScript, Redux Toolkit y Firebase Spark. Identidad **ENTRE DOS · By Departamento de Hogar y Familia**. Creado por [SevenAwesome](https://www.sevenawesome.com/).
+App móvil para parejas: React Native, Expo SDK 58, TypeScript, Redux Toolkit y Firebase Spark. Identidad **Amor que permanece · By Departamento de Hogar y Familia**. Creado por [SevenAwesome](https://www.sevenawesome.com/).
 
 ## Probar
 
@@ -54,7 +54,7 @@ npx firebase-tools@latest login
 npx firebase-tools@latest deploy --only firestore --project entre-dos-db
 ```
 
-3. Registra tu cuenta y familia desde ENTRE DOS. En Firebase Authentication copia el UID de esa cuenta.
+3. Registra tu cuenta y familia desde Amor que permanece. En Firebase Authentication copia el UID de esa cuenta.
 4. En Firestore, crea con acceso de propietario el documento `roles/EL_UID`, con el campo `role` de tipo **string** y valor **owner**. Esta es la asignación inicial fuera de la app; ningún cliente puede darse ese rol.
 5. La cuenta recibe el permiso por suscripción y aparece Admin. En **Admin → Abrir centro de configuración → Niveles**, pulsa **Preparar los 30 retos originales del nivel 1**, valida, revisa y confirma la publicación. Pulsa **Cargar catálogo inicial de bodas**. Guarda también la configuración de mensajes desde Aplicación.
 6. Registra otra familia para comprobar aislamiento y prueba la misma cuenta en ambos teléfonos.
@@ -135,3 +135,5 @@ Correos incluidos en Firebase Spark: [150 recuperaciones y 1.000 verificaciones 
 El [centro de configuración, permisos y activación del correo](docs/CORREOS_Y_PERMISOS.md) reúne ajustes, remitente/respuestas, plantillas, cuotas y accesos por administrador. Firebase continúa en Spark; la cuenta propietaria tiene acceso completo y los permisos se aplican en reglas, cliente y servicio de correo. Los secretos quedan fuera de Firebase/Expo.
 
 Admin ahora organiza ocho pestañas y siete permisos, con notificaciones y correo como canales independientes. Nosotros conserva seguridad/verificación y avisos del teléfono, sin controles de recepción de correo. La bienvenida y el cierre de nivel crean eventos únicos en transacciones de Firestore; el servidor verifica Auth y respeta cuotas y bajas. Ver [Administración](docs/ADMINISTRACION.md) y [Correo y permisos](docs/CORREOS_Y_PERMISOS.md).
+
+La [identidad gráfica Amor que permanece](docs/IDENTIDAD_GRAFICA.md) reúne los recursos originales, escena de apertura, iconos por plataforma, paleta y pasos para comprobar el splash nativo.
