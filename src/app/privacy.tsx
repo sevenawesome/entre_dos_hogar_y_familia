@@ -32,10 +32,11 @@ export default function Privacy() {
         <Text style={s.sectionTitle}>Recordatorios</Text>
         <Text style={s.body}>
           Los avisos pueden aparecer en la pantalla bloqueada e incluyen el
-          recordatorio general, un saludo de aniversario o el nombre de quien
-          cumple años. Al sincronizar también pueden mostrar mensajes de la
-          administración. Nunca incluyen sus notas ni respuestas. Pueden pausar
-          los avisos desde Nosotros o desde los ajustes del teléfono.
+          título del reto y su disponibilidad, un saludo de aniversario o el
+          nombre de quien cumple años. Al sincronizar también pueden mostrar
+          mensajes de la administración. Nunca incluyen sus notas ni respuestas.
+          Pueden pausar los avisos desde Nosotros o desde los ajustes del
+          teléfono.
         </Text>
         <Text style={s.sectionTitle}>Sus datos en Firebase</Text>
         <Text style={s.body}>

@@ -28,12 +28,8 @@ export function canComplete(progress: Progress | undefined, now = new Date()) {
     !progress?.nextAvailableAt || new Date(progress.nextAvailableAt) <= now
   );
 }
-export function canCompleteJourney(
-  progress: ProgressMap,
-  now = new Date(),
-  startedAt?: string | null,
-) {
-  const next = journeyAvailableAt(progress, startedAt);
+export function canCompleteJourney(progress: ProgressMap, now = new Date()) {
+  const next = journeyAvailableAt(progress);
   return !next || new Date(next) <= now;
 }
 export function nextLocalDay(timezone: string, now = new Date()) {

@@ -741,25 +741,46 @@ test("a new family explicitly starts once and cannot reset its daily clock", asy
   );
   await assertSucceeds(complete(db));
 });
-test("the next daily slot follows the first start instead of resetting on late completion", async () => {
+test("late completion waits a full day after finishing even if the journey began days earlier", async () => {
   await createFamily();
   await complete(ctx("a"));
-  const anchor = Math.floor((Date.now() - 25 * 3600000) / 60000) * 60000,
-    last = Timestamp.fromMillis(anchor + 23 * 3600000);
   await seed("journeys/a", {
     levelId: "nivel-1",
-    startedAt: Timestamp.fromMillis(anchor),
+    startedAt: Timestamp.fromMillis(Date.now() - 5 * 86400000),
   });
   const db = ctx("a"),
     old = (
       await getDoc(doc(db, "families", "a", "progress", "nivel-1"))
     ).data();
-  await seed("families/a/progress/nivel-1", { ...old, lastCompletionAt: last });
-  await seed("tracking/a", {
-    ...(await getDoc(doc(db, "tracking", "a"))).data(),
-    lastCompletedAt: last,
+  const summary = (await getDoc(doc(db, "tracking", "a"))).data();
+  const recent = Timestamp.fromMillis(Date.now() - 2 * 3600000);
+  await seed("families/a/progress/nivel-1", {
+    ...old,
+    lastCompletionAt: recent,
   });
+  await seed("tracking/a", { ...summary, lastCompletedAt: recent });
+  await assertFails(complete(db, "a", old.completions, 1, "reto-2"));
+  const yesterday = Timestamp.fromMillis(Date.now() - 25 * 3600000);
+  await seed("families/a/progress/nivel-1", {
+    ...old,
+    lastCompletionAt: yesterday,
+  });
+  await seed("tracking/a", { ...summary, lastCompletedAt: yesterday });
   await assertSucceeds(complete(db, "a", old.completions, 1, "reto-2"));
+});
+test("days without completing never skip the pending challenge or allow catching up in one sitting", async () => {
+  await createFamily();
+  await seed("journeys/a", {
+    levelId: "nivel-1",
+    startedAt: Timestamp.fromMillis(Date.now() - 7 * 86400000),
+  });
+  const db = ctx("a");
+  await assertFails(complete(db, "a", [], 0, "reto-2"));
+  await assertSucceeds(complete(db));
+  const saved = (
+    await getDoc(doc(db, "families", "a", "progress", "nivel-1"))
+  ).data();
+  await assertFails(complete(db, "a", saved.completions, 1, "reto-2"));
 });
 const jpeg = "data:image/jpeg;base64,/9j/AA==";
 const privatePortrait = (shareBirthday = true) => ({

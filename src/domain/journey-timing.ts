@@ -8,36 +8,22 @@ export function journeyStarted(
     !!journey || Object.values(progress).some((p) => p.completions.length > 0)
   );
 }
-/** Daily periods use the start minute so reminders and unlocks agree on both phones. */
-export function nextJourneySlot(
-  start: string,
-  lastCompletion: string | number,
-) {
-  const anchor = Math.floor(Date.parse(start) / 60000) * 60000;
+/** A pending challenge never expires. Only completing it starts the next wait. */
+export function nextChallengeAvailableAt(lastCompletion: string | number) {
   const last =
     typeof lastCompletion === "number"
       ? lastCompletion
       : Date.parse(lastCompletion);
-  return new Date(
-    anchor + (Math.floor((last - anchor) / DAY_MS) + 1) * DAY_MS,
-  ).toISOString();
+  return new Date(last + DAY_MS).toISOString();
 }
-export function journeyAvailableAt(
-  progress: ProgressMap,
-  start?: string | null,
-): string | null {
-  if (!start) {
-    const times = Object.values(progress)
-      .map((p) => milliseconds(p.nextAvailableAt))
-      .filter((v): v is number => v !== null);
-    return times.length ? new Date(Math.max(...times)).toISOString() : null;
-  }
+export function journeyAvailableAt(progress: ProgressMap): string | null {
   const times = Object.values(progress)
-    .map(
-      (p) =>
-        milliseconds(p.lastCompletionAt) ??
-        milliseconds(p.completions.at(-1)?.completedAt),
-    )
+    .map((p) => {
+      const confirmed = milliseconds(p.lastCompletionAt);
+      if (confirmed !== null) return confirmed + DAY_MS;
+      // Older saved profiles have only nextAvailableAt; keep their existing wait.
+      return milliseconds(p.nextAvailableAt);
+    })
     .filter((v): v is number => v !== null);
-  return times.length ? nextJourneySlot(start, Math.max(...times)) : null;
+  return times.length ? new Date(Math.max(...times)).toISOString() : null;
 }

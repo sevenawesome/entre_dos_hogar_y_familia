@@ -44,7 +44,7 @@ export default function Challenge() {
     journeyStarted(progress, journey) &&
     isUnlocked(level, progress) &&
     currentChallenge(level, p)?.id === challengeId &&
-    canCompleteJourney(progress, now, journey?.startedAt);
+    canCompleteJourney(progress, now);
   async function complete() {
     setBusy(true);
     try {
@@ -59,7 +59,7 @@ export default function Challenge() {
   return (
     <Screen>
       {!journeyStarted(progress, journey) && (
-        <Notice text="Para empezar y activar el horario diario, pulsen «Comenzar nuestro primer reto» en Hoy." />
+        <Notice text="Pulsen «Comenzar nuestro primer reto» en Hoy para empezar de inmediato." />
       )}
       <Pressable
         accessibilityLabel="Volver"
@@ -177,7 +177,7 @@ export default function Challenge() {
                   text={
                     isUnlocked(level, progress) &&
                     currentChallenge(level, p)?.id === challenge.id
-                      ? "Su próximo reto se abre 24 horas después del anterior. Disfruten lo que ya compartieron."
+                      ? "Su próximo reto se abre 24 horas después de completar el anterior. Disfruten lo que ya compartieron."
                       : "Completen primero los retos anteriores para llegar a este momento."
                   }
                 />

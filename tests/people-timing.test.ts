@@ -101,26 +101,38 @@ describe("Fotos por persona y cumpleaños compartidos", () => {
     assert.equal("nextAge" in upcoming[0], false);
   });
 });
-describe("Inicio único y períodos diarios desde el botón", () => {
+describe("Inicio inmediato y avance después de completar", () => {
   const start = "2026-11-05T14:10:45.000Z";
-  it("no inicia el recorrido ni activa el estado de comienzo al registrar una familia", () => {
+  it("registrarse no inicia; comenzar permite el primer reto sin esperar", () => {
     assert.equal(timing.journeyStarted({}, null), false);
     assert.equal(
       timing.journeyStarted({}, { startedAt: start, levelId: "nivel-1" }),
       true,
     );
+    assert.equal(timing.journeyAvailableAt({}), null);
+    assert.equal(progress.canCompleteJourney({}, new Date(start)), true);
   });
-  it("el segundo reto abre al minuto de inicio del día siguiente, aunque completen el primero horas después", () => {
-    const next = timing.nextJourneySlot(start, "2026-11-05T20:00:00Z");
-    assert.equal(next, "2026-11-06T14:10:00.000Z");
-  });
-  it("un reto atrasado no permite completar varios en el mismo período", () => {
+  it("completar el primero horas después espera 24 horas desde el completado", () => {
     assert.equal(
-      timing.nextJourneySlot(start, "2026-11-10T18:00:00Z"),
-      "2026-11-11T14:10:00.000Z",
+      timing.nextChallengeAvailableAt("2026-11-05T20:00:00Z"),
+      "2026-11-06T20:00:00.000Z",
     );
   });
-  it("ambos teléfonos comparten el mismo límite usando la fecha confirmada por Firebase", () => {
+  it("un reto pendiente varios días conserva su lugar y su propia espera al terminar", () => {
+    const pending = {
+      levelId: "nivel-1",
+      completions: [],
+      answers: {},
+      finishedAt: null,
+      nextAvailableAt: null,
+    };
+    assert.equal(timing.journeyAvailableAt({ "nivel-1": pending }), null);
+    assert.equal(
+      timing.nextChallengeAvailableAt("2026-11-10T18:00:00Z"),
+      "2026-11-11T18:00:00.000Z",
+    );
+  });
+  it("ambos teléfonos usan el completado confirmado por Firebase, aunque el reloj cliente sea incorrecto", () => {
     const p: ProgressMap = {
       "nivel-1": {
         levelId: "nivel-1",
@@ -134,15 +146,16 @@ describe("Inicio único y períodos diarios desde el botón", () => {
       },
     };
     assert.equal(
-      progress.canCompleteJourney(p, new Date("2026-11-06T14:09:59Z"), start),
+      progress.canCompleteJourney(p, new Date("2026-11-06T19:59:59Z")),
       false,
     );
     assert.equal(
-      progress.canCompleteJourney(p, new Date("2026-11-06T14:10:00Z"), start),
+      progress.canCompleteJourney(p, new Date("2026-11-06T20:00:00Z")),
       true,
     );
+    assert.equal(timing.journeyAvailableAt(p), "2026-11-06T20:00:00.000Z");
   });
-  it("conserva el intervalo anterior de cuentas que ya habían completado retos", () => {
+  it("conserva las esperas guardadas de perfiles anteriores sin fecha confirmada", () => {
     const p: ProgressMap = {
       "nivel-1": {
         levelId: "nivel-1",

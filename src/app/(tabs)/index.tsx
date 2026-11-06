@@ -54,10 +54,10 @@ export default function Today() {
   const level = journey.current;
   const p = level ? progress[level.id] : undefined;
   const challenge = level ? currentChallenge(level, p) : undefined;
-  const waiting = !canCompleteJourney(progress, now, started?.startedAt);
+  const waiting = !canCompleteJourney(progress, now);
   const needsStart =
     journeyReady && progressReady && !journeyStarted(progress, started);
-  const availableAt = journeyAvailableAt(progress, started?.startedAt);
+  const availableAt = journeyAvailableAt(progress);
   const nextText = availableAt
     ? new Intl.DateTimeFormat("es", {
         day: "numeric",
@@ -65,7 +65,7 @@ export default function Today() {
         hour: "2-digit",
         minute: "2-digit",
       }).format(new Date(availableAt))
-    : "el próximo período diario";
+    : "24 horas después de completar el anterior";
   const total = Object.values(progress).reduce(
     (sum, item) => sum + item.completions.length,
     0,

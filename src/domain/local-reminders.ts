@@ -6,19 +6,36 @@ export interface LocalReminder {
   date?: Date;
   daily?: boolean;
 }
+export interface PendingChallengeReminder {
+  order: number;
+  title: string;
+  availableAt: string | null;
+}
 export function localReminderPlan(
   family: Family,
   prefs: DevicePreferences,
   hasPendingLevel: boolean,
   now = new Date(),
+  challenge?: PendingChallengeReminder,
 ): LocalReminder[] {
   if (!prefs.enabled) return [];
+  const available = challenge?.availableAt
+    ? new Date(challenge.availableAt)
+    : null;
+  const waiting = available && available > now;
+  const challengeBody = challenge
+    ? waiting
+      ? `Su próximo reto: «${challenge.title}». Disponible a partir del ${new Intl.DateTimeFormat("es", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: prefs.timezone }).format(available)}. Abran ENTRE DOS para verlo.`
+      : `Su reto pendiente: «${challenge.title}». Háganlo juntos y marquen «Lo hicimos juntos» al terminar. Seguirá esperándolos hasta que lo completen.`
+    : "Su historia se cuida un día a la vez. Abran ENTRE DOS para ver su reto y progreso.";
   const plan: LocalReminder[] = hasPendingLevel
     ? [
         {
           daily: true,
-          title: "Un momento para ustedes ♡",
-          body: "Su historia se cuida un día a la vez. Abran ENTRE DOS para ver su reto y progreso.",
+          title: challenge
+            ? `Reto ${challenge.order} · Un momento para ustedes ♡`
+            : "Un momento para ustedes ♡",
+          body: challengeBody,
         },
       ]
     : [];

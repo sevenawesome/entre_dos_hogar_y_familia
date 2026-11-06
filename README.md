@@ -17,11 +17,11 @@ Para Android/iOS usa `npm start` y un development build. La vista web permite re
 
 - Una cuenta por correo/contraseña compartida por la pareja; familia con fecha de matrimonio obligatoria y hasta diez hijos; cumpleaños opcionales.
 - Los 30 retos y seis preguntas reales del documento original; notas y respuestas compartidas solo dentro de la familia.
-- Botón inicial destacado y único por familia. Abre el reto 1 y ancla períodos de **24 horas**, también al cambiar de nivel. Solo permite un completado por período, en orden. Firestore usa la hora del servidor y confirma progreso/resumen en una transacción. Los perfiles anteriores con avances conservan su intervalo de 24 horas tras completar. El cuestionario consigue el nivel y desbloquea su prerrequisito.
+- Botón inicial destacado y único por familia. Abre el reto 1 de inmediato. Cada reto permanece pendiente hasta completarlo; el siguiente abre **24 horas después de completarlo**, también entre niveles. Firestore valida la espera con la hora del servidor y confirma progreso/resumen en una transacción. Dejar pasar días no salta retos ni permite completarlos todos de golpe. El cuestionario consigue el nivel y desbloquea su prerrequisito.
 - Catálogo de niveles dinámico: primeros 30 retos, futuros 50 o cualquier cantidad de 1–200. Estados de carga, nivel actual, celebración sin sucesor y nuevo capítulo disponible.
 - Años de matrimonio actuales/próximos, aro de aniversario y 60 categorías tradicionales de bodas con explicaciones y fuentes propias/documentadas.
 - Cumpleaños de pareja e hijos, edades y barras de cuenta regresiva. El 29 de febrero se observa el 28 cuando el año no es bisiesto.
-- Recordatorio general diario local con `expo-notifications`, configurable por teléfono; celebraciones de los próximos dos años, reprogramadas al abrir/sincronizar. Máximo 27 solicitudes con diez hijos y fechas de ambos integrantes.
+- Recordatorio diario local del último reto sincronizado con `expo-notifications`, configurable por teléfono; celebraciones de los próximos dos años, reprogramadas al abrir/sincronizar. Máximo 27 solicitudes con diez hijos y fechas de ambos integrantes.
 - Foto familiar: selección, recorte cuadrado y miniatura JPEG de 384 × 384 con límite de unos 32 KB. Se guarda en documentos separados de Firestore, sin usar Storage ni conservar el original.
 - Fotos individuales: miniaturas de 160 × 160, máximo 16.000 caracteres de URI (unos 12 KB). Privadas incluso frente a administradores hasta que la familia autorice ese cumpleaños en Comunidad. Las fotos públicas pueden ampliarse al tocar.
 - Correo compartido obligatorio para la cuenta, verificación al registrarse y reenvío/comprobación en Nosotros. Firebase Spark incluye [hasta 1.000 correos de verificación al día](https://firebase.google.com/docs/auth/limits); no se implementan campañas ni acceso sin contraseña.
@@ -35,11 +35,11 @@ Para Android/iOS usa `npm start` y un development build. La vista web permite re
 
 Esta versión usa **Firebase Spark**, Authentication y Firestore; el cliente no llama Cloud Functions y `firebase.json` no despliega funciones. Spark tiene cuotas: no es capacidad ilimitada. Las miniaturas consumen almacenamiento/transferencia de Firestore y las consultas consumen lecturas. Se paginan comunidad y administración y las imágenes se excluyen de índices.
 
-Cada teléfono programa sus propios avisos. Android/iOS pueden presentarlos con la app cerrada, sujetos a permisos y restricciones del sistema. **No consultan Firebase antes de aparecer.** Si la pareja completa el nivel o el administrador pausa avisos mientras el otro teléfono está cerrado, este último conserva su programación hasta abrir/sincronizar. Un nivel nuevo se descubre al sincronizar. No se promete entrega a una hora exacta.
+Cada teléfono programa sus propios avisos. Recuerdan el título del último reto sincronizado y, si existe una espera, desde cuándo estará disponible. El mismo reto se sigue recordando hasta completarlo y sincronizar. Android/iOS pueden presentarlos con la app cerrada, sujetos a permisos y restricciones del sistema. **No consultan Firebase antes de aparecer.** Si la pareja completa el nivel o el administrador pausa avisos mientras el otro teléfono está cerrado, este último conserva su programación hasta abrir/sincronizar. Un nivel nuevo se descubre al sincronizar. No se promete entrega a una hora exacta.
 
 Los mensajes administrativos se guardan en la bandeja de la familia. Se reciben al abrir/sincronizar y, con avisos habilitados, se puede presentar una notificación local. **No hay push remoto inmediato con la app cerrada.** Para eso se necesitaría un emisor remoto seguro, aunque existan servicios con cuotas gratuitas. No se incluyen tokens Expo privados ni credenciales Admin en la app.
 
-La base y las notas requieren conexión para confirmar operaciones. No se promete completar retos offline ni sincronización posterior de completados. Los períodos de 24 horas comienzan al pulsar el botón inicial; las cuentas anteriores que ya avanzaron conservan la espera de 24 horas tras completar. Cambiar el horario local de avisos no reinicia esos períodos.
+La base y las notas requieren conexión para confirmar operaciones. No se promete completar retos offline ni sincronización posterior de completados. La espera de 24 horas comienza solo al completar un reto. Registrarse, pulsar el botón inicial o abrir la app no inicia esa espera. Cambiar el horario local de avisos no adelanta los retos.
 
 ## Activar el proyecto del propietario
 

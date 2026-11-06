@@ -33,6 +33,52 @@ describe("Programación local sin servidor", () => {
     assert.equal(plan.filter((p: any) => p.daily).length, 1);
     assert.match(plan[0].body, /ver su reto y progreso/);
   });
+  it("recuerda el mismo reto pendiente aunque pasen varios días", () => {
+    const challenge = {
+      order: 1,
+      title: "Una bienvenida diferente",
+      availableAt: null,
+    };
+    for (const now of ["2026-11-05T12:00:00Z", "2026-11-10T12:00:00Z"]) {
+      const reminder = localReminderPlan(
+        family,
+        prefs,
+        true,
+        new Date(now),
+        challenge,
+      )[0];
+      assert.match(reminder.title, /Reto 1/);
+      assert.match(reminder.body, /Una bienvenida diferente/);
+      assert.match(reminder.body, /hasta que lo completen/);
+      assert.doesNotMatch(reminder.body, /Reto 2/);
+    }
+  });
+  it("al completar recuerda el siguiente e informa su espera sin anunciarlo como disponible antes de tiempo", () => {
+    const next = {
+      order: 2,
+      title: "Diez minutos sin pantallas",
+      availableAt: "2026-11-06T20:00:00Z",
+    };
+    const first = localReminderPlan(
+      family,
+      prefs,
+      true,
+      new Date("2026-11-06T12:00:00Z"),
+      next,
+    )[0];
+    assert.match(first.title, /Reto 2/);
+    assert.match(first.body, /Disponible a partir/);
+    assert.doesNotMatch(first.body, /reto pendiente/);
+    const ready = localReminderPlan(
+      family,
+      prefs,
+      true,
+      new Date(next.availableAt),
+      next,
+    )[0];
+    assert.match(ready.body, /reto pendiente/);
+    assert.match(ready.body, /Diez minutos sin pantallas/);
+  });
   it("terminar los niveles quita el diario y conserva las celebraciones", () => {
     const plan = localReminderPlan(
       family,

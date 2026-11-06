@@ -10,7 +10,7 @@ export const guideSteps = [
   {
     icon: "heart-outline",
     title: "Un reto, sin prisa",
-    body: "En Hoy, pulsen una sola vez «Comenzar nuestro primer reto». Ese momento fija los períodos diarios del recorrido. Hagan la actividad y conversen; después marquen «Lo hicimos juntos». Para avanzar deben completar el anterior y esperar el siguiente período.",
+    body: "En Hoy, pulsen una sola vez «Comenzar nuestro primer reto» para empezar de inmediato. Hagan la actividad y conversen; después marquen «Lo hicimos juntos». Si queda pendiente, seguirá esperándolos. El siguiente se abre 24 horas después de completar el anterior.",
   },
   {
     icon: "ribbon-outline",
@@ -51,7 +51,7 @@ export const helpSections = [
   },
   {
     title: "Un día a la vez",
-    body: "El botón inicial abre el reto 1 y fija el horario del recorrido. Cada 24 horas comienza otro período; pueden completar como máximo un reto por período y deben terminar el anterior para avanzar. Firebase valida los períodos con la hora del servidor. Las familias que ya habían avanzado antes de esta función conservan su intervalo de 24 horas después de completar. No se avanza automáticamente por dejar pasar días: el reto pendiente continúa esperándolos. No pierden lo conseguido por tomarse un descanso.",
+    body: "El primer reto se abre al pulsar Comenzar, sin esperar al día siguiente. Cada reto permanece pendiente hasta completarlo, aunque pasen varios días. Al marcar «Lo hicimos juntos» comienza la espera de 24 horas para el siguiente, también entre niveles. Firebase valida la espera con la hora del servidor. Abrir la app o leer el reto no lo completa ni reinicia esa espera. No se saltan retos y no pierden lo conseguido por tomarse un descanso.",
   },
   {
     title: "Conseguir niveles y descubrir capítulos",
@@ -59,7 +59,7 @@ export const helpSections = [
   },
   {
     title: "Recordatorios en ambos teléfonos",
-    body: "Al comenzar el recorrido, se solicita el permiso y se propone la hora de inicio para los avisos. En el segundo teléfono, activen el permiso y guarden su horario desde Nosotros. Pueden cambiarlo después; el horario de los avisos no cambia los períodos del recorrido. El teléfono programa un aviso general diario; no necesita consultar Firebase para presentarlo. La entrega depende de permisos y del sistema del teléfono. Al abrir la app, se sincroniza el reto correcto. Los cambios de otro teléfono, las pausas administrativas y los niveles nuevos se conocen al sincronizar. Al tocar el aviso se abre Hoy. Pueden pausar los avisos o cerrar sesión en ese dispositivo.",
+    body: "Al comenzar el recorrido, se solicita el permiso para los avisos. En cada teléfono pueden elegir un horario desde Nosotros; cambiarlo no adelanta los retos. Se programa un aviso diario con el último reto sincronizado. Si hay una espera, indica desde cuándo estará disponible. El mismo reto se recuerda hasta completarlo y sincronizar su avance. Los avisos no consultan Firebase antes de aparecer: si tu pareja completa desde otro teléfono, abre la app para actualizar la programación. La entrega depende de permisos y del sistema del teléfono. Las pausas administrativas y los niveles nuevos se conocen al sincronizar. Al tocar el aviso se abre Hoy. Pueden pausar los avisos o cerrar sesión en ese dispositivo.",
   },
   {
     title: "Aniversario y categorías de bodas",

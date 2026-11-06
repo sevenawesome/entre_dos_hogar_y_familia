@@ -13,7 +13,10 @@ import {
   finishSparkLevel,
   startSparkJourney,
 } from "./spark";
-import { nextJourneySlot, journeyStarted } from "../domain/journey-timing";
+import {
+  nextChallengeAvailableAt,
+  journeyStarted,
+} from "../domain/journey-timing";
 import type { Family } from "../domain/types";
 function syncDemoProfile() {
   const state = store.getState().app;
@@ -67,10 +70,10 @@ export async function completeChallenge(
   if (
     !isUnlocked(level, state.progress) ||
     currentChallenge(level, previous)?.id !== challengeId ||
-    !canCompleteJourney(state.progress, new Date(), state.journey?.startedAt)
+    !canCompleteJourney(state.progress)
   )
     throw new Error(
-      "El siguiente reto se abre en el próximo período diario de su recorrido.",
+      "El siguiente reto se abre 24 horas después de completar el anterior.",
     );
   store.dispatch(
     actions.progress({
@@ -85,9 +88,7 @@ export async function completeChallenge(
             note: note.trim(),
           },
         ],
-        nextAvailableAt: state.journey
-          ? nextJourneySlot(state.journey.startedAt, Date.now())
-          : new Date(Date.now() + 86400000).toISOString(),
+        nextAvailableAt: nextChallengeAvailableAt(Date.now()),
         lastCompletionAt: new Date().toISOString(),
       },
     }),

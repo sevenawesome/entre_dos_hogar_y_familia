@@ -4,7 +4,8 @@ import type { DevicePreferences, FamilyMessage } from "../domain/types";
 import { store } from "../store";
 import { localReminderPlan } from "../domain/local-reminders";
 import { getJourney } from "../domain/journey";
-import { journeyStarted } from "../domain/journey-timing";
+import { journeyStarted, journeyAvailableAt } from "../domain/journey-timing";
+import { currentChallenge } from "../domain/progress";
 async function notifications() {
   return Platform.OS === "web" ? null : import("expo-notifications");
 }
@@ -83,12 +84,26 @@ export function registerDevice(
           state.progress,
           state.catalogReady && state.progressReady,
         );
+        const challenge = journey.current
+          ? currentChallenge(
+              journey.current,
+              state.progress[journey.current.id],
+            )
+          : undefined;
         for (const item of localReminderPlan(
           state.family,
           prefs,
           !!journey.current &&
             state.journeyReady &&
             journeyStarted(state.progress, state.journey),
+          new Date(),
+          challenge
+            ? {
+                order: challenge.order,
+                title: challenge.title,
+                availableAt: journeyAvailableAt(state.progress),
+              }
+            : undefined,
         )) {
           await n.scheduleNotificationAsync({
             content: {

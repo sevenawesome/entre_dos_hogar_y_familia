@@ -21,9 +21,9 @@ Necesitamos Android e iPhone para probar notificaciones locales, selector/compre
 
 ## Límites acordados de la versión gratuita
 
-Los avisos diarios son generales y se programan por teléfono; los cambios de otro dispositivo y las pausas administrativas se aplican al sincronizar. Cumpleaños/aniversarios se programan para los próximos dos años y se renuevan al usar la app. Los mensajes del administrador llegan a una bandeja al abrir/sincronizar; no hay push remoto inmediato con la app cerrada. Firebase Spark tiene cuotas, supervisadas desde la consola.
+Los avisos diarios muestran el último reto sincronizado y se programan por teléfono; los cambios de otro dispositivo y las pausas administrativas se aplican al sincronizar. Cumpleaños/aniversarios se programan para los próximos dos años y se renuevan al usar la app. Los mensajes del administrador llegan a una bandeja al abrir/sincronizar; no hay push remoto inmediato con la app cerrada. Firebase Spark tiene cuotas, supervisadas desde la consola.
 
-La fecha de matrimonio es obligatoria al registrar o editar una familia. Los perfiles anteriores sin fecha deben completarla para continuar, conservando sus datos y progreso. Los cumpleaños siguen siendo opcionales. El botón de inicio abre el primer reto y fija períodos de 24 horas con un completado máximo por período, validados con la hora del servidor. No se saltan retos pendientes. Los perfiles anteriores con avances conservan su intervalo de 24 horas desde el completado. La familia admite hasta diez hijos para mantener la validación dentro del presupuesto de ejecución de las reglas. Las fotos son miniaturas pequeñas en Firestore; no se guarda el original ni se usa Storage.
+La fecha de matrimonio es obligatoria al registrar o editar una familia. Los perfiles anteriores sin fecha deben completarla para continuar, conservando sus datos y progreso. Los cumpleaños siguen siendo opcionales. El botón inicial abre el primer reto de inmediato. Cada reto sigue pendiente hasta completarlo y solo entonces empieza la espera de 24 horas para el siguiente, validada con la hora del servidor. No se saltan retos aunque pasen varios días. La familia admite hasta diez hijos para mantener la validación dentro del presupuesto de ejecución de las reglas. Las fotos son miniaturas pequeñas en Firestore; no se guarda el original ni se usa Storage.
 
 ## Publicación
 

@@ -74,16 +74,17 @@ export function StartJourneyCard({ level }: { level: Level }) {
       >
         Su primer paso empieza hoy.
       </Text>
-      <Text style={[s.body, { color: "white" }]}>
-        Pulsen cuando estén listos para hacer el primer reto. Este momento fija
-        su horario: el siguiente período empieza mañana a la misma hora.
-      </Text>
       <Button
         title="¡Comenzar nuestro primer reto!"
         icon="play"
         busy={busy}
         onPress={start}
       />
+      <Text style={[s.body, { color: "white" }]}>
+        Empiecen su primer reto ahora, sin esperar a mañana. Tendrán tiempo para
+        hacerlo juntos: seguirá pendiente hasta que lo completen. Después, el
+        siguiente se abrirá 24 horas más tarde.
+      </Text>
       <Text style={[s.small, { color: "#FFF1F6" }]}>
         Pediremos permiso para los avisos de este teléfono. Pueden cambiar su
         horario en Nosotros. Este botón aparece una sola vez por familia.

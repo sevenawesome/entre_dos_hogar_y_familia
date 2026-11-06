@@ -24,7 +24,7 @@ import {
 } from "../domain/community";
 import { validateFamilyProfile } from "../domain/admin-validation";
 import { validatePortraits, publicBirthdayPeople } from "../domain/people";
-import { nextJourneySlot } from "../domain/journey-timing";
+import { nextChallengeAvailableAt } from "../domain/journey-timing";
 import type {
   CommunityProfile,
   Family,
@@ -178,19 +178,13 @@ export async function completeSparkChallenge(
       throw new Error(
         "Completen primero el reto pendiente y su nivel anterior.",
       );
-    const anchor = milliseconds(started.data()?.startedAt);
-    if (anchor === null && summary.totalCompleted === 0)
+    if (!started.exists() && summary.totalCompleted === 0)
       throw new Error("Pulsen primero «Comenzar nuestro primer reto» en Hoy.");
     const last = milliseconds(summary.lastCompletedAt);
-    const next =
-      last === null
-        ? 0
-        : anchor === null
-          ? last + DAY_MS
-          : Date.parse(nextJourneySlot(new Date(anchor).toISOString(), last));
+    const next = last === null ? 0 : last + DAY_MS;
     if (Date.now() < next)
       throw new Error(
-        "El siguiente reto se abre en el próximo período diario de su recorrido.",
+        "El siguiente reto se abre 24 horas después de completar el anterior.",
       );
     if (note.length > 2000)
       throw new Error("La nota puede tener hasta 2000 caracteres.");
@@ -201,10 +195,7 @@ export async function completeSparkChallenge(
         ...previous.completions,
         { challengeId, note: note.trim(), completedAt },
       ],
-      nextAvailableAt:
-        anchor === null
-          ? new Date(Date.now() + DAY_MS).toISOString()
-          : nextJourneySlot(new Date(anchor).toISOString(), Date.now()),
+      nextAvailableAt: nextChallengeAvailableAt(Date.now()),
       lastCompletionAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });

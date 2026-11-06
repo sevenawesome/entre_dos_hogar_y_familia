@@ -183,6 +183,7 @@ function AppLayout() {
       p.levelId,
       p.completions.length,
       p.finishedAt,
+      p.lastCompletionAt,
     ]),
     enabled: settings.notificationsEnabled,
     paused: controls.remindersPaused,
