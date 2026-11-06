@@ -5,11 +5,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth, firebaseConfigured } from "../services/firebase";
 import { startDemo, store, actions } from "../store";
 import { requestEmailVerification } from "../services/email";
+import { requestPasswordRecovery } from "../services/account-security";
 import { friendlyError } from "../services/api";
 import { Brand, BrandMark } from "../components/Brand";
 import { CreatorFooter } from "../components/CreatorFooter";
@@ -65,14 +65,19 @@ export default function Welcome() {
       setError("Escribe tu correo para recuperar el acceso.");
       return;
     }
+    setBusy(true);
+    setError("");
+    setInfo("");
     try {
-      await sendPasswordResetEmail(auth!, email.trim());
+      await requestPasswordRecovery(email);
       setInfo(
         "Si el correo está registrado, recibirás un enlace para recuperar el acceso.",
       );
       setError("");
     } catch (e) {
       setError(friendlyError(e));
+    } finally {
+      setBusy(false);
     }
   }
   return (
@@ -194,7 +199,7 @@ export default function Welcome() {
           onPress={submit}
         />
         {!signup && firebaseConfigured && (
-          <Pressable onPress={reset}>
+          <Pressable accessibilityRole="button" disabled={busy} onPress={reset}>
             <Text style={[s.link, { textAlign: "center" }]}>
               Olvidé la contraseña
             </Text>

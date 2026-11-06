@@ -6,7 +6,7 @@ Verificado el 5 de noviembre de 2026. Las pruebas automatizadas usaron proyectos
 
 - TypeScript y lint sin errores.
 - 96 pruebas de dominio y regresión aprobadas, incluidas privacidad de la proyección pública, fotos, acompañamiento y programación local de celebraciones.
-- 38 pruebas de seguridad aprobadas contra Firestore Emulator y una prueba de verificación contra Auth Emulator, en proyectos demo aislados. Comprueban creación atómica de familia/resumen, aislamiento entre familias, privacidad de notas incluso frente a administradores, secuencia de retos, intervalo de 24 horas con hora del servidor, cuestionario completo y bloqueo de respuestas inválidas.
+- 38 pruebas de seguridad aprobadas contra Firestore Emulator y tres pruebas de acceso contra Auth Emulator, en proyectos demo aislados. Comprueban creación atómica de familia/resumen, aislamiento entre familias, privacidad de notas incluso frente a administradores, secuencia de retos, intervalo de 24 horas con hora del servidor, cuestionario completo y bloqueo de respuestas inválidas.
 - Casos positivos de límites: nivel de 50 retos, cuestionario de 30 respuestas multilínea y familia con diez hijos. También se probó que la fecha de matrimonio sea obligatoria para registrar, editar y avanzar, incluso ante intentos administrativos de retirarla; los cumpleaños permanecen opcionales. Se probaron concesión/revocación de administradores, protección del propietario, auditoría, bandeja privada, consentimiento público, contadores no falsificables, miniaturas y marcador de eliminación.
 - Expo Doctor: 20/20 comprobaciones aprobadas.
 - Exportación de bundles Android, iOS y web completada. Esto comprueba el empaquetado; no equivale a ejecutar un binario nativo.
@@ -78,3 +78,9 @@ npx firebase-tools@latest emulators:exec --only firestore,auth --project demo-en
 Ajuste de cadencia: primer reto inmediato; los pendientes no caducan. Pruebas de recordatorios con el mismo reto tras varios días y del mensaje de disponibilidad del siguiente. Las reglas rechazan avanzar solo porque transcurrieron días desde el inicio.
 
 Comprobación visual del ajuste de cadencia: comenzar abre el primer reto sin completarlo; volver a Hoy conserva el mismo reto pendiente. Tras completarlo, Hoy muestra fecha/hora del siguiente y su pantalla impide marcarlo antes de tiempo. Captura con familia ficticia: `preview-espera-reto.jpg`.
+
+## Recuperación y cambio de contraseña
+
+- Auth Emulator: solicitar enlace con el mismo helper del cliente, confirmar su código, rechazar la clave anterior, aceptar la nueva con el mismo UID e impedir reutilizar el enlace. Respuesta genérica para correo no registrado.
+- Auth Emulator: el cambio dentro de la app rechaza contraseña actual vacía/incorrecta, nueva débil, confirmación distinta y nueva igual a anterior; comprueba cambios de sesión antes de actualizar. Después del cambio, solo la nueva permite entrar y el UID permanece igual.
+- No se modificaron credenciales reales ni se enviaron correos reales. Queda comprobar recepción/spam y finalización del enlace alojado por Firebase con un usuario real.

@@ -13,6 +13,7 @@ import { FamilyForm } from "../../components/FamilyForm";
 import { ProfileSharing } from "../../components/ProfileSharing";
 import { FamilyPortraits } from "../../components/FamilyPortraits";
 import { EmailVerificationCard } from "../../components/EmailVerificationCard";
+import { AccountSecurityCard } from "../../components/AccountSecurityCard";
 import { auth } from "../../services/firebase";
 import {
   disableDevice,
@@ -125,6 +126,7 @@ export default function FamilyScreen() {
         <Notice text="La administración ha pausado los avisos. Tu horario se conserva y podrás seguir haciendo retos." />
       )}
       {!editing && <EmailVerificationCard />}
+      {!editing && <AccountSecurityCard key={uid} />}
       {!editing && family && (
         <ProfileSharing key={`${uid}-${!!communityProfile}`} />
       )}

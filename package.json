@@ -50,7 +50,7 @@
     "functions:build": "npm --prefix functions run build",
     "seed": "npm --prefix functions run seed",
     "test:rules": "node --test tests/spark.rules.mjs",
-    "test:firebase": "node --test tests/spark.rules.mjs tests/verification.auth.mjs"
+    "test:firebase": "node --experimental-strip-types --test tests/spark.rules.mjs tests/verification.auth.mjs"
   },
   "overrides": {
     "@grpc/grpc-js": "^1.14.7"

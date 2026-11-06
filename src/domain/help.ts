@@ -74,6 +74,10 @@ export const helpSections = [
     body: "Al registrarse, Firebase envía un enlace de verificación al correo compartido. Ábranlo y pulsen «Ya confirmé mi correo» en Nosotros. También pueden solicitar otro enlace y revisar spam. La verificación no impide comenzar los retos; ayuda a confirmar que tienen acceso a su correo.",
   },
   {
+    title: "Recuperar o cambiar la contraseña",
+    body: "Si olvidaron la contraseña, escriban su correo en la pantalla de acceso y pulsen «Olvidé la contraseña». Recibirán un enlace para elegir otra; revisen también spam. Con la sesión iniciada, vayan a Nosotros → Seguridad de su cuenta → Cambiar contraseña: necesitarán la actual y confirmar la nueva. También pueden solicitar recuperación por correo desde ahí. El cambio afecta a la cuenta compartida: usen la nueva contraseña en ambos teléfonos cuando deban iniciar sesión de nuevo. La familia y el progreso se conservan.",
+  },
+  {
     title: "Una cuenta y datos compartidos",
     body: "Ambos pueden leer las notas, respuestas y fechas guardadas. Los avisos locales pueden mostrar un saludo con el nombre de quien cumple años. Las notas y reflexiones nunca se incluyen. Usen una contraseña segura y guarden solo lo que deseen compartir.",
   },

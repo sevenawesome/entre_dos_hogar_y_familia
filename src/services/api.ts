@@ -219,10 +219,13 @@ export function friendlyError(error: unknown): string {
       "Este correo ya tiene una cuenta. Inicia sesión.",
     "auth/invalid-email": "Escribe un correo válido.",
     "auth/weak-password": "Usa al menos 8 caracteres.",
+    "auth/wrong-password": "La contraseña actual no es correcta.",
+    "auth/password-does-not-meet-requirements":
+      "La contraseña no cumple los requisitos de seguridad. Elige otra más segura.",
     "auth/network-request-failed": "No hay conexión. Vuelve a intentarlo.",
     "auth/too-many-requests": "Espera un momento antes de intentarlo otra vez.",
     "auth/requires-recent-login":
-      "Por seguridad, cierra sesión y vuelve a ingresar antes de eliminar la cuenta.",
+      "Por seguridad, cierra sesión y vuelve a ingresar para realizar esta acción.",
     "functions/unavailable":
       "No pudimos conectar. Comprueba tu conexión y vuelve a intentarlo.",
     "permission-denied":
