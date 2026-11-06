@@ -1,6 +1,6 @@
 # Validación de ENTRE DOS · Firebase Spark
 
-Verificado el 6 de noviembre de 2026. Las pruebas automatizadas usan proyectos demo locales y transporte de correo simulado; la comprobación remota es de lectura. El despliegue mantiene el envío de correo real apagado. No se modificaron roles reales ni se enviaron mensajes a familias.
+Verificado el 6 de noviembre de 2026. Las pruebas automatizadas usan proyectos demo locales y transporte de correo simulado; la comprobación remota es de lectura. La comprobación remota confirmó Auth y las tres consultas indexadas de eventos/trabajos/cola, con el nuevo índice listo. El correo propietario ya figura verificado. El despliegue mantiene el envío de correo real apagado. No se modificaron roles reales ni se enviaron mensajes a familias.
 
 ## Comprobaciones actuales
 
@@ -18,4 +18,4 @@ El dominio `correo.sevenawesome.com` está verificado en Resend; DNS en GoDaddy.
 
 ## Pendiente antes de publicar
 
-Confirmar el correo real desde Nosotros → Su correo de contacto y autorizar una prueba controlada de recepción/baja antes de activar el Worker. No se ha probado entrega real, spam, rebotes ni lectura; accepted solo indica aceptación del proveedor. Comprobar la app en iPhone y Android físicos, con dos dispositivos, permisos y notificaciones. La automatización local no sustituye estas pruebas. Las cuentas de desarrollador y requisitos de tiendas son independientes de Firebase Spark.
+Autorizar una prueba controlada de recepción/baja antes de activar el Worker. El correo propietario ya está verificado; las nuevas familias confirman su dirección desde Nosotros → Su correo de contacto. No se ha probado entrega real, spam, rebotes ni lectura; accepted solo indica aceptación del proveedor. Comprobar la app en iPhone y Android físicos, con dos dispositivos, permisos y notificaciones. La automatización local no sustituye estas pruebas. Las cuentas de desarrollador y requisitos de tiendas son independientes de Firebase Spark.

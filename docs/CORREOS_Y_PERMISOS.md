@@ -70,10 +70,10 @@ npx firebase-tools@latest deploy --only firestore --project entre-dos-db
 npx --yes wrangler@4.158.0 deploy --config email-worker/wrangler.jsonc
 ```
 
-7. `/health` ya responde `configured: true, sending: false`. Antes de la prueba, la familia propietaria debe usar **Nosotros → Su correo de contacto → Enviar enlace de verificación**, abrir el enlace recibido y volver a **Ya confirmé mi correo**. Después configurar los textos y remitente desde Admin. Cambiar `SEND_ENABLED` a `true` y desplegar cuando se decida comenzar el envío; es un interruptor del servidor que la app no puede eludir. El primer ciclo publica el estado del servicio en Firebase. Probar primero con la familia propietaria confirmando recepción y baja antes de invitar a otras familias.
+7. `/health` ya responde `configured: true, sending: false`. El correo propietario ya figura verificado en Auth y las tres consultas de eventos/trabajos/cola están comprobadas, con el índice nuevo listo. Para otras familias, usar **Nosotros → Su correo de contacto → Enviar enlace de verificación**, abrir el enlace recibido y volver a **Ya confirmé mi correo**. Después configurar los textos y remitente desde Admin. Cambiar `SEND_ENABLED` a `true` y desplegar cuando se decida comenzar el envío; es un interruptor del servidor que la app no puede eludir. El primer ciclo publica el estado del servicio en Firebase. Probar primero con la familia propietaria confirmando recepción y baja antes de invitar a otras familias.
 
 La cuenta de Firebase y sus verificaciones/recuperaciones funcionan sin estos pasos adicionales. No hacen falta contraseñas de Gmail para esta integración.
 
 ## Validación
 
-`npm run check` comprueba tipos, lint y dominio; `npm run test:email` usa transporte simulado y reservas concurrentes; `npm run test:firebase` requiere los emuladores de Auth y Firestore. La comprobación local no envía correo real. Antes de activar el servidor faltan confirmar el correo de prueba y autorizar una prueba controlada de recepción/baja. El despliegue conserva `SEND_ENABLED=false`.
+`npm run check` comprueba tipos, lint y dominio; `npm run test:email` usa transporte simulado y reservas concurrentes; `npm run test:firebase` requiere los emuladores de Auth y Firestore. La comprobación local no envía correo real. Antes de activar el servidor falta autorizar una prueba controlada de recepción/baja. El despliegue conserva `SEND_ENABLED=false`.
