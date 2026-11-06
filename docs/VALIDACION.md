@@ -94,3 +94,10 @@ Comprobación visual del ajuste de cadencia: comenzar abre el primer reto sin co
 - Exportación de producción Android, iOS y web aprobada con Expo SDK 58. Se desplegaron únicamente reglas e índices de Firestore; correo personalizado sin activar y roles reales conservados. La exportación no sustituye las pruebas en teléfonos ni genera binarios firmados para las tiendas.
 - Revisión móvil web a 390 × 844 con datos ficticios: centro con cinco secciones, remitente/respuestas y estado pendiente, búsqueda y seis permisos, consentimiento apagado e inhabilitado mientras el servicio esté pendiente. Capturas: `preview-centro-configuracion.jpg`, `preview-correos-config.jpg`, `preview-permisos-admin.jpg`. No se cambiaron roles reales ni se enviaron mensajes.
 - No se crearon cuentas externas, claves ni suscripciones pagadas; no se enviaron correos personalizados reales. Falta comprobar dominio, remitente, ejecución/CPU en Cloudflare, recepción/spam y baja con las cuentas reales cuando existan.
+
+### Configuración externa del 6 de noviembre de 2026
+
+- El usuario creó Resend y Cloudflare, añadió los registros DNS en GoDaddy, mostró `correo.sevenawesome.com` como Verified y autorizó Wrangler con su cuenta. Las consultas DNS confirmaron TXT DKIM y ambos CNAME.
+- Se publicó `entre-dos-correo` en `https://entre-dos-correo.sevenawesome-srl.workers.dev`, con cron cada diez minutos y `SEND_ENABLED=false`. El endpoint `/health` respondió `configured: false, sending: false`; faltan las credenciales de Resend/Google.
+- El secreto de baja se generó aleatoriamente en memoria y se cargó directamente en Cloudflare sin mostrarlo ni guardarlo localmente. No se enviaron correos ni se modificaron permisos IAM de Google o planes de facturación.
+- TypeScript del cliente/Worker, lint y empaquetado seco aprobados. La ejecución completa con Google/Resend, consumo de CPU, recepción y baja siguen pendientes de las credenciales y del consentimiento de la familia de prueba.

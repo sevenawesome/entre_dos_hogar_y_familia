@@ -1,14 +1,15 @@
 {
   "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
   "name": "entre-dos-correo",
+  "account_id": "daa43d5391a331e205ff7b8cfadb38d8",
   "main": "src/index.ts",
   "compatibility_date": "2026-11-06",
   "workers_dev": true,
   "triggers": { "crons": ["*/10 * * * *"] },
   "vars": {
     "FIREBASE_PROJECT_ID": "entre-dos-db",
-    "PUBLIC_BASE_URL": "https://REEMPLAZAR.workers.dev",
-    "FROM_EMAIL": "ENTRE DOS <avisos@REEMPLAZAR.example>",
+    "PUBLIC_BASE_URL": "https://entre-dos-correo.sevenawesome-srl.workers.dev",
+    "FROM_EMAIL": "ENTRE DOS <avisos@correo.sevenawesome.com>",
     "SEND_ENABLED": "false",
   },
   "observability": { "enabled": false },

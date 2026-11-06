@@ -1,6 +1,6 @@
 # Correos opcionales y permisos administrativos
 
-Firebase continúa en Spark. El envío personalizado está preparado, pero **no está activado ni se ha desplegado el Worker**. No se han creado cuentas externas, claves privadas ni correos reales de prueba.
+Firebase continúa en Spark. El usuario creó las cuentas de Resend/Cloudflare y verificó `correo.sevenawesome.com` en Resend. El Worker está publicado en `https://entre-dos-correo.sevenawesome-srl.workers.dev`, **con el envío desactivado**. Su secreto de baja ya está guardado en Cloudflare, sin copiarlo al repositorio ni mostrar su valor. Faltan la clave de envío de Resend y la cuenta de servicio de Google. No se han enviado correos personalizados reales de prueba.
 
 ## Centro de configuración
 
@@ -35,33 +35,34 @@ Cada correo incluye un enlace de baja. Abrirlo muestra una confirmación; un POS
 
 ## Qué falta para activarlo
 
-1. Crear cuentas gratuitas en [Resend](https://resend.com/) y [Cloudflare](https://dash.cloudflare.com/).
-2. Verificar un dominio propio en Resend, por ejemplo un subdominio de `sevenawesome.com` si se dispone de su DNS. Usar exactamente los registros que indique el proveedor. **No se puede verificar gmail.com**: el Gmail indicado sirve para recibir respuestas, soporte y registrar las cuentas. Elegir un remitente como `avisos@correo.sevenawesome.com` después de verificar ese subdominio.
+1. Completado por el usuario: cuentas gratuitas en [Resend](https://resend.com/) y [Cloudflare](https://dash.cloudflare.com/), y autorización de Wrangler.
+2. Completado: `correo.sevenawesome.com` verificado en Resend, con DNS en GoDaddy. Remitente configurado: `avisos@correo.sevenawesome.com`. **No se puede verificar gmail.com**: el Gmail indicado sirve para recibir respuestas, soporte y registrar las cuentas.
 3. Crear una cuenta de servicio exclusiva para este proceso en el proyecto `entre-dos-db`, con `roles/datastore.user` y `roles/firebaseauth.viewer`. No usar Owner/Editor. Su clave se mantiene fuera del repositorio y de este chat. La cuenta puede consultar datos de Firestore por IAM; el código solo necesita familia/fechas, resúmenes y metadatos de cierre, catálogo, preferencias, roles y cola, sin leer notas/respuestas ni fotos.
-4. Editar `email-worker/wrangler.jsonc`: proyecto, `PUBLIC_BASE_URL` con la URL real de Workers (sin barra final), `FROM_EMAIL` con remitente del dominio verificado. Mantener `SEND_ENABLED` en `false` durante la configuración. El dominio de ese remitente limita las direcciones que se pueden elegir luego desde Admin.
+4. Completado: `email-worker/wrangler.jsonc` fija la cuenta Cloudflare autorizada, proyecto, `PUBLIC_BASE_URL` y `FROM_EMAIL` reales. `SEND_ENABLED` continúa en `false` durante la configuración. El dominio de ese remitente limita las direcciones que se pueden elegir luego desde Admin.
 5. Cargar los secretos **en Cloudflare**, no en `.env` de Expo ni en Firebase:
 
 ```powershell
 npx --yes wrangler@4.158.0 login
 npx --yes wrangler@4.158.0 secret put RESEND_API_KEY --config email-worker/wrangler.jsonc
-npx --yes wrangler@4.158.0 secret put UNSUBSCRIBE_SECRET --config email-worker/wrangler.jsonc
 ```
 
-`UNSUBSCRIBE_SECRET` debe ser aleatorio y tener al menos 32 caracteres. Para la cuenta de servicio, usar la ruta real a su archivo privado, **fuera del proyecto**:
+Crear la clave de Resend con nombre `ENTRE DOS`, permiso `Sending access` y restricción a `correo.sevenawesome.com`. Pegarla en la entrada protegida que solicita `secret put`, sin incluirla en el comando ni en el chat. `UNSUBSCRIBE_SECRET` ya se generó con 32 bytes aleatorios y se cargó directamente por entrada estándar; no hay copia local. No rotarlo de manera rutinaria: invalidaría enlaces de baja existentes. En una instalación nueva, generar un secreto aleatorio de al menos 32 caracteres y cargarlo con `wrangler secret put UNSUBSCRIBE_SECRET`.
+
+Para la cuenta de servicio, usar la ruta real a su archivo privado, **fuera del proyecto**:
 
 ```powershell
 $mailKeyPath = 'C:\ruta-privada\cuenta-de-servicio.json'
 Get-Content -Raw -LiteralPath $mailKeyPath | npx --yes wrangler@4.158.0 secret put GOOGLE_SERVICE_ACCOUNT --config email-worker/wrangler.jsonc
 ```
 
-6. Desplegar reglas/índices de Firestore y después el Worker. Confirmar que los índices estén listos. No activar Firebase Functions ni Blaze:
+6. Ya se desplegaron reglas/índices de Firestore y el Worker inactivo. Para repetir el despliegue después de configurar los secretos, usar estos comandos. No activar Firebase Functions ni Blaze:
 
 ```powershell
 npx firebase-tools@latest deploy --only firestore --project entre-dos-db
 npx --yes wrangler@4.158.0 deploy --config email-worker/wrangler.jsonc
 ```
 
-7. Revisar `/health` del Worker. Configurar los textos y remitente desde Admin. Cambiar `SEND_ENABLED` a `true` y desplegar cuando se decida comenzar el envío; es un interruptor del servidor que la app no puede eludir. El primer ciclo publica el estado del servicio en Firebase. Probar primero con la familia propietaria y su consentimiento, confirmando recepción y baja antes de invitar a otras familias.
+7. Revisar `/health` del Worker. En el primer despliegue respondió `configured: false, sending: false`, coherente con las credenciales pendientes. Configurar los textos y remitente desde Admin. Cambiar `SEND_ENABLED` a `true` y desplegar cuando se decida comenzar el envío; es un interruptor del servidor que la app no puede eludir. El primer ciclo publica el estado del servicio en Firebase. Probar primero con la familia propietaria y su consentimiento, confirmando recepción y baja antes de invitar a otras familias.
 
 La cuenta de Firebase y sus verificaciones/recuperaciones funcionan sin estos pasos adicionales. No hacen falta contraseñas de Gmail para esta integración.
 
