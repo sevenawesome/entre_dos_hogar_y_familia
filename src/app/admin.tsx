@@ -3,7 +3,7 @@ import { AdminPermissionsEditor } from "../components/AdminPermissionsEditor";
 import { hasPermission } from "../domain/admin-permissions";
 import { useEffect, useState } from "react";
 import { Text, View, Pressable, Switch } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useApp } from "../store";
 import { callBackend, friendlyError } from "../services/api";
@@ -32,15 +32,23 @@ interface ManagedFamily {
 }
 export default function Admin() {
   const app = useApp();
+  const { section: requestedSection } = useLocalSearchParams<{
+    section?: string | string[];
+  }>();
+  const selectedSection = Array.isArray(requestedSection)
+    ? requestedSection[0]
+    : requestedSection;
   const canEdit = app.isAdmin && !app.demo;
   const canSettings = app.demo || hasPermission(app, "settings.manage"),
     canContent = app.demo || hasPermission(app, "content.manage"),
     canFamily = app.demo || hasPermission(app, "families.view"),
     canFamilyEdit = app.demo || hasPermission(app, "families.edit"),
     canRoles = app.demo || hasPermission(app, "roles.manage");
-  const [chosenSection, setSection] = useState<
-    "app" | "email" | "levels" | "families" | "roles"
-  >("app");
+  const chosenSection =
+    selectedSection &&
+    ["app", "email", "levels", "families", "roles"].includes(selectedSection)
+      ? selectedSection
+      : "app";
   const [settings, setSettings] = useState(app.settings),
     [levels, setLevels] = useState<Level[]>(app.levels),
     [json, setJson] = useState(""),
@@ -181,7 +189,7 @@ export default function Admin() {
               accessibilityRole="button"
               key={key}
               onPress={() => {
-                setSection(key);
+                router.setParams({ section: key });
                 setError("");
                 setMessage("");
               }}

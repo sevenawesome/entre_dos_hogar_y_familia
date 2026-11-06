@@ -4,7 +4,7 @@ Firebase continúa en Spark. El usuario creó las cuentas de Resend/Cloudflare y
 
 ## Centro de configuración
 
-En **Admin → Abrir centro de configuración**:
+En **Admin → Abrir centro de configuración** (el botón está al inicio del panel; **Gestionar permisos** abre directamente la sección de accesos):
 
 - Aplicación: avisos, mensajes de cierre/nuevos niveles, soporte y pausa de recordatorios.
 - Correos: nombre/remitente y dirección para respuestas, pausa, resúmenes automáticos, mensajes administrativos, límites y cuatro plantillas de texto con variables. Las claves del proveedor no aparecen ni se guardan en Firebase o Expo.

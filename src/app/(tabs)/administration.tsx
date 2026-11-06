@@ -189,6 +189,32 @@ export default function Administration() {
       )}
       {!!error && <Notice error text={error} />}
       {!!message && <Notice text={message} />}
+      {!recipient && !roleTarget && (
+        <Card style={{ backgroundColor: colors.lavender }}>
+          <Text style={s.sectionTitle}>Administrar ENTRE DOS</Text>
+          <Text style={s.body}>
+            {canRoles
+              ? "Elige qué puede ver o cambiar cada administrador y configura la app desde aquí."
+              : "Abre las secciones de configuración disponibles para tu cuenta."}
+          </Text>
+          {canRoles && (
+            <Button
+              title="Gestionar permisos"
+              onPress={() =>
+                router.push({
+                  pathname: "/admin",
+                  params: { section: "roles" },
+                })
+              }
+            />
+          )}
+          <Button
+            secondary
+            title="Abrir centro de configuración"
+            onPress={() => router.push("/admin")}
+          />
+        </Card>
+      )}
       {!recipient && !roleTarget && canView && (
         <>
           <Card>
@@ -553,18 +579,10 @@ export default function Administration() {
         </>
       )}
       {!recipient && !roleTarget && (
-        <Card>
-          <Text style={s.sectionTitle}>La app y sus próximos capítulos</Text>
-          <Button
-            secondary
-            title="Abrir centro de configuración"
-            onPress={() => router.push("/admin")}
-          />
-          <Text style={s.small}>
-            Los datos de esta sección son privados para la administración. Se
-            cargan por páginas para cuidar el consumo de Firebase Spark.
-          </Text>
-        </Card>
+        <Text style={s.small}>
+          Los datos de esta sección son privados para la administración. Se
+          cargan por páginas para cuidar el consumo de Firebase Spark.
+        </Text>
       )}
     </Screen>
   );

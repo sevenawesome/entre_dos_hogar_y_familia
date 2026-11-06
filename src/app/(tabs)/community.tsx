@@ -15,7 +15,6 @@ import { useApp } from "../../store";
 import type { CommunityProfile } from "../../domain/types";
 import { getAnniversary } from "../../domain/anniversary";
 import { useNow } from "../../components/useNow";
-import { Avatar } from "../../components/Avatar";
 import { PhotoViewer } from "../../components/PhotoViewer";
 import { upcomingCommunityBirthdays } from "../../domain/people";
 import {
@@ -160,7 +159,11 @@ export default function Community() {
             <View
               style={{ flexDirection: "row", gap: 14, alignItems: "center" }}
             >
-              {!profile.avatar && <Avatar name={profile.alias} size={80} />}
+              <PhotoViewer
+                uri={profile.avatar}
+                name={profile.alias}
+                size={72}
+              />
               <View style={{ flex: 1, gap: 5 }}>
                 <Text style={s.sectionTitle}>{profile.alias}</Text>
                 <Text style={s.small}>
@@ -168,11 +171,11 @@ export default function Community() {
                     ? "Su familia · lo que están compartiendo"
                     : "Una historia de nuestra comunidad"}
                 </Text>
+                {!!profile.avatar && (
+                  <Text style={s.small}>Toca la foto para ampliarla</Text>
+                )}
               </View>
             </View>
-            {!!profile.avatar && (
-              <PhotoViewer large uri={profile.avatar} name={profile.alias} />
-            )}
             {anniversary ? (
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: 17 }}

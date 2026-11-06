@@ -29,7 +29,7 @@ La familia recibe el mensaje al abrir/sincronizar. Con recordatorios y permisos 
 
 ## Administradores
 
-En Admin → Abrir centro de configuración → Permisos busca otra cuenta registrada por correo o UID. Activa o desactiva Esta cuenta es administradora y elige sus permisos, marca la confirmación y pulsa Guardar permisos de esta cuenta. Se requiere Gestionar permisos de otros administradores. La persona debe crear su cuenta y registrar su familia primero. El permiso corresponde a la cuenta familiar: si ambos integrantes la comparten, ambos tienen ese acceso. El cambio y su auditoría se escriben atómicamente. Nadie puede modificar su propio rol ni el de un propietario, conceder permisos que no tiene ni modificar una cuenta con permisos superiores. La revocación bloquea las siguientes operaciones según las reglas, aun si la interfaz de otro dispositivo todavía no actualizó el tab. No revoca copias que una persona hubiera visto o guardado antes.
+En **Admin → Gestionar permisos**, con acceso directo al inicio del panel, busca otra cuenta registrada por correo o UID. También está disponible en Abrir centro de configuración → Permisos. Activa o desactiva Esta cuenta es administradora y elige sus permisos, marca la confirmación y pulsa Guardar permisos de esta cuenta. Se requiere Gestionar permisos de otros administradores. La persona debe crear su cuenta y registrar su familia primero. El permiso corresponde a la cuenta familiar: si ambos integrantes la comparten, ambos tienen ese acceso. El cambio y su auditoría se escriben atómicamente. Nadie puede modificar su propio rol ni el de un propietario, conceder permisos que no tiene ni modificar una cuenta con permisos superiores. La revocación bloquea las siguientes operaciones según las reglas, aun si la interfaz de otro dispositivo todavía no actualizó el tab. No revoca copias que una persona hubiera visto o guardado antes.
 
 ## Configuración, niveles y datos familiares
 
@@ -45,7 +45,7 @@ Para la primera carga pulsa Preparar los 30 retos originales del nivel 1, valida
 
 ## Comunidad y fotos
 
-Cada familia decide si participa. El alias y foto solo son públicos al participar, con permisos separados para fecha de matrimonio y contadores. Solo pasan nombre, foto y día/mes de las personas cuyos cumpleaños la familia autorice expresamente, incluidos hijos. Nunca se publican año de nacimiento, edades, correos, notas ni cuestionarios. Las fotos privadas individuales no se muestran a administradores. La miniatura familiar se limita a unos 32 KB y cada individual a unos 12 KB; el original no se sube. No se usa Firebase Storage.
+Cada familia decide si participa. El alias y foto solo son públicos al participar, con permisos separados para fecha de matrimonio y contadores. En Comunidad, la foto familiar aparece como un círculo de 72 puntos junto al nombre y se amplía al tocarla. Solo pasan nombre, foto y día/mes de las personas cuyos cumpleaños la familia autorice expresamente, incluidos hijos. Nunca se publican año de nacimiento, edades, correos, notas ni cuestionarios. Las fotos privadas individuales no se muestran a administradores. La miniatura familiar se limita a unos 32 KB y cada individual a unos 12 KB; el original no se sube. No se usa Firebase Storage.
 
 ## Auditoría y límites
 
