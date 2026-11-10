@@ -82,13 +82,17 @@ export default function Privacy() {
         </Text>
         <Text style={s.sectionTitle}>Eliminar la cuenta</Text>
         <Text style={s.body}>
-          En Nosotros pueden eliminar la cuenta y sus datos compartidos. La
-          eliminación afecta a los dos teléfonos y es permanente. Se necesita
-          conexión y una sesión reciente. Mantengan la app abierta hasta
-          terminar; si se interrumpe, pueden volver a intentar la eliminación.
-          Se conserva un identificador técnico de bloqueo para impedir que una
-          sesión antigua vuelva a crear datos. El propietario debe transferir su
-          rol primero.
+          En Nosotros pueden eliminar la cuenta y sus datos compartidos. El
+          propietario del programa también puede eliminar cuentas de familias
+          desde la administración, con confirmación y auditoría. Se conservan
+          registros técnicos mínimos de eliminación para impedir que sesiones
+          antiguas vuelvan a crear datos. Las cuentas administrativas quedan
+          protegidas durante un reinicio de familias. La eliminación afecta a
+          los dos teléfonos y es permanente. Se necesita conexión y una sesión
+          reciente. Mantengan la app abierta hasta terminar; si se interrumpe,
+          pueden volver a intentar la eliminación. Se conserva un identificador
+          técnico de bloqueo para impedir que una sesión antigua vuelva a crear
+          datos. El propietario debe transferir su rol primero.
         </Text>
         <Text style={s.sectionTitle}>El bienestar va primero</Text>
         <Text style={s.body}>

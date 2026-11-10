@@ -1,4 +1,6 @@
 import { AdminBrandingEditor } from "./AdminBrandingEditor";
+import { AdminFamilyPicker } from "./AdminFamilyPicker";
+import { router } from "expo-router";
 import { hasPermission } from "../domain/admin-permissions";
 import { useEffect, useState } from "react";
 import { Text, View, Pressable, Switch } from "react-native";
@@ -114,6 +116,13 @@ export function AdminConfiguration({
       {!!error && <Notice error text={error} />}
       {!!message && <Notice text={message} />}
       {section === "app" && canSettings && <AdminBrandingEditor />}
+      {section === "app" && canSettings && (
+        <Button
+          secondary
+          title="Ver imagen de apertura"
+          onPress={() => router.push("/launch-preview")}
+        />
+      )}
       {section === "app" && canSettings && (
         <Card>
           <Text style={s.sectionTitle}>Mensajes y soporte</Text>
@@ -364,7 +373,26 @@ export function AdminConfiguration({
       {section === "families" && canFamily && (
         <>
           <Card>
-            <Text style={s.sectionTitle}>Acompañar una familia</Text>
+            <Text style={s.sectionTitle}>Seleccionar una familia</Text>
+            <AdminFamilyPicker
+              initialOpen
+              onSelect={(chosen) =>
+                run(async () => {
+                  setQuery(chosen.email || chosen.uid);
+                  if (app.demo) {
+                    setTarget({ ...chosen, deviceCount: 0, progress: [] });
+                    return;
+                  }
+                  const result = await callBackend("adminFindFamily", {
+                    query: chosen.uid,
+                  });
+                  setTarget(result.data as ManagedFamily);
+                })
+              }
+            />
+            <Text style={s.small}>
+              ¿No aparece en el listado? Búscala por su correo registrado o UID.
+            </Text>
             <Field
               label="Correo de la cuenta o UID"
               value={query}

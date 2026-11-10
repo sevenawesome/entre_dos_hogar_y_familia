@@ -11,6 +11,7 @@ import {
   setFamilyEmailDelivery,
 } from "../services/spark-admin";
 import { AdminEmailSettings } from "./AdminEmailSettings";
+import { AdminFamilyPicker } from "./AdminFamilyPicker";
 import { Button, Card, Field, Notice, colors, s } from "./ui";
 interface Target {
   uid: string;
@@ -119,8 +120,7 @@ export function AdminDeliveryCenter({ email = false }: { email?: boolean }) {
                 style={{
                   padding: 12,
                   borderRadius: 12,
-                  backgroundColor:
-                    section === key ? colors.ocean : colors.mist,
+                  backgroundColor: section === key ? colors.ocean : colors.mist,
                 }}
               >
                 <Text
@@ -148,6 +148,19 @@ export function AdminDeliveryCenter({ email = false }: { email?: boolean }) {
                   email
                     ? "Avisos sobre la cuenta y el programa, sin campañas publicitarias. Se enviarán solo a direcciones verificadas, respetando las bajas y la cuota. Encolar no confirma entrega."
                     : "No consume correos. El mensaje queda en su bandeja; el aviso del teléfono se presenta al abrir o sincronizar la app. Esta versión no envía un push remoto inmediato con la app cerrada."
+                }
+              />
+              <AdminFamilyPicker
+                onSelect={(chosen) =>
+                  run(async () => {
+                    setQuery(chosen.email || chosen.uid);
+                    setConfirmed(false);
+                    setTarget(null);
+                    if (email && !app.demo)
+                      setStatus(await familyEmailStatus(chosen.uid));
+                    else setStatus({ enabled: true, unsubscribed: false });
+                    setTarget(chosen);
+                  })
                 }
               />
               <Field

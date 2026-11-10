@@ -100,6 +100,7 @@ Para publicar se necesitan las cuentas de las tiendas, identidad legal, polític
 | `catalogs/anniversaries` | Catálogo de bodas; copia inicial empaquetada como respaldo. |
 | `adminAudit/{id}` | Actor, acción, destino y fecha; creación atómica con cambios, inmutable desde la app. |
 | `accountDeletion/{uid}` | Marcador mínimo para impedir recreación tras eliminar la cuenta. |
+| `adminDeletionJobs/{id}` | Procesos de borrado confirmados por el propietario; acceso exclusivo del servicio. |
 | `config/email`, `emailPreferences/{uid}` | Ajustes sin secretos y recepción gestionada por administradores; bajas firmadas respetadas; envío inicialmente apagado. |
 | `emailQueue/{id}`, `mailJobs/{id}`, `mailRuntime/{id}` | Cola, trabajos con idempotencia y presupuesto atómico del Worker opcional. |
 
@@ -134,6 +135,8 @@ Correos incluidos en Firebase Spark: [150 recuperaciones y 1.000 verificaciones 
 
 El [centro de configuración, permisos y activación del correo](docs/CORREOS_Y_PERMISOS.md) reúne ajustes, remitente/respuestas, plantillas, cuotas y accesos por administrador. Firebase continúa en Spark; la cuenta propietaria tiene acceso completo y los permisos se aplican en reglas, cliente y servicio de correo. Los secretos quedan fuera de Firebase/Expo.
 
-Admin ahora organiza ocho pestañas y siete permisos, con notificaciones y correo como canales independientes. Nosotros conserva seguridad/verificación y avisos del teléfono, sin controles de recepción de correo. La bienvenida y el cierre de nivel crean eventos únicos en transacciones de Firestore; el servidor verifica Auth y respeta cuotas y bajas. Ver [Administración](docs/ADMINISTRACION.md) y [Correo y permisos](docs/CORREOS_Y_PERMISOS.md).
+Admin organiza ocho herramientas con siete permisos y una novena, **Cuentas y reinicio**, exclusiva del propietario. Incluye listados seleccionables y eliminación individual o reinicio de familias con vista previa, confirmación escrita y acceso reciente. Conserva administradores, niveles y configuración. El servicio añade únicamente el permiso IAM `firebaseauth.users.delete` a sus permisos existentes; no requiere Blaze. No se ha ejecutado ninguna eliminación real durante las pruebas.
+
+Notificaciones y correo son canales independientes. Nosotros conserva seguridad/verificación y avisos del teléfono, sin controles de recepción de correo. La bienvenida y el cierre de nivel crean eventos únicos en transacciones de Firestore; el servidor verifica Auth y respeta cuotas y bajas. Ver [Administración](docs/ADMINISTRACION.md) y [Correo y permisos](docs/CORREOS_Y_PERMISOS.md).
 
 La [identidad gráfica Amor que permanece](docs/IDENTIDAD_GRAFICA.md) reúne los recursos originales, escena de apertura, iconos por plataforma, paleta y pasos para comprobar el splash nativo.

@@ -54,10 +54,11 @@ export default function Today() {
   const now = useNow();
   const { width } = useWindowDimensions();
   const [headerWidth, setHeaderWidth] = useState<number>();
-  const headerSize = Math.min(
-    164,
-    ((headerWidth ?? Math.min(width, 650) - 48) - 16) / 2,
+  const logoWidth = Math.min(
+    230,
+    (((headerWidth ?? Math.min(width, 650) - 48) - 16) * 2) / 3,
   );
+  const headerSize = logoWidth / 2;
   const journey = getJourney(levels, progress, catalogReady && progressReady);
   const level = journey.current;
   const p = level ? progress[level.id] : undefined;
@@ -99,7 +100,7 @@ export default function Today() {
           },
         ]}
       >
-        <Brand compact frameSize={headerSize} />
+        <Brand compact frameSize={logoWidth} />
         <Pressable
           accessibilityLabel="Ver nuestro perfil"
           onPress={() => router.push("/(tabs)/family")}

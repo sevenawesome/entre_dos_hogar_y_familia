@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AdminFamilyPicker } from "./AdminFamilyPicker";
 import { Switch, Text, View, Pressable } from "react-native";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../services/firebase";
@@ -93,6 +94,12 @@ export function AdminPermissionsEditor({
         Elige qué puede consultar o cambiar cada cuenta. Los permisos pertenecen
         a la cuenta compartida de la familia.
       </Text>
+      <AdminFamilyPicker
+        onSelect={(family) => {
+          setQuery(family.email || family.uid);
+          void lookup(family.uid);
+        }}
+      />
       <Field
         label="Correo registrado o UID de la cuenta"
         value={query}

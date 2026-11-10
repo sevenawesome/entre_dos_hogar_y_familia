@@ -1,5 +1,20 @@
 export const adminSections = [
   {
+    id: "accounts",
+    title: "Cuentas y reinicio",
+    group: "Organizar",
+    icon: "trash-outline",
+    permission: "settings.manage",
+    description:
+      "Eliminación individual y limpieza de familias, solo propietario.",
+    steps: [
+      "Revisa el listado de cuentas o prepara la eliminación de todas las familias.",
+      "Comprueba los destinatarios y escribe exactamente la confirmación. Se requiere un inicio de sesión de los últimos cinco minutos.",
+      "Confirma solo cuando estés seguro. Revisa el avance y usa Reanudar si se interrumpe la limpieza.",
+    ],
+    note: "Se eliminan acceso y datos de las familias. Propietario, administradores, niveles y configuración se conservan. En demostración no se borra nada.",
+  },
+  {
     id: "families",
     title: "Familias",
     group: "Acompañar",

@@ -31,14 +31,17 @@ export function Brand({
         flexShrink: 1,
         width: frameSize ?? (compact ? 208 : "100%"),
         maxWidth: 400,
-        gap: compact ? 0 : 4,
+        gap: compact ? 2 : 4,
       }}
     >
       <Image
         source={require("../../assets/logo.png")}
         accessible={false}
         resizeMode="contain"
-        style={{ width: "100%", height: frameSize ?? (compact ? 99 : 150) }}
+        style={{
+          width: "100%",
+          height: frameSize ? frameSize / 2 : compact ? 104 : 150,
+        }}
       />
       {!!byline && (
         <Text

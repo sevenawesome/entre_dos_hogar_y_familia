@@ -99,6 +99,7 @@ export function Button({
   disabled,
   busy,
   icon,
+  danger,
 }: {
   title: string;
   onPress: () => void;
@@ -106,6 +107,7 @@ export function Button({
   disabled?: boolean;
   busy?: boolean;
   icon?: keyof typeof Ionicons.glyphMap;
+  danger?: boolean;
 }) {
   return (
     <Pressable
@@ -116,6 +118,7 @@ export function Button({
       style={({ pressed }) => [
         s.button,
         secondary && s.secondary,
+        danger && { backgroundColor: "#A52D3D" },
         (disabled || busy) && { opacity: 0.45 },
         pressed && { opacity: 0.8 },
       ]}

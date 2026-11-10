@@ -1,6 +1,7 @@
 import { hasPermission } from "../../domain/admin-permissions";
 import { AdminPermissionsEditor } from "../../components/AdminPermissionsEditor";
 import { AdminConfiguration } from "../../components/AdminConfiguration";
+import { AdminAccountManagement } from "../../components/AdminAccountManagement";
 import { AdminDeliveryCenter } from "../../components/AdminDeliveryCenter";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
@@ -37,9 +38,10 @@ export default function Administration() {
     canRoles = app.demo || hasPermission(app, "roles.manage");
   const tabs = adminSections.filter(
     (item) =>
-      app.demo ||
-      hasPermission(app, item.permission) ||
-      (item.id === "emails" && hasPermission(app, "settings.manage")),
+      (item.id !== "accounts" || app.role === "owner" || app.demo) &&
+      (app.demo ||
+        hasPermission(app, item.permission) ||
+        (item.id === "emails" && hasPermission(app, "settings.manage"))),
   );
   const current = tabs.find((item) => item.id === requested);
   const section = current?.id;
@@ -174,6 +176,7 @@ export default function Administration() {
       }
     >
       {!!error && <Notice error text={error} />}
+      {section === "accounts" && <AdminAccountManagement />}
       {section === "roles" && canRoles && <AdminPermissionsEditor />}
       {section === "notifications" && (
         <AdminDeliveryCenter key="notifications" />
@@ -184,7 +187,7 @@ export default function Administration() {
       {section === "families" && canView && (
         <AdminConfiguration section="families" />
       )}
-      {canView && ["families", "dates", "support"].includes(section ?? "") && (
+      {canView && ["dates", "support"].includes(section ?? "") && (
         <>
           <View style={{ flexDirection: "row", gap: 8 }}>
             {[

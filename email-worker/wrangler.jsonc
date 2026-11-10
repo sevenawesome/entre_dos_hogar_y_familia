@@ -11,6 +11,7 @@
     "PUBLIC_BASE_URL": "https://entre-dos-correo.sevenawesome-srl.workers.dev",
     "FROM_EMAIL": "Amor que permanece <avisos@correo.sevenawesome.com>",
     "SEND_ENABLED": "false",
+    "ADMIN_ACCOUNTS_ENABLED": "true",
   },
   "observability": { "enabled": false },
 }

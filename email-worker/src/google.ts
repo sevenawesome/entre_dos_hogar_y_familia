@@ -6,6 +6,7 @@ export interface Env {
   PUBLIC_BASE_URL: string;
   FROM_EMAIL: string;
   SEND_ENABLED: string;
+  ADMIN_ACCOUNTS_ENABLED?: string;
 }
 export type Data = Record<string, unknown>;
 export interface Document<T = Data> {
@@ -47,7 +48,7 @@ export const unb64 = (s: string) =>
   );
 const encode = (s: string) => b64(new TextEncoder().encode(s));
 let cached: { key: string; token: string; until: number } | null = null;
-async function accessToken(env: Env, fetcher: typeof fetch) {
+export async function accessToken(env: Env, fetcher: typeof fetch) {
   const sa = JSON.parse(env.GOOGLE_SERVICE_ACCOUNT ?? "{}");
   if (
     sa.project_id !== env.FIREBASE_PROJECT_ID ||

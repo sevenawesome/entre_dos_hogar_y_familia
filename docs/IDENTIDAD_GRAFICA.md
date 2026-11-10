@@ -9,7 +9,7 @@ Nombre según el logo aportado: **Amor que permanece**. Se conserva «By Departa
 - `assets/android-icon-foreground.png` y `assets/android-icon-background.png`: capas adaptables, con la marca dentro de la zona segura. `assets/android-icon-monochrome.png`: corazón para iconos temáticos.
 - `assets/notification-icon.png`: corazón blanco con transparencia de 96 × 96, apropiado para el aviso pequeño de Android. El icono completo se configura como `largeIcon`; iOS usa el icono de la aplicación.
 - `assets/brand/splash-art-source.png`: fondo creativo generado. `assets/brand/splash-art.jpg`: versión de 1024 × 1536 optimizada, aproximadamente 228 KB, incluida localmente en la app, sin petición de red.
-- `assets/splash-icon.png`: marca transparente para la primera pantalla nativa del sistema. `BrandedLaunch` presenta la escena creativa mientras carga el primer estado de la cuenta/perfil, sin añadir una espera artificial; la escena también permanece en la bienvenida.
+- `assets/logo.png`: marca horizontal para la primera pantalla nativa del sistema. `BrandedLaunch` presenta la escena creativa completa mientras carga el primer estado de la cuenta/perfil, con un mínimo de 1,2 segundos desde que la imagen está lista para evitar un destello. La escena también permanece en la bienvenida y puede revisarse desde Admin → Configuración → Ver imagen de apertura.
 - `assets/brand/palette-reference.jpg`: flyer de referencia aportado.
 
 Los recursos finales se pueden regenerar desde los originales aprobados con `powershell -NoProfile -File scripts/refresh-brand.ps1`. El script solo dimensiona, convierte formatos y prepara las capas/máscara vectorial; no descarga imágenes ni accede a cuentas.
@@ -40,6 +40,6 @@ La introspección de Expo valida la configuración de iconos adaptables, `largeI
 
 ## Administración y encabezado · 10 de noviembre de 2026
 
-La fotografía circular y el logo de Hoy comparten un marco del mismo tamaño, adaptado al ancho disponible y limitado a 164 puntos. El logo conserva su proporción original. La firma bajo el logo se edita en Admin → Configuración → Texto bajo el logo, admite hasta 120 caracteres y se oculta si se guarda vacía. Se sincroniza desde el documento público `config/branding`; las opciones privadas de la app siguen separadas. Los correos nuevos también utilizan esta firma.
+La fotografía circular de Hoy iguala la altura visible del logo horizontal, con un ancho máximo del logo de 230 puntos. El logo conserva su proporción 2:1 y la firma queda a dos puntos debajo. La firma se edita en Admin → Configuración → Texto bajo el logo, admite hasta 120 caracteres y se oculta si se guarda vacía. Se sincroniza desde el documento público `config/branding`; las opciones privadas de la app siguen separadas. Los correos nuevos también utilizan esta firma.
 
 El área administrativa usa azul profundo, superficies gris azuladas, iconos y tipografía de interfaz. Su panel agrupa los módulos en Acompañar, Comunicar y Organizar. Al entrar se oculta la barra familiar y se ofrece una salida explícita, sin cerrar la sesión. Cada módulo incluye «Cómo usar esta sección». No se incorporan dependencias ni se modifican los identificadores técnicos de la app.

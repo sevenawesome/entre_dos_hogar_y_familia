@@ -216,7 +216,7 @@ service cloud.firestore {
   match /mailRuntime/{id} { allow read: if can('emails.send') || can('settings.manage'); }
   match /roles/{uid} {
    allow read: if self(uid) || can('roles.manage');
-   allow create,update: if can('roles.manage') && uid!=request.auth.uid && exists(/databases/$(database)/documents/tracking/$(uid))
+   allow create,update: if can('roles.manage') && uid!=request.auth.uid && !deleting(uid) && exists(/databases/$(database)/documents/tracking/$(uid))
     && (!exists(/databases/$(database)/documents/roles/$(uid)) || resource.data.role!='owner')
     && request.resource.data.keys().hasOnly(['role','permissions','updatedAt','updatedBy','auditId']) && request.resource.data.role in ['admin','member']
     && request.resource.data.keys().hasAll(['permissions']) && request.resource.data.get('permissions',[]) is list && request.resource.data.get('permissions',[]).size()<=7 && request.resource.data.get('permissions',[]).hasOnly(allPermissions())

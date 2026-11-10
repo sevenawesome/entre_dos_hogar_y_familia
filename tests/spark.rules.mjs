@@ -1608,3 +1608,40 @@ test("the owner can create and update branding in an audited transaction and sta
   assert.equal(saved.data().byline, "By Departamento de Hogar y Familia");
   assert.equal(saved.data().version, 2);
 });
+
+test("deletion jobs are server-only and a marked account cannot receive an administrative role", async () => {
+  await createFamily("a");
+  await seed("accountDeletion/a", {
+    requestedAt: Timestamp.now(),
+    source: "administration",
+  });
+  await assertFails(
+    auditedWrite(
+      ctx("owner"),
+      "roles/a",
+      {
+        role: "admin",
+        permissions: ["families.view"],
+        updatedAt: serverTimestamp(),
+        updatedBy: "owner",
+      },
+      "role.update",
+      "a",
+      "owner",
+    ),
+  );
+  const path = "adminDeletionJobs/00000000-0000-0000-0000-000000000000";
+  await seed(path, { actorUid: "owner", targets: ["a"], state: "queued" });
+  for (const db of [
+    ctx("owner"),
+    ctx("administrator"),
+    ctx("a"),
+    env.unauthenticatedContext().firestore(),
+  ]) {
+    await assertFails(getDoc(doc(db, path)));
+    await assertFails(
+      setDoc(doc(db, path), { state: "queued", targets: ["owner"] }),
+    );
+    await assertFails(deleteDoc(doc(db, path)));
+  }
+});

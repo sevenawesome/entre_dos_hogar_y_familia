@@ -1,4 +1,19 @@
 import { defaultBranding, validateBranding } from "../../src/domain/branding";
+import { accountsRepository } from "./accounts-google";
+import {
+  accountsHeaders,
+  deletionCycle,
+  handleAccountsRequest,
+} from "./account-admin";
+export {
+  handleAccountsRequest,
+  previewDeletion,
+  confirmDeletion,
+  stepDeletionJob,
+  deletionCycle,
+} from "./account-admin";
+export { verifyFirebaseToken } from "./firebase-token";
+export { accountsRepository } from "./accounts-google";
 import {
   defaultEmailSettings,
   migrateEmailBrand,
@@ -719,8 +734,44 @@ export default {
           ),
         ),
     );
+    if (env.ADMIN_ACCOUNTS_ENABLED === "true")
+      ctx.waitUntil(
+        accountsRepository(env)
+          .then((repo) => deletionCycle(repo, env))
+          .catch(() =>
+            console.error(
+              "Account cleanup needs attention. No account data logged.",
+            ),
+          ),
+      );
   },
   async fetch(request: Request, env: Env) {
+    if (new URL(request.url).pathname.startsWith("/admin/accounts")) {
+      if (request.method === "OPTIONS")
+        return new Response(null, { status: 204, headers: accountsHeaders });
+      if (!request.headers.get("Authorization")?.startsWith("Bearer "))
+        return Response.json(
+          { error: "Inicia sesión como propietario." },
+          { status: 401, headers: accountsHeaders },
+        );
+      if (env.ADMIN_ACCOUNTS_ENABLED !== "true")
+        return Response.json(
+          { error: "El servicio de cuentas todavía no está habilitado." },
+          { status: 503, headers: accountsHeaders },
+        );
+      try {
+        return await handleAccountsRequest(
+          request,
+          env,
+          await accountsRepository(env),
+        );
+      } catch {
+        return Response.json(
+          { error: "No pudimos conectar con el servicio de cuentas." },
+          { status: 503, headers: accountsHeaders },
+        );
+      }
+    }
     if (new URL(request.url).pathname !== "/unsubscribe")
       return Response.json(
         {
