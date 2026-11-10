@@ -40,7 +40,7 @@ La introspección de Expo valida la configuración de iconos adaptables, `largeI
 
 ## Administración y encabezado · 10 de noviembre de 2026
 
-La fotografía circular de Hoy iguala la altura del logo horizontal, con un ancho máximo del logo de 230 puntos. Se compensa el margen transparente izquierdo del PNG original (70 de 1200 píxeles) en el margen derecho de la foto. La firma ocupa todo el ancho de la cabecera, centrada a cuatro puntos debajo y con letra de diez puntos. Se edita en Admin → Configuración → Texto bajo el logo, admite hasta 120 caracteres y se oculta si se guarda vacía. Se sincroniza desde el documento público `config/branding`; las opciones privadas de la app siguen separadas. Los correos nuevos también utilizan esta firma.
+La fotografía circular de Hoy iguala la altura del logo horizontal, con un ancho máximo del logo de 230 puntos. Se compensa el margen transparente izquierdo del PNG original (70 de 1200 píxeles) en el margen derecho de la foto. La firma queda centrada solo con el logo, dos puntos debajo y con letra de diez puntos; la foto conserva su posición. Se edita en Admin → Configuración → Texto bajo el logo, admite hasta 120 caracteres y se oculta si se guarda vacía. Se sincroniza desde el documento público `config/branding`; las opciones privadas de la app siguen separadas. Los correos nuevos también utilizan esta firma.
 
 El área administrativa usa azul profundo, superficies gris azuladas, iconos y tipografía de interfaz. Su panel agrupa los módulos en Acompañar, Comunicar y Organizar. Al entrar se oculta la barra familiar y se ofrece una salida explícita, sin cerrar la sesión. Cada módulo incluye «Cómo usar esta sección». No se incorporan dependencias ni se modifican los identificadores técnicos de la app.
 

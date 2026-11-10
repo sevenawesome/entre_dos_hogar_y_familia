@@ -312,6 +312,13 @@ export async function adminRequest(
           : Promise.resolve(null),
       ]);
       if (
+        Object.prototype.hasOwnProperty.call(data, "expectedAuditId") &&
+        (old.data()?.auditId ?? null) !== data.expectedAuditId
+      )
+        throw new Error(
+          "Otro administrador cambió este nivel. Recarga el catálogo antes de guardar.",
+        );
+      if (
         old.data()?.published &&
         !canEditPublishedLevel(old.data() as Level, level)
       )

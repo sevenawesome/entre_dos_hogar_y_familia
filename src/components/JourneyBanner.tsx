@@ -93,10 +93,9 @@ export function JourneyBanner({
           onPress={() =>
             journey.state === "new"
               ? router.push({
-                  pathname: "/challenge",
+                  pathname: "/level-intro",
                   params: {
                     levelId: journey.current!.id,
-                    challengeId: journey.current!.challenges[0].id,
                   },
                 })
               : router.push("/(tabs)/levels")

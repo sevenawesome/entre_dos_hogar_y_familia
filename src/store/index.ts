@@ -40,6 +40,8 @@ interface State {
   family: Family | null;
   levels: Level[];
   progress: ProgressMap;
+  levelNewsRead: string[];
+  levelNewsReady: boolean;
   error: string | null;
   anniversaryCatalog: AnniversaryCatalog;
   settings: AppSettings;
@@ -68,6 +70,8 @@ const initialState: State = {
   family: null,
   levels: [],
   progress: {},
+  levelNewsRead: [],
+  levelNewsReady: false,
   error: null,
   anniversaryCatalog: bundledAnniversaries,
   settings: defaultSettings,
@@ -92,6 +96,10 @@ const slice = createSlice({
   name: "app",
   initialState,
   reducers: {
+    levelNewsRead(state, action: PayloadAction<string[]>) {
+      state.levelNewsRead = action.payload;
+      state.levelNewsReady = true;
+    },
     branding(state, action: PayloadAction<BrandingSettings>) {
       state.branding = action.payload;
     },
@@ -104,6 +112,8 @@ const slice = createSlice({
       state.ready = true;
       state.family = null;
       state.progress = {};
+      state.levelNewsRead = [];
+      state.levelNewsReady = !!action.payload.demo;
       state.levels = [];
       state.error = null;
       state.anniversaryCatalog = bundledAnniversaries;

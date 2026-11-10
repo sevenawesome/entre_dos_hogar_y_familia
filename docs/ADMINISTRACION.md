@@ -22,7 +22,11 @@ Correos permite buscar destinatario, gestionar administrativamente su recepción
 
 ## Niveles y configuración
 
-Niveles permite preparar/validar un documento JSON, guardar borradores y publicar contenido. Un nivel publicado conserva su recorrido para proteger historiales. Puede cargar el catálogo inicial de bodas si no existe; no lo sobrescribe.
+Niveles ofrece un formulario con Datos del nivel, Retos, Preguntas finales y Vista previa. Permite agregar, quitar y reordenar retos, elegir un nivel anterior publicado como prerrequisito y preparar hasta 200 retos y 30 preguntas. Se guardan borradores privados al completar los campos obligatorios. La presentación se actualiza mientras se escribe; la vista previa administrativa incluye una muestra del reto y el cuestionario. Publicar abre un diálogo con el resumen y exige una confirmación explícita. Un nivel publicado conserva retos, preguntas y recorrido para proteger historiales; se puede mejorar su presentación. El guardado comprueba la revisión cargada para evitar sobrescribir cambios de otro administrador. Puede cargar el catálogo inicial de bodas si no existe; no lo sobrescribe.
+
+Cada nivel publicado después del primero aparece como novedad en Hoy, también para las familias que todavía no terminaron el anterior. «Conocer de qué trata» abre solo título, subtítulo, presentación y cantidades: no muestra actividades ni preguntas. Al confirmar «Entendido, ver en Nuestro camino», la novedad se marca como vista para la cuenta compartida y el nivel sigue en Camino, con su prerrequisito. Esta marca privada se guarda en `families/{uid}/levelNews/{levelId}` y se limpia al eliminar la familia.
+
+En Spark se presenta una notificación local cuando cada teléfono recibe el catálogo al abrir o sincronizar la app, si tiene permiso y avisos habilitados. Se agrupan las publicaciones nuevas y no se repite la misma por teléfono. Tocar el aviso abre la presentación del nivel. No es un push remoto inmediato con la app cerrada, ni consume la cuota de correo. La simulación de publicación de demostración solo modifica la sesión local; no publica en Firebase ni emite avisos.
 
 Configuración reúne mensajes para familias, soporte, aviso de nuevo nivel, texto al terminar todo y habilitación global de notificaciones del teléfono. Incluye vistas de ejemplo del nivel actual, final sin nuevos capítulos y anuncio de nivel nuevo. Los formularios con versión detectan cambios concurrentes y ofrecen recarga. Las claves de proveedores permanecen fuera de la app.
 

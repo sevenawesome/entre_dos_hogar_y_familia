@@ -14,8 +14,9 @@ import {
   type ManagedFamily,
 } from "../../services/spark-admin";
 import { friendlyError } from "../../services/api";
-import { getAnniversary } from "../../domain/anniversary";
-import { getFamilyBirthdays } from "../../domain/birthdays";
+import { localDateISO } from "../../domain/anniversary";
+import { familyCelebrations } from "../../domain/celebrations";
+import { AdminLevelStudio } from "../../components/AdminLevelStudio";
 import { supportStatus, summaryFromProgress } from "../../domain/community";
 import { useNow } from "../../components/useNow";
 import { Avatar } from "../../components/Avatar";
@@ -52,6 +53,10 @@ export default function Administration() {
     [error, setError] = useState("");
   async function load(append = false) {
     if (app.demo && app.family) {
+      const demoMonthDay = localDateISO(
+        app.family.timezone,
+        new Date(Date.now() + 5 * 86400000),
+      ).slice(5);
       const base = summaryFromProgress("demo", app.family.name, app.progress);
       setRows([
         {
@@ -75,7 +80,8 @@ export default function Administration() {
             name: "Familia Rivera",
             partner1: "Elena",
             partner2: "Marcos",
-            marriageDate: "2001-11-08",
+            marriageDate: `2001-${demoMonthDay}`,
+            partner1BirthDate: `1990-${demoMonthDay}`,
             children: [],
           },
           summary: {
@@ -120,35 +126,7 @@ export default function Administration() {
       supportStatus(r.summary, now).needsSupport,
   );
   const events = rows
-    .flatMap((r) => {
-      const anniversary = getAnniversary(
-        r.family.marriageDate,
-        r.family.timezone,
-        now,
-      );
-      return [
-        ...(anniversary
-          ? [
-              {
-                key: `${r.uid}-anniversary`,
-                uid: r.uid,
-                family: r.family.name,
-                days: anniversary.daysRemaining,
-                text: `${anniversary.years} años de matrimonio`,
-                kind: "Aniversario",
-              },
-            ]
-          : []),
-        ...getFamilyBirthdays(r.family, now).map((b) => ({
-          key: `${r.uid}-${b.key}`,
-          uid: r.uid,
-          family: r.family.name,
-          days: b.daysRemaining,
-          text: `${b.name} · ${b.nextAge} años`,
-          kind: "Cumpleaños",
-        })),
-      ];
-    })
+    .flatMap((r) => familyCelebrations(r.uid, r.family, now))
     .filter((e) => e.days <= 30)
     .sort((a, b) => a.days - b.days);
   if (!app.isAdmin && !app.demo)
@@ -182,7 +160,7 @@ export default function Administration() {
         <AdminDeliveryCenter key="notifications" />
       )}
       {section === "emails" && <AdminDeliveryCenter key="emails" email />}
-      {section === "levels" && <AdminConfiguration section="levels" />}
+      {section === "levels" && <AdminLevelStudio />}
       {section === "settings" && <AdminConfiguration section="app" />}
       {section === "families" && canView && (
         <AdminConfiguration section="families" />
@@ -244,7 +222,8 @@ export default function Administration() {
                         : `En ${e.days} días`}
                   </Text>
                   <Text style={s.sectionTitle}>{e.family}</Text>
-                  <Text style={s.body}>{e.text}</Text>
+                  <Text style={s.body}>{e.current}</Text>
+                  <Text style={s.label}>{e.upcoming}</Text>
                 </Card>
               ))}
             </>

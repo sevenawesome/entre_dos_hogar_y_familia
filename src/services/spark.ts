@@ -352,6 +352,7 @@ export async function deleteSparkAccount() {
     ["families", uid, "progress"],
     ["families", uid, "devices"],
     ["families", uid, "inbox"],
+    ["families", uid, "levelNews"],
   ]) {
     for (;;) {
       const page = await getDocs(

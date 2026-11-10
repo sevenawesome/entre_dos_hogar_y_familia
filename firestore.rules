@@ -136,6 +136,13 @@ service cloud.firestore {
    allow create,update: if (active(uid) || (resource!=null && can('families.edit') && audited({'auditId':request.resource.data.adminAuditId},'family.profile.update',uid))) && (resource==null || request.resource.data.timezone==resource.data.timezone) && validFamily();
    allow delete: if self(uid) && deleting(uid);
    match /progress/{id} { allow read: if self(uid); allow create,update: if active(uid) && validProgress(uid,id); allow delete: if self(uid) && deleting(uid); }
+   match /levelNews/{id} {
+    allow read: if self(uid);
+    allow create: if active(uid) && exists(/databases/$(database)/documents/families/$(uid))
+     && get(/databases/$(database)/documents/levels/$(id)).data.published==true
+     && request.resource.data.keys().hasOnly(['seenAt']) && request.resource.data.seenAt==request.time;
+    allow delete: if self(uid) && deleting(uid);
+   }
    match /devices/{id} { allow read,delete: if self(uid); }
    match /inbox/{id} {
     allow read: if self(uid);

@@ -45,6 +45,12 @@ export function subscribeSettings(
 export function subscribeSocial(uid: string, onError: (e: Error) => void) {
   return [
     onSnapshot(
+      collection(db!, "families", uid, "levelNews"),
+      (snap) =>
+        store.dispatch(actions.levelNewsRead(snap.docs.map((d) => d.id))),
+      onError,
+    ),
+    onSnapshot(
       doc(db!, "config", "email"),
       (snap) => {
         const data = migrateEmailBrand(snap.data() ?? {});

@@ -171,6 +171,38 @@ test("anonymous cannot read families, progress or community", async () => {
   await assertFails(getDocs(collection(db, "families")));
   await assertFails(getDocs(collection(db, "community")));
 });
+
+test("new level acknowledgement is private, timestamped, immutable and only for published levels", async () => {
+  await createFamily("a");
+  await createFamily("b");
+  const db = ctx("a"),
+    ref = doc(db, "families/a/levelNews/nivel-1");
+  await assertSucceeds(setDoc(ref, { seenAt: serverTimestamp() }));
+  await assertSucceeds(getDoc(ref));
+  await assertFails(getDoc(doc(ctx("b"), "families/a/levelNews/nivel-1")));
+  await assertFails(getDoc(doc(ctx("owner"), "families/a/levelNews/nivel-1")));
+  await assertFails(updateDoc(ref, { seenAt: serverTimestamp() }));
+  await seed("levels/draft", { ...level, id: "draft", published: false });
+  await assertFails(
+    setDoc(doc(db, "families/a/levelNews/draft"), {
+      seenAt: serverTimestamp(),
+    }),
+  );
+  await assertFails(
+    setDoc(doc(db, "families/a/levelNews/missing"), {
+      seenAt: serverTimestamp(),
+    }),
+  );
+  await assertFails(
+    setDoc(doc(ctx("b"), "families/b/levelNews/nivel-1"), {
+      seenAt: serverTimestamp(),
+      notes: "extra",
+    }),
+  );
+  await seed("accountDeletion/a", { requestedAt: new Date() });
+  await assertSucceeds(deleteDoc(ref));
+  await assertFails(setDoc(ref, { seenAt: serverTimestamp() }));
+});
 test("family and server-timestamp summary are created atomically", async () => {
   await assertSucceeds(createFamily());
   await assertFails(

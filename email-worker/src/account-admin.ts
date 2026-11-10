@@ -271,7 +271,7 @@ export async function stepDeletionJob(
         if (!skip) {
           await repo.deleteAuth(uid); // No Firestore data is removed if Auth deletion is denied.
           const pages = await Promise.all([
-            ...["progress", "devices", "inbox"].map((c) =>
+            ...["progress", "devices", "inbox", "levelNews"].map((c) =>
               repo.query(`families/${uid}/${c}`, [], 25, ["__name__"]),
             ),
             ...["emailQueue", "mailJobs", "mailEvents"].map((c) =>

@@ -89,6 +89,16 @@ export default function Levels() {
               </Text>
               <Text style={s.title}>{level.title}</Text>
               <Text style={s.body}>{level.description}</Text>
+              <Button
+                secondary
+                title="Conocer de qué trata este nivel"
+                onPress={() =>
+                  router.push({
+                    pathname: "/level-intro",
+                    params: { levelId: level.id },
+                  })
+                }
+              />
               <View style={s.row}>
                 <Ring size={70} value={percentage(level, p)} />
                 <Text style={[s.body, { flex: 1 }]}>

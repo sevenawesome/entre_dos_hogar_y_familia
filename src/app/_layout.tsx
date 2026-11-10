@@ -26,6 +26,7 @@ import {
   registerDevice,
   refreshDevice,
   presentInbox,
+  presentLevelNews,
 } from "../services/notifications";
 import { AppState } from "react-native";
 import { syncPublicProfile } from "../services/spark";
@@ -52,6 +53,8 @@ function AppLayout() {
     portraits,
     communityProfile,
     emailVerified,
+    levelNewsRead,
+    levelNewsReady,
   } = useApp();
   const [familyLoaded, setFamilyLoaded] = useState(false);
   const segments = useSegments();
@@ -169,9 +172,15 @@ function AppLayout() {
     const state = AppState.addEventListener("change", (status) => {
       if (status === "active") refreshDevice().catch(() => {});
     });
-    const listener = notificationResponseListener((screen) =>
-      router.push(screen === "inbox" ? "/inbox" : "/(tabs)"),
-    );
+    const listener = notificationResponseListener((screen, levelId) => {
+      if (
+        screen === "level-intro" &&
+        levelId &&
+        /^[a-zA-Z0-9_-]{1,100}$/.test(levelId)
+      )
+        router.push({ pathname: "/level-intro", params: { levelId } });
+      else router.push(screen === "inbox" ? "/inbox" : "/(tabs)");
+    });
     return () => {
       state.remove();
       listener?.remove();
@@ -200,6 +209,17 @@ function AppLayout() {
   useEffect(() => {
     if (uid && !demo) presentInbox(inbox).catch(() => {});
   }, [uid, demo, inbox]);
+  const levelNewsKey = JSON.stringify({
+    ids: levels.map((l) => l.id),
+    levelNewsRead,
+    levelNewsReady,
+    catalogReady,
+    enabled: settings.notificationsEnabled,
+    paused: controls.remindersPaused,
+  });
+  useEffect(() => {
+    if (uid && !demo) presentLevelNews().catch(() => {});
+  }, [uid, demo, levelNewsKey]);
   return (
     <>
       <StatusBar

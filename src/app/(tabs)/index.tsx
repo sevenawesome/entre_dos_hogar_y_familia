@@ -5,12 +5,13 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useApp } from "../../store";
 import { useNow } from "../../components/useNow";
-import { Brand, BrandByline } from "../../components/Brand";
+import { Brand } from "../../components/Brand";
 import { Avatar } from "../../components/Avatar";
 import { AnniversaryCard } from "../../components/AnniversaryCard";
 import { BirthdaysCard } from "../../components/BirthdaysCard";
 import { CreatorFooter } from "../../components/CreatorFooter";
 import { JourneyBanner } from "../../components/JourneyBanner";
+import { NewLevelAnnouncement } from "../../components/NewLevelAnnouncement";
 import { StartJourneyCard } from "../../components/StartJourneyCard";
 import { EmailVerificationCard } from "../../components/EmailVerificationCard";
 import {
@@ -50,7 +51,6 @@ export default function Today() {
     journey: started,
     journeyReady,
     emailVerified,
-    branding,
   } = useApp();
   const now = useNow();
   const { width } = useWindowDimensions();
@@ -107,7 +107,7 @@ export default function Today() {
             },
           ]}
         >
-          <Brand compact frameSize={logoWidth} byline="" />
+          <Brand compact frameSize={logoWidth} />
           <Pressable
             accessibilityLabel="Ver nuestro perfil"
             onPress={() => router.push("/(tabs)/family")}
@@ -131,7 +131,6 @@ export default function Today() {
             />
           </Pressable>
         </View>
-        <BrandByline text={branding.byline} compact />
       </View>
       {demo && (
         <Notice text="Demostración · el progreso se guarda solo en este teléfono." />
@@ -154,6 +153,7 @@ export default function Today() {
         <Notice text="Los recordatorios están pausados por la administración. Pueden seguir completando sus retos." />
       )}
       <JourneyBanner />
+      <NewLevelAnnouncement />
       {level && !needsStart && journeyReady && (
         <View style={{ gap: 15 }}>
           <View

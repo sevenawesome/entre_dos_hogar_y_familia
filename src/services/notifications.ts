@@ -6,6 +6,7 @@ import { localReminderPlan } from "../domain/local-reminders";
 import { getJourney } from "../domain/journey";
 import { journeyStarted, journeyAvailableAt } from "../domain/journey-timing";
 import { currentChallenge } from "../domain/progress";
+import { levelNewsNotice } from "../domain/level-news";
 async function notifications() {
   return Platform.OS === "web" ? null : import("expo-notifications");
 }
@@ -128,6 +129,7 @@ export function registerDevice(
         }
       }
       await AsyncStorage.setItem(prefKey(), JSON.stringify(prefs));
+      void presentLevelNews().catch(() => {});
     });
   pending = work;
   return work;
@@ -180,8 +182,68 @@ export async function presentInbox(messages: FamilyMessage[]) {
     });
   await AsyncStorage.setItem(key, latest.id);
 }
+let newsPending = Promise.resolve();
+/** Spark mode: a local notice when this phone receives the published catalog. */
+export function presentLevelNews() {
+  const uid = store.getState().app.uid;
+  newsPending = newsPending
+    .catch(() => {})
+    .then(async () => {
+      await pending.catch(() => {});
+      const state = store.getState().app;
+      if (
+        !uid ||
+        state.uid !== uid ||
+        state.demo ||
+        !state.catalogReady ||
+        !state.levelNewsReady ||
+        !state.settings.notificationsEnabled ||
+        state.controls.remindersPaused
+      )
+        return;
+      const prefs = await loadPreferences();
+      if (!prefs.enabled) return;
+      const n = await notifications();
+      if (!n || (await n.getPermissionsAsync()).status !== "granted") return;
+      const key = `@entre-dos/level-news-notified/${uid}`;
+      let notified: string[] = [];
+      try {
+        const saved = JSON.parse((await AsyncStorage.getItem(key)) ?? "[]");
+        if (Array.isArray(saved))
+          notified = saved.filter((v) => typeof v === "string");
+      } catch {}
+      const notice = levelNewsNotice(
+        state.levels,
+        state.levelNewsRead,
+        notified,
+      );
+      if (!notice || store.getState().app.uid !== uid) return;
+      n.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowBanner: true,
+          shouldShowList: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        }),
+      });
+      await n.scheduleNotificationAsync({
+        content: {
+          title: notice.title,
+          body: notice.body,
+          sound: "default",
+          data: { screen: "level-intro", levelId: notice.levelId },
+        },
+        trigger: null,
+      });
+      await AsyncStorage.setItem(
+        key,
+        JSON.stringify([...new Set([...notified, ...notice.ids])]),
+      );
+    });
+  return newsPending;
+}
 export function notificationResponseListener(
-  onTap: (screen?: string) => void,
+  onTap: (screen?: string, levelId?: string) => void,
 ): { remove(): void } {
   let removed = false;
   let subscription: { remove(): void } | undefined;
@@ -191,12 +253,14 @@ export function notificationResponseListener(
       subscription = n.addNotificationResponseReceivedListener((response) =>
         onTap(
           String(response.notification.request.content.data?.screen ?? "today"),
+          String(response.notification.request.content.data?.levelId ?? ""),
         ),
       );
       const last = await n.getLastNotificationResponseAsync();
       if (last && !removed) {
         onTap(
           String(last.notification.request.content.data?.screen ?? "today"),
+          String(last.notification.request.content.data?.levelId ?? ""),
         );
         await n.clearLastNotificationResponseAsync();
       }

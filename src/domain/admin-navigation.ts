@@ -107,7 +107,7 @@ export const adminSections = [
     description: "Prepara los próximos capítulos de las parejas.",
     steps: [
       "Crea un borrador y completa los retos, su orden y el cuestionario final.",
-      "Valida el contenido y revisa la vista previa antes de publicarlo.",
+      "Completa el formulario de presentación, retos y preguntas. Revisa la vista previa mientras escribes.",
       "Publica el nivel cuando esté listo. Las familias lo verán al sincronizar, con su requisito de acceso.",
     ],
     note: "Los niveles publicados llegan desde Firebase sin reinstalar la app. Conserva los identificadores de los retos que ya tengan progreso.",

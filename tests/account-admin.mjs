@@ -291,7 +291,7 @@ test("confirmed cleanup removes Auth and all known private/shared data, preservi
     "community",
   ])
     r.seed(`${root}/a`, { private: "secret" });
-  for (const c of ["progress", "devices", "inbox"])
+  for (const c of ["progress", "devices", "inbox", "levelNews"])
     r.seed(`families/a/${c}/one`, { private: "secret" });
   for (const c of ["emailQueue", "mailJobs", "mailEvents"]) {
     r.seed(`${c}/a`, { uid: "a", private: "secret" });

@@ -3,16 +3,13 @@ import { AdminFamilyPicker } from "./AdminFamilyPicker";
 import { router } from "expo-router";
 import { hasPermission } from "../domain/admin-permissions";
 import { useEffect, useState } from "react";
-import { Text, View, Pressable, Switch } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Text, View, Switch } from "react-native";
 import { useApp } from "../store";
 import { callBackend, friendlyError } from "../services/api";
-import { validateLevel } from "../domain/admin-validation";
 import type { AppSettings, Family, Level } from "../domain/types";
 import { FamilyForm } from "./FamilyForm";
 import { AdminJourneyPreview } from "./AdminJourneyPreview";
-import { bundledLevels } from "../data/catalog";
-import { Card, Button, Field, Notice, colors, s } from "./ui";
+import { Card, Button, Field, Notice, s } from "./ui";
 interface ManagedFamily {
   uid: string;
   email: string;
@@ -24,19 +21,14 @@ interface ManagedFamily {
 export function AdminConfiguration({
   section,
 }: {
-  section: "app" | "levels" | "families";
+  section: "app" | "families";
 }) {
   const app = useApp();
   const canEdit = app.isAdmin && !app.demo;
   const canSettings = app.demo || hasPermission(app, "settings.manage"),
-    canContent = app.demo || hasPermission(app, "content.manage"),
     canFamily = app.demo || hasPermission(app, "families.view"),
     canFamilyEdit = app.demo || hasPermission(app, "families.edit");
   const [settings, setSettings] = useState(app.settings),
-    [levels, setLevels] = useState<Level[]>(app.levels),
-    [json, setJson] = useState(""),
-    [preview, setPreview] = useState<Level | null>(null),
-    [confirmed, setConfirmed] = useState(false),
     [query, setQuery] = useState(""),
     [target, setTarget] = useState<ManagedFamily | null>(null),
     [busy, setBusy] = useState(false),
@@ -48,9 +40,8 @@ export function AdminConfiguration({
     callBackend("adminBootstrap", {})
       .then((result) => {
         if (!active) return;
-        const data = result.data as { settings: AppSettings; levels: Level[] };
+        const data = result.data as { settings: AppSettings };
         setSettings(data.settings);
-        setLevels(data.levels);
       })
       .catch((e) => {
         if (active) setError(friendlyError(e));
@@ -70,46 +61,6 @@ export function AdminConfiguration({
     } finally {
       setBusy(false);
     }
-  }
-  function newDraft() {
-    const order = Math.max(0, ...levels.map((l) => l.order)) + 1;
-    const previous = [...levels]
-      .filter((l) => l.published)
-      .sort((a, b) => b.order - a.order)[0];
-    setPreview(null);
-    setConfirmed(false);
-    setJson(
-      JSON.stringify(
-        {
-          id: `nivel-${order}`,
-          order,
-          title: "Título del nuevo nivel",
-          subtitle: "Una invitación para seguir creciendo juntos.",
-          description: "Reemplaza estos textos con el contenido definitivo.",
-          published: false,
-          prerequisiteId: previous?.id ?? null,
-          challenges: [
-            {
-              id: "reto-01",
-              order: 1,
-              title: "Título del primer reto",
-              description: "Escribe aquí la actividad completa.",
-              reflection: "¿Qué queremos aprender juntos?",
-              stage: "Primera etapa",
-              minutes: 20,
-            },
-          ],
-          questions: [
-            {
-              id: "pregunta-1",
-              label: "¿Qué queremos conservar de este nivel?",
-            },
-          ],
-        },
-        null,
-        2,
-      ),
-    );
   }
   return (
     <View style={{ gap: 16 }}>
@@ -209,166 +160,10 @@ export function AdminConfiguration({
                   levels: Level[];
                 };
                 setSettings(data.settings);
-                setLevels(data.levels);
               })
             }
           />
         </Card>
-      )}
-      {section === "levels" && canContent && (
-        <>
-          <Card>
-            <Text style={s.sectionTitle}>Catálogo de niveles</Text>
-            <Text style={s.body}>
-              Puedes preparar borradores y publicar niveles con cantidades
-              distintas de retos. Un nivel publicado conserva su recorrido para
-              proteger el historial.
-            </Text>
-            {levels.map((level) => (
-              <Pressable
-                accessibilityRole="button"
-                key={level.id}
-                onPress={() => {
-                  setJson(JSON.stringify(level, null, 2));
-                  setPreview(null);
-                  setConfirmed(false);
-                }}
-                style={[s.row, { paddingVertical: 10 }]}
-              >
-                <Ionicons
-                  name={
-                    level.published
-                      ? "checkmark-circle-outline"
-                      : "create-outline"
-                  }
-                  size={22}
-                  color={colors.ocean}
-                />
-                <Text style={[s.label, { flex: 1 }]}>
-                  Nivel {level.order}: {level.title}
-                </Text>
-                <Text style={s.small}>
-                  {level.published ? "Publicado" : "Borrador"}
-                </Text>
-              </Pressable>
-            ))}
-            <Button
-              secondary
-              title="Preparar otro nivel"
-              icon="add"
-              onPress={newDraft}
-            />
-            {!levels.some((level) => level.id === bundledLevels[0].id) && (
-              <Button
-                secondary
-                title="Preparar los 30 retos originales del nivel 1"
-                onPress={() => {
-                  setJson(JSON.stringify(bundledLevels[0], null, 2));
-                  setPreview(null);
-                  setConfirmed(false);
-                }}
-              />
-            )}
-            <Button
-              secondary
-              title="Cargar catálogo inicial de bodas"
-              disabled={!canEdit}
-              busy={busy}
-              onPress={() =>
-                run(async () => {
-                  const response = await callBackend(
-                    "adminLoadAnniversaries",
-                    {},
-                  );
-                  setMessage(
-                    (response.data as { already?: boolean }).already
-                      ? "El catálogo ya existe y se conservaron sus cambios."
-                      : "Catálogo de bodas guardado en Firebase.",
-                  );
-                })
-              }
-            />
-          </Card>
-          <Card>
-            <Text style={s.sectionTitle}>Contenido del capítulo</Text>
-            <Text style={s.small}>
-              El editor recibe el documento del nivel en JSON, como el catálogo
-              del repositorio. Cambia published a true solo cuando hayas
-              revisado el contenido. Primero valida para ver el resumen.
-            </Text>
-            <Field
-              label="Documento del nivel"
-              value={json}
-              multiline
-              autoCapitalize="none"
-              autoCorrect={false}
-              onChangeText={(v) => {
-                setJson(v);
-                setPreview(null);
-                setConfirmed(false);
-              }}
-            />
-            <Button
-              secondary
-              title="Validar y ver resumen"
-              onPress={() => {
-                setError("");
-                try {
-                  setPreview(validateLevel(JSON.parse(json)));
-                } catch (e) {
-                  setPreview(null);
-                  setError(
-                    e instanceof Error ? e.message : "Revisa el contenido.",
-                  );
-                }
-              }}
-            />
-            {preview && (
-              <>
-                <Notice
-                  text={`Nivel ${preview.order}: ${preview.title}. ${preview.challenges.length} retos, ${preview.questions.length} preguntas. ${preview.published ? "Se publicará para las familias." : "Quedará como borrador."}`}
-                />
-                {preview.published && (
-                  <Pressable
-                    accessibilityRole="checkbox"
-                    accessibilityState={{ checked: confirmed }}
-                    onPress={() => setConfirmed(!confirmed)}
-                    style={s.row}
-                  >
-                    <Ionicons
-                      name={confirmed ? "checkbox" : "square-outline"}
-                      size={25}
-                      color={colors.navy}
-                    />
-                    <Text style={[s.body, { flex: 1 }]}>
-                      Revisé los retos y las preguntas y quiero publicar este
-                      nivel.
-                    </Text>
-                  </Pressable>
-                )}
-                <Button
-                  title={
-                    preview.published ? "Publicar nivel" : "Guardar borrador"
-                  }
-                  disabled={!canEdit || (preview.published && !confirmed)}
-                  busy={busy}
-                  onPress={() =>
-                    run(async () => {
-                      await callBackend("adminSaveLevel", { level: preview });
-                      const response = await callBackend("adminBootstrap", {});
-                      setLevels((response.data as { levels: Level[] }).levels);
-                      setMessage(
-                        preview.published
-                          ? "Nivel publicado. Las familias lo verán sin actualizar la app."
-                          : "Borrador guardado.",
-                      );
-                    })
-                  }
-                />
-              </>
-            )}
-          </Card>
-        </>
       )}
       {section === "families" && canFamily && (
         <>

@@ -100,6 +100,7 @@ Para publicar se necesitan las cuentas de las tiendas, identidad legal, polític
 | `catalogs/anniversaries` | Catálogo de bodas; copia inicial empaquetada como respaldo. |
 | `adminAudit/{id}` | Actor, acción, destino y fecha; creación atómica con cambios, inmutable desde la app. |
 | `accountDeletion/{uid}` | Marcador mínimo para impedir recreación tras eliminar la cuenta. |
+| `families/{uid}/levelNews/{levelId}` | Novedad conocida por la pareja, privada y sincronizada entre sus teléfonos. |
 | `adminDeletionJobs/{id}` | Procesos de borrado confirmados por el propietario; acceso exclusivo del servicio. |
 | `config/email`, `emailPreferences/{uid}` | Ajustes sin secretos y recepción gestionada por administradores; bajas firmadas respetadas; envío inicialmente apagado. |
 | `emailQueue/{id}`, `mailJobs/{id}`, `mailRuntime/{id}` | Cola, trabajos con idempotencia y presupuesto atómico del Worker opcional. |
