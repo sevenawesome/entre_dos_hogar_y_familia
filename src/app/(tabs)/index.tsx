@@ -5,7 +5,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useApp } from "../../store";
 import { useNow } from "../../components/useNow";
-import { Brand } from "../../components/Brand";
+import { Brand, BrandByline } from "../../components/Brand";
 import { Avatar } from "../../components/Avatar";
 import { AnniversaryCard } from "../../components/AnniversaryCard";
 import { BirthdaysCard } from "../../components/BirthdaysCard";
@@ -50,13 +50,18 @@ export default function Today() {
     journey: started,
     journeyReady,
     emailVerified,
+    branding,
   } = useApp();
   const now = useNow();
   const { width } = useWindowDimensions();
   const [headerWidth, setHeaderWidth] = useState<number>();
+  // The supplied 1200px logo has 70px of transparent space on its left.
+  // Match that visible inset on the photo's right, within the shared 24px page padding.
+  const logoLeftInsetRatio = 70 / 1200;
   const logoWidth = Math.min(
     230,
-    (((headerWidth ?? Math.min(width, 650) - 48) - 16) * 2) / 3,
+    ((headerWidth ?? Math.min(width, 650) - 48) - 16) /
+      (1.5 + logoLeftInsetRatio),
   );
   const headerSize = logoWidth / 2;
   const journey = getJourney(levels, progress, catalogReady && progressReady);
@@ -89,40 +94,44 @@ export default function Today() {
   }).format(now);
   return (
     <Screen>
-      <View
-        onLayout={(event) => setHeaderWidth(event.nativeEvent.layout.width)}
-        style={[
-          s.row,
-          {
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: 16,
-          },
-        ]}
-      >
-        <Brand compact frameSize={logoWidth} />
-        <Pressable
-          accessibilityLabel="Ver nuestro perfil"
-          onPress={() => router.push("/(tabs)/family")}
-          style={{
-            width: headerSize,
-            height: headerSize,
-            flexShrink: 0,
-            padding: 3,
-            borderWidth: 1,
-            borderColor: colors.sun,
-            backgroundColor: colors.sage,
-            borderRadius: headerSize / 2,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+      <View style={{ gap: 4 }}>
+        <View
+          onLayout={(event) => setHeaderWidth(event.nativeEvent.layout.width)}
+          style={[
+            s.row,
+            {
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: 16,
+              paddingRight: logoWidth * logoLeftInsetRatio,
+            },
+          ]}
         >
-          <Avatar
-            uri={avatar}
-            name={family?.name ?? "Familia"}
-            size={headerSize - 8}
-          />
-        </Pressable>
+          <Brand compact frameSize={logoWidth} byline="" />
+          <Pressable
+            accessibilityLabel="Ver nuestro perfil"
+            onPress={() => router.push("/(tabs)/family")}
+            style={{
+              width: headerSize,
+              height: headerSize,
+              flexShrink: 0,
+              padding: 3,
+              borderWidth: 1,
+              borderColor: colors.sun,
+              backgroundColor: colors.sage,
+              borderRadius: headerSize / 2,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Avatar
+              uri={avatar}
+              name={family?.name ?? "Familia"}
+              size={headerSize - 8}
+            />
+          </Pressable>
+        </View>
+        <BrandByline text={branding.byline} compact />
       </View>
       {demo && (
         <Notice text="Demostración · el progreso se guarda solo en este teléfono." />
@@ -134,7 +143,7 @@ export default function Today() {
         <Text accessibilityRole="header" style={[s.title, { fontSize: 35 }]}>
           Hola, {family?.partner1}
           {"\n"}y {family?.partner2}{" "}
-          <Text style={{ color: colors.navy }}>♡</Text>
+          <Text style={{ color: colors.love }}>♡</Text>
         </Text>
         <Text style={s.body}>Hoy también es un buen día para elegirse.</Text>
       </View>
@@ -150,7 +159,9 @@ export default function Today() {
           <View
             style={[s.row, { justifyContent: "space-between", marginTop: 6 }]}
           >
-            <Text style={s.eyebrow}>SU MOMENTO DE HOY</Text>
+            <Text style={[s.eyebrow, { color: colors.love }]}>
+              SU MOMENTO DE HOY
+            </Text>
             <Text style={s.small}>
               NIVEL {level.order} · {p?.completions.length ?? 0}/
               {level.challenges.length}
@@ -202,10 +213,10 @@ export default function Today() {
               <Ionicons
                 name={challenge ? "sparkles-outline" : "ribbon-outline"}
                 size={25}
-                color={colors.navy}
+                color={colors.love}
               />
             </View>
-            <Text style={s.eyebrow}>
+            <Text style={[s.eyebrow, { color: colors.love }]}>
               {challenge
                 ? `RETO ${String(challenge.order).padStart(2, "0")} · ${challenge.stage}`
                 : `${level.challenges.length} MOMENTOS, UNA HISTORIA`}
@@ -237,6 +248,7 @@ export default function Today() {
               </View>
             )}
             <Button
+              tone="love"
               title={
                 challenge
                   ? waiting

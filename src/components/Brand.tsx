@@ -1,6 +1,29 @@
 import { useApp } from "../store";
 import { Image, Text, View } from "react-native";
 import { colors } from "./ui";
+export function BrandByline({
+  text,
+  compact = false,
+}: {
+  text: string;
+  compact?: boolean;
+}) {
+  if (!text) return null;
+  return (
+    <Text
+      style={{
+        width: "100%",
+        fontSize: 10,
+        color: colors.ocean,
+        fontWeight: "600",
+        textAlign: "center",
+        lineHeight: compact ? 14 : 16,
+      }}
+    >
+      {text}
+    </Text>
+  );
+}
 export function BrandMark({ size = 48 }: { size?: number }) {
   return (
     <Image
@@ -43,19 +66,7 @@ export function Brand({
           height: frameSize ? frameSize / 2 : compact ? 104 : 150,
         }}
       />
-      {!!byline && (
-        <Text
-          style={{
-            fontSize: compact ? 7.5 : 10,
-            color: colors.ocean,
-            fontWeight: "600",
-            textAlign: "center",
-            lineHeight: compact ? 12 : 16,
-          }}
-        >
-          {byline}
-        </Text>
-      )}
+      <BrandByline text={byline} compact={compact} />
     </View>
   );
 }

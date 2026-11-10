@@ -39,3 +39,9 @@ Verificados TypeScript y lint; 107 pruebas de dominio, 54 de Firestore/Auth y 35
 La comprobación remota de solo lectura confirmó listado Auth con campos limitados, consultas con máscara, permiso de eliminación dedicado y cero procesos de borrado en cola. Se publicaron la protección contra otorgar roles a cuentas en eliminación y el Worker con `ADMIN_ACCOUNTS_ENABLED=true`. El rol IAM personalizado agrega únicamente `firebaseauth.users.delete` a la cuenta de servicio existente; no se otorgó Firebase Authentication Admin ni se alteraron roles de usuarios de la app. No se eliminó ninguna cuenta real ni se enviaron correos.
 
 La cabecera iguala la fotografía a la altura visible del logo 2:1 y acerca la firma. La apertura muestra la escena de pareja y mar a pantalla completa; la vista previa usa dimensiones explícitas para evitar el tamaño intrínseco de las imágenes en web. En Expo Go su pantalla inicial propia puede seguir mostrando un icono antes de entrar a la app. El arranque nativo definitivo requiere una compilación de preview/producción.
+
+## Firma centrada, acento de amor y fotos
+
+TypeScript y lint sin errores; 107 pruebas de dominio y 36 del Worker aprobadas en esta revisión. El nuevo caso recorre los modos individual y masivo con foto familiar, fotos de ambos cónyuges e hijos y copias públicas de Comunidad; comprueba su eliminación junto con notas y cuestionarios, conserva las familias excluidas/administrativas y verifica que los procesos y auditorías no copian esas fotos ni respuestas. Solo se utilizaron repositorios simulados; no se borraron cuentas reales.
+
+Se revisaron Hoy y el detalle del reto en 390 × 844. En 390 y 320 de ancho se midieron márgenes visuales iguales (diferencia inferior a 0,01 px), firma centrada y ausencia de desbordamiento horizontal. Se conservó la apertura existente y se documentó la limitación del icono de carga propio de Expo Go. El rojo vino se limita a detalles de amor y acciones del reto.

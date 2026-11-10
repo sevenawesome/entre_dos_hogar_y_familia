@@ -150,7 +150,7 @@ export function AdminAccountManagement() {
   );
   return (
     <View style={{ gap: 20 }}>
-      <Notice text="Solo propietario. La eliminación borra el acceso y los datos de la familia: perfil, fotos, progreso, notas, cuestionarios y mensajes. No se puede deshacer. Propietario, administradores, niveles y configuración se conservan." />
+      <Notice text="Solo propietario. La eliminación borra el acceso y los datos de la familia: perfil, foto familiar, fotos individuales y sus copias en la comunidad, progreso, notas, cuestionarios y mensajes. No se puede deshacer. Propietario, administradores, niveles y configuración se conservan." />
       {app.demo && (
         <Notice text="Demostración: puedes revisar el listado y las confirmaciones, pero no se elimina ninguna cuenta." />
       )}

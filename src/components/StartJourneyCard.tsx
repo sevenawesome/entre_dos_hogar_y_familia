@@ -75,6 +75,7 @@ export function StartJourneyCard({ level }: { level: Level }) {
         Su primer paso empieza hoy.
       </Text>
       <Button
+        tone="love"
         title="¡Comenzar nuestro primer reto!"
         icon="play"
         busy={busy}

@@ -30,6 +30,9 @@ export const colors = {
   cream: "#FBF7EE",
   champagne: "#F7ECD2",
   sun: "#C79527",
+  love: "#9A3F50",
+  loveMist: "#F7E8E8",
+  loveLine: "#E8C7CA",
 };
 export const gradients = {
   ocean: ["#06264A", "#14536B"],
@@ -100,6 +103,7 @@ export function Button({
   busy,
   icon,
   danger,
+  tone = "default",
 }: {
   title: string;
   onPress: () => void;
@@ -108,6 +112,7 @@ export function Button({
   busy?: boolean;
   icon?: keyof typeof Ionicons.glyphMap;
   danger?: boolean;
+  tone?: "default" | "love";
 }) {
   return (
     <Pressable
@@ -118,6 +123,7 @@ export function Button({
       style={({ pressed }) => [
         s.button,
         secondary && s.secondary,
+        tone === "love" && !secondary && { backgroundColor: colors.love },
         danger && { backgroundColor: "#A52D3D" },
         (disabled || busy) && { opacity: 0.45 },
         pressed && { opacity: 0.8 },

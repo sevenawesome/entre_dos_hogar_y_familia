@@ -331,6 +331,62 @@ test("confirmed cleanup removes Auth and all known private/shared data, preservi
     ).includes("secret"),
   );
 });
+test("individual and bulk cleanup remove family, parent and child photos including community copies", async () => {
+  for (const scope of ["one", "all"]) {
+    const r = setup();
+    const image = "data:image/jpeg;base64,private-family-photo";
+    for (const uid of ["owner", "admin", "a", "b"]) {
+      r.seed(`avatars/${uid}`, { dataUri: image });
+      r.seed(`portraits/${uid}`, {
+        people: {
+          partner1: { dataUri: image },
+          partner2: { dataUri: image },
+          child1: { dataUri: image },
+        },
+        publicPeople: [{ key: "child1", dataUri: image }],
+      });
+      r.seed(`community/${uid}`, {
+        visible: true,
+        avatar: image,
+        people: [{ key: "child1", dataUri: image }],
+      });
+      r.seed(`families/${uid}/progress/l1`, {
+        completions: [{ note: "private note" }],
+        questionnaire: { answer: "private answer" },
+      });
+    }
+    const p = await queued(r, scope);
+    let result;
+    do {
+      result = await stepDeletionJob(r, p.job.id, now);
+    } while (result.state === "queued");
+    assert.equal(result.state, "complete");
+    const removed = scope === "one" ? ["a"] : ["a", "b"];
+    for (const uid of ["owner", "admin", "a", "b"]) {
+      for (const root of ["avatars", "portraits", "community"])
+        assert.equal(
+          r.docs.has(`${root}/${uid}`),
+          !removed.includes(uid),
+          `${scope}: ${root}/${uid}`,
+        );
+      assert.equal(
+        r.docs.has(`families/${uid}/progress/l1`),
+        !removed.includes(uid),
+      );
+      assert.equal(r.accounts.has(uid), !removed.includes(uid));
+    }
+    const retainedJobData = [...r.docs.values()].filter(
+      (d) =>
+        d.path.startsWith("adminAudit/") ||
+        d.path.startsWith("adminDeletionJobs/") ||
+        d.path.startsWith("accountDeletion/"),
+    );
+    assert.ok(!JSON.stringify(retainedJobData).includes(image));
+    assert.ok(!JSON.stringify(retainedJobData).includes("private note"));
+    assert.ok(!JSON.stringify(retainedJobData).includes("private answer"));
+  }
+});
+
 test("duplicate confirmations and concurrent steps delete a target once", async () => {
   const r = setup(),
     p = await queued(r);

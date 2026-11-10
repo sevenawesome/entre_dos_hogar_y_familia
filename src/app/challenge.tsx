@@ -75,12 +75,12 @@ export default function Challenge() {
         <View style={{ gap: 24, paddingTop: 40, alignItems: "center" }}>
           <View
             style={{
-              backgroundColor: colors.sage,
+              backgroundColor: colors.loveMist,
               padding: 30,
               borderRadius: 80,
             }}
           >
-            <Ionicons name="heart" size={58} color={colors.navy} />
+            <Ionicons name="heart" size={58} color={colors.love} />
           </View>
           <Text style={[s.title, { textAlign: "center" }]}>
             Un poquito más cerca.
@@ -108,7 +108,9 @@ export default function Challenge() {
             <Text style={s.small}>A su ritmo</Text>
           </View>
           <Card>
-            <Text style={s.eyebrow}>LA INVITACIÓN DE HOY</Text>
+            <Text style={[s.eyebrow, { color: colors.love }]}>
+              LA INVITACIÓN DE HOY
+            </Text>
             <Text
               style={[
                 s.body,
@@ -119,10 +121,19 @@ export default function Challenge() {
             </Text>
           </Card>
           <Card
-            style={{ backgroundColor: colors.sage, borderColor: colors.sage }}
+            style={{
+              backgroundColor: colors.loveMist,
+              borderColor: colors.loveLine,
+            }}
           >
-            <Ionicons name="chatbubbles-outline" size={25} color="#6F8066" />
-            <Text style={s.eyebrow}>PARA CONVERSAR JUNTOS</Text>
+            <Ionicons
+              name="chatbubbles-outline"
+              size={25}
+              color={colors.love}
+            />
+            <Text style={[s.eyebrow, { color: colors.love }]}>
+              PARA CONVERSAR JUNTOS
+            </Text>
             <Text
               style={{
                 fontFamily: serif,
@@ -184,6 +195,7 @@ export default function Challenge() {
               )}
               {!!error && <Notice error text={error} />}
               <Button
+                tone="love"
                 title="Lo hicimos juntos"
                 icon="heart-outline"
                 onPress={complete}
