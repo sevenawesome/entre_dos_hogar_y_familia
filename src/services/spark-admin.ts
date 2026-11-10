@@ -1,3 +1,4 @@
+import { validateBranding, type BrandingSettings } from "../domain/branding";
 import {
   validateEmailSettings,
   type EmailSettings,
@@ -442,5 +443,24 @@ export async function pauseOptionalEmails(paused: boolean) {
       auditId: audit.id,
     });
     tx.set(audit, auditData(actor, "email.pause", "config/email"));
+  });
+}
+
+export async function saveBranding(input: BrandingSettings) {
+  const draft = validateBranding(input),
+    { database, actor } = await requireAdmin("settings.manage"),
+    ref = doc(database, "config", "branding"),
+    audit = doc(collection(database, "adminAudit"));
+  return runTransaction(database, async (tx) => {
+    const old = await tx.get(ref);
+    if ((old.data()?.version ?? 0) !== draft.version)
+      throw new Error("El texto de la marca cambió. Recarga antes de guardar.");
+    const saved = { ...draft, version: draft.version + 1 };
+    tx.set(ref, { ...saved, auditId: audit.id });
+    tx.set(
+      audit,
+      auditData(actor, "branding.settings.update", "config/branding"),
+    );
+    return saved;
   });
 }

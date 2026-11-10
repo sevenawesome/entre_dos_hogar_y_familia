@@ -9,7 +9,7 @@ service cloud.firestore {
   function allPermissions() { return ['families.view','families.edit','messages.send','emails.send','content.manage','settings.manage','roles.manage']; }
   function owner() { return admin() && get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.role=='owner'; }
   function can(p) { return admin() && (owner() || p in get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.get('permissions',allPermissions())); }
-  function auditAllowed(action) { return (action=='role.update' && can('roles.manage')) || (action=='message.send' && can('messages.send')) || (action in ['email.send','email.preferences.update'] && can('emails.send')) || (action in ['family.profile.update','family.reminders.update'] && can('families.edit')) || (action in ['level.save','catalog.seed'] && can('content.manage')) || (action in ['app.settings.update','email.pause','email.settings.update'] && can('settings.manage')); }
+  function auditAllowed(action) { return (action=='role.update' && can('roles.manage')) || (action=='message.send' && can('messages.send')) || (action in ['email.send','email.preferences.update'] && can('emails.send')) || (action in ['family.profile.update','family.reminders.update'] && can('families.edit')) || (action in ['level.save','catalog.seed'] && can('content.manage')) || (action in ['app.settings.update','branding.settings.update','email.pause','email.settings.update'] && can('settings.manage')); }
   function text(v,n) { return v is string && v.size() > 0 && v.size() <= n; }
   function date(d,k) { let value=d.get(k,null); return value==null || (value is string && value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')); }
   function validChild(child) {
@@ -249,6 +249,14 @@ service cloud.firestore {
     && request.resource.data.finishedCount==(request.resource.data.shareProgress ? get(/databases/$(database)/documents/tracking/$(uid)).data.finishedCount : 0)
     && (request.resource.data.avatar==null || (request.resource.data.visible && request.resource.data.avatar==getAfter(/databases/$(database)/documents/avatars/$(uid)).data.dataUri));
    allow delete: if self(uid);
+  }
+  match /config/branding {
+   // This document contains public logo text only; no account or app-control fields.
+   allow read: if true;
+   allow create,update: if can('settings.manage') && audited(request.resource.data,'branding.settings.update','config/branding')
+    && request.resource.data.keys().hasOnly(['byline','version','auditId'])
+    && request.resource.data.byline is string && request.resource.data.byline.size()<=120 && !request.resource.data.byline.matches('[\\s\\S]*[\\r\\n][\\s\\S]*')
+    && request.resource.data.version==(resource==null ? 1 : resource.data.version+1);
   }
   match /config/app {
    allow read: if signed();

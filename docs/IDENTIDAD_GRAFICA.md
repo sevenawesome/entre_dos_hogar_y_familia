@@ -37,3 +37,9 @@ Se utilizó la herramienta integrada **imagegen**, sin CLI ni clave API del proy
 Se revisaron bienvenida, Hoy, aniversario y Nosotros a 390 × 844 con datos ficticios. Capturas: `preview-amor-bienvenida.jpg`, `preview-amor-hoy.jpg`, `preview-amor-aniversario.jpg`. Se comprobaron tipos, lint, 106 pruebas de dominio/regresión y 19 del Worker. Las reglas de Firestore no cambian en esta actualización.
 
 La introspección de Expo valida la configuración de iconos adaptables, `largeIcon` y splash. Las exportaciones Android/iOS/web comprueban el empaquetado, no la apariencia del arranque del sistema. Los iconos instalados y el splash nativo requieren una nueva compilación de preview o producción; Expo Go no reproduce fielmente ese arranque. Referencias: [splash e iconos](https://docs.expo.dev/develop/user-interface/splash-screen-and-app-icon/), [SplashScreen SDK 58](https://docs.expo.dev/versions/v58.0.0/sdk/splash-screen/), [Notifications SDK 58](https://docs.expo.dev/versions/v58.0.0/sdk/notifications/).
+
+## Administración y encabezado · 10 de noviembre de 2026
+
+La fotografía circular y el logo de Hoy comparten un marco del mismo tamaño, adaptado al ancho disponible y limitado a 164 puntos. El logo conserva su proporción original. La firma bajo el logo se edita en Admin → Configuración → Texto bajo el logo, admite hasta 120 caracteres y se oculta si se guarda vacía. Se sincroniza desde el documento público `config/branding`; las opciones privadas de la app siguen separadas. Los correos nuevos también utilizan esta firma.
+
+El área administrativa usa azul profundo, superficies gris azuladas, iconos y tipografía de interfaz. Su panel agrupa los módulos en Acompañar, Comunicar y Organizar. Al entrar se oculta la barra familiar y se ofrece una salida explícita, sin cerrar la sesión. Cada módulo incluye «Cómo usar esta sección». No se incorporan dependencias ni se modifican los identificadores técnicos de la app.

@@ -1,3 +1,4 @@
+import { useApp } from "../store";
 import { Image, Text, View } from "react-native";
 import { colors } from "./ui";
 export function BrandMark({ size = 48 }: { size?: number }) {
@@ -10,15 +11,25 @@ export function BrandMark({ size = 48 }: { size?: number }) {
     />
   );
 }
-export function Brand({ compact = false }: { compact?: boolean }) {
+export function Brand({
+  compact = false,
+  byline: override,
+  frameSize,
+}: {
+  compact?: boolean;
+  byline?: string;
+  frameSize?: number;
+}) {
+  const { branding } = useApp();
+  const byline = override ?? branding.byline;
   return (
     <View
       accessible
-      accessibilityLabel="Amor que permanece. By Departamento de Hogar y Familia"
+      accessibilityLabel={`Amor que permanece${byline ? `. ${byline}` : ""}`}
       style={{
         alignItems: "center",
         flexShrink: 1,
-        width: compact ? 208 : "100%",
+        width: frameSize ?? (compact ? 208 : "100%"),
         maxWidth: 400,
         gap: compact ? 0 : 4,
       }}
@@ -27,19 +38,21 @@ export function Brand({ compact = false }: { compact?: boolean }) {
         source={require("../../assets/logo.png")}
         accessible={false}
         resizeMode="contain"
-        style={{ width: "100%", height: compact ? 99 : 150 }}
+        style={{ width: "100%", height: frameSize ?? (compact ? 99 : 150) }}
       />
-      <Text
-        style={{
-          fontSize: compact ? 7.5 : 10,
-          color: colors.ocean,
-          fontWeight: "600",
-          textAlign: "center",
-          lineHeight: compact ? 12 : 16,
-        }}
-      >
-        By Departamento de Hogar y Familia
-      </Text>
+      {!!byline && (
+        <Text
+          style={{
+            fontSize: compact ? 7.5 : 10,
+            color: colors.ocean,
+            fontWeight: "600",
+            textAlign: "center",
+            lineHeight: compact ? 12 : 16,
+          }}
+        >
+          {byline}
+        </Text>
+      )}
     </View>
   );
 }

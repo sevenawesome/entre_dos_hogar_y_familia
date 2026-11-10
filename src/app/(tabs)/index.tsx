@@ -1,4 +1,5 @@
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, useWindowDimensions } from "react-native";
+import { useState } from "react";
 import { router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -51,6 +52,12 @@ export default function Today() {
     emailVerified,
   } = useApp();
   const now = useNow();
+  const { width } = useWindowDimensions();
+  const [headerWidth, setHeaderWidth] = useState<number>();
+  const headerSize = Math.min(
+    164,
+    ((headerWidth ?? Math.min(width, 650) - 48) - 16) / 2,
+  );
   const journey = getJourney(levels, progress, catalogReady && progressReady);
   const level = journey.current;
   const p = level ? progress[level.id] : undefined;
@@ -81,21 +88,39 @@ export default function Today() {
   }).format(now);
   return (
     <Screen>
-      <View style={[s.row, { justifyContent: "space-between" }]}>
-        <Brand compact />
+      <View
+        onLayout={(event) => setHeaderWidth(event.nativeEvent.layout.width)}
+        style={[
+          s.row,
+          {
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 16,
+          },
+        ]}
+      >
+        <Brand compact frameSize={headerSize} />
         <Pressable
           accessibilityLabel="Ver nuestro perfil"
           onPress={() => router.push("/(tabs)/family")}
           style={{
-            width: 40,
-            height: 40,
+            width: headerSize,
+            height: headerSize,
+            flexShrink: 0,
+            padding: 3,
+            borderWidth: 1,
+            borderColor: colors.sun,
             backgroundColor: colors.sage,
-            borderRadius: 20,
+            borderRadius: headerSize / 2,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Avatar uri={avatar} name={family?.name ?? "Familia"} size={40} />
+          <Avatar
+            uri={avatar}
+            name={family?.name ?? "Familia"}
+            size={headerSize - 8}
+          />
         </Pressable>
       </View>
       {demo && (

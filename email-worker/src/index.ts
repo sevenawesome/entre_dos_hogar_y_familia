@@ -1,3 +1,4 @@
+import { defaultBranding, validateBranding } from "../../src/domain/branding";
 import {
   defaultEmailSettings,
   migrateEmailBrand,
@@ -182,6 +183,7 @@ export async function emailPayload(
   env: Env,
   createdAt: Date,
   settings: EmailSettings = defaultEmailSettings,
+  byline: string = defaultBranding.byline,
 ): Promise<Payload> {
   const from = senderFor(env, settings);
   if (!from) throw new Error("Sender domain is not configured");
@@ -194,8 +196,8 @@ export async function emailPayload(
     env.UNSUBSCRIBE_SECRET!,
   );
   const link = `${env.PUBLIC_BASE_URL}/unsubscribe?uid=${encodeURIComponent(uid)}&token=${encodeURIComponent(token)}`;
-  const text = `Amor que permanece · By Departamento de Hogar y Familia\n\n${draft.lines.join("\n\n")}\n\nDejar de recibir correos opcionales: ${link}\nCreado por SevenAwesome · https://www.sevenawesome.com/`;
-  const html = `<!doctype html><html lang="es"><body style="margin:0;background:#FBF7EE;color:#06264A;font:16px Arial,sans-serif"><div style="max-width:560px;margin:auto;padding:32px"><h1 style="color:#A77819">♡ Amor que permanece</h1><p>By Departamento de Hogar y Familia</p><div style="background:white;border-radius:22px;padding:26px"><h2>${escapeHtml(draft.subject)}</h2>${draft.lines.map((line) => `<p style="line-height:1.7">${escapeHtml(line).replace(/\n/g, "<br>")}</p>`).join("")}</div><p style="font-size:13px;line-height:1.7">Reciben este correo sobre su cuenta y participación en Amor que permanece. <a href="${escapeHtml(link)}">Dejar de recibir correos opcionales</a>.</p><p style="font-size:13px">Creado por <a href="https://www.sevenawesome.com/">SevenAwesome</a></p></div></body></html>`;
+  const text = `Amor que permanece${byline ? ` · ${byline}` : ""}\n\n${draft.lines.join("\n\n")}\n\nDejar de recibir correos opcionales: ${link}\nCreado por SevenAwesome · https://www.sevenawesome.com/`;
+  const html = `<!doctype html><html lang="es"><body style="margin:0;background:#FBF7EE;color:#06264A;font:16px Arial,sans-serif"><div style="max-width:560px;margin:auto;padding:32px"><h1 style="color:#A77819">♡ Amor que permanece</h1>${byline ? `<p>${escapeHtml(byline)}</p>` : ""}<div style="background:white;border-radius:22px;padding:26px"><h2>${escapeHtml(draft.subject)}</h2>${draft.lines.map((line) => `<p style="line-height:1.7">${escapeHtml(line).replace(/\n/g, "<br>")}</p>`).join("")}</div><p style="font-size:13px;line-height:1.7">Reciben este correo sobre su cuenta y participación en Amor que permanece. <a href="${escapeHtml(link)}">Dejar de recibir correos opcionales</a>.</p><p style="font-size:13px">Creado por <a href="https://www.sevenawesome.com/">SevenAwesome</a></p></div></body></html>`;
   return {
     from,
     reply_to: settings.replyTo,
@@ -416,6 +418,16 @@ export async function reserveJob(
   if (!(await repo.commit(writes))) return null;
   return repo.get<Job>(`mailJobs/${id}`);
 }
+async function publicByline(repo: Repository) {
+  try {
+    return validateBranding({
+      ...defaultBranding,
+      ...(await repo.get("config/branding"))?.data,
+    }).byline;
+  } catch {
+    return defaultBranding.byline;
+  }
+}
 async function automatic(
   repo: Repository,
   event: Document,
@@ -512,6 +524,7 @@ async function automatic(
         env,
         now,
         settings,
+        await publicByline(repo),
       ),
       createdAt: now,
       nextAttemptAt: now,
@@ -574,6 +587,7 @@ async function administrator(
       env,
       now,
       settings,
+      await publicByline(repo),
     ),
     job = await reserveJob(
       repo,

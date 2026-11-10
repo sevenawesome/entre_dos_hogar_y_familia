@@ -121,3 +121,20 @@ test("rebranding upgrades old mail labels without resetting configured limits or
   );
   assert.equal(saved.fromName, "ENTRE DOS");
 });
+
+test("public brand text permits hiding the caption but rejects multiline or oversized content", () => {
+  const {
+    validateBranding,
+  } = require("../functions/lib/src/domain/branding.js");
+  assert.deepEqual(validateBranding({ version: 3, byline: "   " }), {
+    version: 3,
+    byline: "",
+  });
+  assert.equal(
+    validateBranding({ version: 3, byline: " Iglesia y familia " }).byline,
+    "Iglesia y familia",
+  );
+  for (const byline of ["a".repeat(121), "a\nb", "a\rb", null])
+    assert.throws(() => validateBranding({ version: 3, byline }));
+  assert.throws(() => validateBranding({ version: -1, byline: "Firma" }));
+});

@@ -1,9 +1,10 @@
-import { Tabs } from "expo-router";
+import { Tabs, usePathname } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { colors } from "../../components/ui";
 import { useApp } from "../../store";
 export default function TabLayout() {
   const { isAdmin, demo } = useApp();
+  const adminArea = usePathname() === "/administration";
   return (
     <Tabs
       screenOptions={{
@@ -11,6 +12,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.navy,
         tabBarInactiveTintColor: "#879087",
         tabBarStyle: {
+          display: adminArea ? "none" : "flex",
           backgroundColor: colors.background,
           borderTopColor: colors.line,
           minHeight: 78,

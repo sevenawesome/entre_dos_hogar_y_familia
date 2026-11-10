@@ -3,8 +3,10 @@ import { AdminPermissionsEditor } from "../../components/AdminPermissionsEditor"
 import { AdminConfiguration } from "../../components/AdminConfiguration";
 import { AdminDeliveryCenter } from "../../components/AdminDeliveryCenter";
 import { useEffect, useState } from "react";
-import { Text, View, Pressable } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { Text, View } from "react-native";
+import { AdminWorkspace } from "../../components/AdminWorkspace";
+import { adminSections } from "../../domain/admin-navigation";
+import { useLocalSearchParams } from "expo-router";
 import { useApp } from "../../store";
 import {
   listManagedFamilies,
@@ -33,64 +35,14 @@ export default function Administration() {
     { section: requested } = useLocalSearchParams<{ section?: string }>();
   const canView = app.demo || hasPermission(app, "families.view"),
     canRoles = app.demo || hasPermission(app, "roles.manage");
-  const tabs = (
-    [
-      [
-        "families",
-        "Familias",
-        "families.view",
-        "Consultar el progreso y administrar los perfiles familiares.",
-      ],
-      [
-        "dates",
-        "Fechas",
-        "families.view",
-        "Próximos cumpleaños y aniversarios de las familias cargadas.",
-      ],
-      [
-        "support",
-        "Seguimiento",
-        "families.view",
-        "Identificar a quienes necesitan acompañamiento para continuar los retos.",
-      ],
-      [
-        "notifications",
-        "Notificaciones",
-        "messages.send",
-        "Mensajes para la bandeja y avisos al sincronizar la app.",
-      ],
-      [
-        "emails",
-        "Correos",
-        "emails.send",
-        "Bienvenidas, niveles conseguidos y correos personalizados; cuota y remitente.",
-      ],
-      [
-        "roles",
-        "Administradores",
-        "roles.manage",
-        "Crear administradores, elegir sus permisos o retirar su acceso.",
-      ],
-      [
-        "levels",
-        "Niveles",
-        "content.manage",
-        "Preparar y publicar nuevos retos sin volver a publicar la app.",
-      ],
-      [
-        "settings",
-        "Configuración",
-        "settings.manage",
-        "Mensajes de la aplicación, soporte y recordatorios del teléfono.",
-      ],
-    ] as const
-  ).filter(
-    ([key, , permission]) =>
+  const tabs = adminSections.filter(
+    (item) =>
       app.demo ||
-      hasPermission(app, permission) ||
-      (key === "emails" && hasPermission(app, "settings.manage")),
+      hasPermission(app, item.permission) ||
+      (item.id === "emails" && hasPermission(app, "settings.manage")),
   );
-  const section = tabs.find((x) => x[0] === requested)?.[0] ?? tabs[0]?.[0];
+  const current = tabs.find((item) => item.id === requested);
+  const section = current?.id;
   const [rows, setRows] = useState<ManagedFamily[]>([]),
     [cursor, setCursor] = useState<QueryDocumentSnapshot>(),
     [more, setMore] = useState(false),
@@ -206,46 +158,21 @@ export default function Administration() {
     );
   const shown = section === "support" ? awaiting : rows;
   return (
-    <Screen key={section}>
-      <Heading
-        eyebrow="DEPARTAMENTO DE HOGAR Y FAMILIA"
-        title="Administración"
-        subtitle="Cada tarea en su lugar. Cada familia, acompañada."
-      />
-      {app.demo && (
-        <Notice text="Vista de ejemplo · datos ficticios. No se guardan cambios ni se contacta a familias." />
-      )}
-      <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-        {tabs.map(([key, label]) => (
-          <Pressable
-            key={key}
-            accessibilityRole="button"
-            accessibilityState={{ selected: section === key }}
-            onPress={() => router.setParams({ section: key })}
-            style={{
-              paddingVertical: 13,
-              paddingHorizontal: 15,
-              borderRadius: 16,
-              backgroundColor:
-                section === key ? colors.ocean : colors.mist,
-            }}
-          >
-            <Text
-              style={{
-                fontWeight: "600",
-                color: section === key ? "white" : colors.ocean,
-              }}
-            >
-              {label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-      {!tabs.length ? (
-        <Notice text="El propietario todavía no te ha asignado secciones administrativas." />
-      ) : (
-        <Text style={s.body}>{tabs.find((x) => x[0] === section)?.[3]}</Text>
-      )}
+    <AdminWorkspace
+      key={section ?? "panel"}
+      sections={tabs}
+      current={current}
+      demo={app.demo}
+      counts={
+        canView
+          ? {
+              families: rows.length,
+              support: awaiting.length,
+              dates: events.length,
+            }
+          : undefined
+      }
+    >
       {!!error && <Notice error text={error} />}
       {section === "roles" && canRoles && <AdminPermissionsEditor />}
       {section === "notifications" && (
@@ -301,7 +228,8 @@ export default function Administration() {
                 <Card
                   key={e.key}
                   style={{
-                    backgroundColor: e.days === 0 ? colors.champagne : colors.white,
+                    backgroundColor:
+                      e.days === 0 ? colors.champagne : colors.white,
                   }}
                 >
                   <Text style={s.eyebrow}>
@@ -387,6 +315,6 @@ export default function Administration() {
           </Text>
         </>
       )}
-    </Screen>
+    </AdminWorkspace>
   );
 }

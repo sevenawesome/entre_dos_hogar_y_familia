@@ -1,3 +1,4 @@
+import { AdminBrandingEditor } from "./AdminBrandingEditor";
 import { hasPermission } from "../domain/admin-permissions";
 import { useEffect, useState } from "react";
 import { Text, View, Pressable, Switch } from "react-native";
@@ -112,6 +113,7 @@ export function AdminConfiguration({
     <View style={{ gap: 16 }}>
       {!!error && <Notice error text={error} />}
       {!!message && <Notice text={message} />}
+      {section === "app" && canSettings && <AdminBrandingEditor />}
       {section === "app" && canSettings && (
         <Card>
           <Text style={s.sectionTitle}>Mensajes y soporte</Text>

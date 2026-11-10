@@ -10,6 +10,7 @@ import { store, actions, useApp } from "../store";
 import { auth } from "../services/firebase";
 import {
   subscribeCatalog,
+  subscribeBranding,
   subscribeFamily,
   subscribeProgress,
   friendlyError,
@@ -54,6 +55,7 @@ function AppLayout() {
   } = useApp();
   const [familyLoaded, setFamilyLoaded] = useState(false);
   const segments = useSegments();
+  useEffect(() => subscribeBranding(), []);
   const hasFamily = !!family;
   const needsMarriageDate = !!family && !family.marriageDate;
   useEffect(() => {
@@ -200,7 +202,9 @@ function AppLayout() {
   }, [uid, demo, inbox]);
   return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar
+        style={segments.at(-1) === "administration" ? "light" : "dark"}
+      />
       <FirstVisitGuide />
       {!!error && <Notice error text={error} />}
       <Stack

@@ -16,6 +16,7 @@ import {
   deleteDoc,
   deleteField,
   writeBatch,
+  runTransaction,
   serverTimestamp,
   Timestamp,
   query,
@@ -1485,4 +1486,125 @@ test("owner may grant all seven permissions together and revoke admin access", a
       "owner",
     ),
   );
+});
+
+test("only public branding text is visible before login, while changes require configuration permission and audit", async () => {
+  await seed("roles/settings", {
+    role: "admin",
+    permissions: ["settings.manage"],
+  });
+  const db = ctx("settings"),
+    anon = env.unauthenticatedContext().firestore();
+  await assertSucceeds(
+    auditedWrite(
+      db,
+      "config/branding",
+      { byline: "By Hogar y Familia", version: 1 },
+      "branding.settings.update",
+      "config/branding",
+      "settings",
+    ),
+  );
+  assert.equal(
+    (await assertSucceeds(getDoc(doc(anon, "config", "branding")))).data()
+      .byline,
+    "By Hogar y Familia",
+  );
+  await seed("config/app", { announcement: "Solo cuentas registradas" });
+  await assertFails(getDoc(doc(anon, "config", "app")));
+  await assertFails(
+    setDoc(doc(ctx("a"), "config", "branding"), {
+      byline: "Cambio",
+      version: 2,
+      auditId: "fake",
+    }),
+  );
+  await seed("roles/mailer", {
+    role: "admin",
+    permissions: ["families.view", "emails.send"],
+  });
+  await assertFails(
+    auditedWrite(
+      ctx("mailer"),
+      "config/branding",
+      { byline: "Cambio", version: 2 },
+      "branding.settings.update",
+      "config/branding",
+      "mailer",
+    ),
+  );
+  await assertSucceeds(
+    auditedWrite(
+      db,
+      "config/branding",
+      { byline: "", version: 2 },
+      "branding.settings.update",
+      "config/branding",
+      "settings",
+    ),
+  );
+  await assertFails(
+    auditedWrite(
+      db,
+      "config/branding",
+      { byline: "Valor desactualizado", version: 2 },
+      "branding.settings.update",
+      "config/branding",
+      "settings",
+    ),
+  );
+  for (const change of [
+    { byline: "x".repeat(121) },
+    { byline: "Dos\nlíneas" },
+    { privateKey: "not-a-key" },
+  ])
+    await assertFails(
+      auditedWrite(
+        db,
+        "config/branding",
+        { byline: "Firma", version: 3, ...change },
+        "branding.settings.update",
+        "config/branding",
+        "settings",
+      ),
+    );
+});
+
+test("the owner can create and update branding in an audited transaction and stale edits cannot overwrite it", async () => {
+  const db = ctx("owner");
+  async function save(byline, expectedVersion) {
+    const ref = doc(db, "config", "branding");
+    const audit = doc(collection(db, "adminAudit"));
+    return runTransaction(db, async (tx) => {
+      const old = await tx.get(ref);
+      assert.equal(
+        old.data()?.version ?? 0,
+        expectedVersion,
+        "version conflict",
+      );
+      const version = expectedVersion + 1;
+      tx.set(ref, { byline, version, auditId: audit.id });
+      tx.set(audit, {
+        actorUid: "owner",
+        action: "branding.settings.update",
+        target: "config/branding",
+        at: serverTimestamp(),
+      });
+      return version;
+    });
+  }
+  assert.equal(
+    await assertSucceeds(save("By Equipo de Hogar y Familia", 0)),
+    1,
+  );
+  assert.equal(
+    await assertSucceeds(save("By Departamento de Hogar y Familia", 1)),
+    2,
+  );
+  await assert.rejects(save("Un cambio desactualizado", 1), /version conflict/);
+  const saved = await getDoc(
+    doc(env.unauthenticatedContext().firestore(), "config", "branding"),
+  );
+  assert.equal(saved.data().byline, "By Departamento de Hogar y Familia");
+  assert.equal(saved.data().version, 2);
 });

@@ -607,3 +607,21 @@ test("administrator can disable a category and its event is retired without cons
   assert.equal(repo.docs.get("mailEvents/welcome-a").data.state, "suppressed");
   assert.equal(repo.docs.has("mailRuntime/day-2026-11-06"), false);
 });
+
+test("new mail uses the configured byline, escapes markup and permits an empty signature", async () => {
+  for (const byline of ["By <Equipo de Familias>", ""]) {
+    const repo = setup(),
+      t = transport();
+    repo.seed("config/branding", { version: 1, byline });
+    await runCycle(repo, env, now, t.fetcher);
+    assert.equal(t.sent.length, 1);
+    if (byline) {
+      assert.match(t.sent[0].body.text, /By <Equipo de Familias>/);
+      assert.match(t.sent[0].body.html, /By &lt;Equipo de Familias&gt;/);
+    } else
+      assert.doesNotMatch(
+        t.sent[0].body.text,
+        /By Departamento de Hogar y Familia/,
+      );
+  }
+});

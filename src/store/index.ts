@@ -1,3 +1,4 @@
+import { defaultBranding, type BrandingSettings } from "../domain/branding";
 import {
   effectivePermissions,
   type AdminPermission,
@@ -32,6 +33,7 @@ import type {
 import { defaultSettings } from "../domain/settings";
 
 interface State {
+  branding: BrandingSettings;
   ready: boolean;
   uid: string | null;
   demo: boolean;
@@ -59,6 +61,7 @@ interface State {
   emailService: EmailServiceStatus;
 }
 const initialState: State = {
+  branding: defaultBranding,
   ready: false,
   uid: null,
   demo: false,
@@ -89,6 +92,9 @@ const slice = createSlice({
   name: "app",
   initialState,
   reducers: {
+    branding(state, action: PayloadAction<BrandingSettings>) {
+      state.branding = action.payload;
+    },
     session(
       state,
       action: PayloadAction<{ uid: string | null; demo?: boolean }>,

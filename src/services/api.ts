@@ -1,3 +1,4 @@
+import { defaultBranding, validateBranding } from "../domain/branding";
 import { migrateEmailBrand } from "../domain/email-settings";
 import { effectivePermissions } from "../domain/admin-permissions";
 import { emailServiceOff } from "../domain/email-reminders";
@@ -260,5 +261,29 @@ export function friendlyError(error: unknown): string {
     (error instanceof Error
       ? error.message.replace(/^Firebase: /, "")
       : "Ocurrió un problema. Vuelve a intentarlo.")
+  );
+}
+
+/** Only public identity text is readable before login; account/app settings remain protected. */
+export function subscribeBranding() {
+  if (!db) return () => {};
+  return onSnapshot(
+    doc(db, "config", "branding"),
+    (snap) => {
+      try {
+        store.dispatch(
+          actions.branding(
+            snap.exists()
+              ? validateBranding(
+                  snap.data() as unknown as typeof defaultBranding,
+                )
+              : defaultBranding,
+          ),
+        );
+      } catch {
+        store.dispatch(actions.branding(defaultBranding));
+      }
+    },
+    () => {},
   );
 }
