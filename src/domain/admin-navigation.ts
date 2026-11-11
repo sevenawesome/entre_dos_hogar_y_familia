@@ -64,7 +64,7 @@ export const adminSections = [
     permission: "messages.send",
     description: "Envía un aviso a la bandeja de una familia.",
     steps: [
-      "Busca la familia por correo o UID.",
+      "El listado se abre automáticamente. Filtra por nombre, familia o parte del correo; puedes usar varias palabras sin tildes. Elige una familia para redactar.",
       "Escribe un título breve y un mensaje; revisa el destinatario.",
       "Confirma el envío. La familia lo recibirá en su bandeja al sincronizar la app.",
     ],
@@ -78,7 +78,7 @@ export const adminSections = [
     permission: "emails.send",
     description: "Mensajes por correo, remitente y control de la cuota.",
     steps: [
-      "Busca la familia y comprueba que sus correos estén habilitados.",
+      "Elige una familia del listado o filtra por nombre, familia o parte del correo. Si no aparece, carga otras 20 o usa la búsqueda por correo exacto/UID. Comprueba que sus correos estén habilitados.",
       "Redacta el asunto y el mensaje, revisa el destinatario y confirma el envío.",
       "En configuración de correos, los administradores autorizados pueden ajustar el remitente, las plantillas y los límites.",
     ],

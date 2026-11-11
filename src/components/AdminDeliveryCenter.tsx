@@ -27,6 +27,7 @@ export function AdminDeliveryCenter({ email = false }: { email?: boolean }) {
       canSend ? "send" : "settings",
     ),
     [query, setQuery] = useState(""),
+    [exactOpen, setExactOpen] = useState(false),
     [target, setTarget] = useState<Target | null>(null),
     [status, setStatus] = useState({ enabled: true, unsubscribed: false }),
     [title, setTitle] = useState("Un paso a la vez, juntos"),
@@ -151,6 +152,10 @@ export function AdminDeliveryCenter({ email = false }: { email?: boolean }) {
                 }
               />
               <AdminFamilyPicker
+                initialOpen
+                closeOnSelect
+                disabled={busy}
+                selectedUid={target?.uid}
                 onSelect={(chosen) =>
                   run(async () => {
                     setQuery(chosen.email || chosen.uid);
@@ -163,45 +168,63 @@ export function AdminDeliveryCenter({ email = false }: { email?: boolean }) {
                   })
                 }
               />
-              <Field
-                label="Correo de la cuenta o UID"
-                value={query}
-                onChangeText={(v) => {
-                  setQuery(v);
-                  setTarget(null);
-                  setConfirmed(false);
-                }}
-                autoCapitalize="none"
-              />
               <Button
-                title="Buscar destinatario"
-                busy={busy}
-                disabled={!query.trim()}
-                onPress={() =>
-                  run(async () => {
-                    setTarget(null);
-                    setConfirmed(false);
-                    if (app.demo) {
-                      setTarget({
-                        uid: "demo-rivera",
-                        email: "familia@ejemplo.com",
-                        family: { name: "Familia Rivera" },
-                      });
-                      setStatus({ enabled: true, unsubscribed: false });
-                      return;
-                    }
-                    const result = await callBackend("adminFindFamily", {
-                      query: query.trim(),
-                    });
-                    const found = result.data as Target;
-                    if (email) setStatus(await familyEmailStatus(found.uid));
-                    setTarget(found);
-                  })
+                secondary
+                title={
+                  exactOpen
+                    ? "Ocultar búsqueda por correo exacto o UID"
+                    : "Buscar por correo exacto o UID"
                 }
+                disabled={busy}
+                onPress={() => setExactOpen(!exactOpen)}
               />
+              {exactOpen && (
+                <>
+                  <Field
+                    label="Correo de la cuenta o UID"
+                    value={query}
+                    onChangeText={(v) => {
+                      setQuery(v);
+                      setTarget(null);
+                      setConfirmed(false);
+                    }}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    editable={!busy}
+                  />
+                  <Button
+                    title="Buscar destinatario"
+                    busy={busy}
+                    disabled={!query.trim()}
+                    onPress={() =>
+                      run(async () => {
+                        setTarget(null);
+                        setConfirmed(false);
+                        if (app.demo) {
+                          setTarget({
+                            uid: "demo-rivera",
+                            email: "familia@ejemplo.com",
+                            family: { name: "Familia Rivera" },
+                          });
+                          setStatus({ enabled: true, unsubscribed: false });
+                          return;
+                        }
+                        const result = await callBackend("adminFindFamily", {
+                          query: query.trim(),
+                        });
+                        const found = result.data as Target;
+                        if (email)
+                          setStatus(await familyEmailStatus(found.uid));
+                        setTarget(found);
+                      })
+                    }
+                  />
+                </>
+              )}
             </Card>
             {target && (
               <Card key={target.uid}>
+                <Text style={s.eyebrow}>DESTINATARIO ELEGIDO</Text>
                 <Text style={s.sectionTitle}>{target.family.name}</Text>
                 <Text style={s.small}>{target.email}</Text>
                 {email && (

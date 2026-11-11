@@ -59,7 +59,10 @@ export interface ManagedFamily {
   role: "owner" | "admin" | "member";
   permissions?: AdminPermission[];
 }
-export async function listManagedFamilies(after?: QueryDocumentSnapshot) {
+export async function listManagedFamilies(
+  after?: QueryDocumentSnapshot,
+  details = true,
+) {
   const { database, permissionData } = await requireAdmin("families.view");
   const { startAfter } = await import("firebase/firestore");
   const page = await getDocs(
@@ -74,11 +77,15 @@ export async function listManagedFamilies(after?: QueryDocumentSnapshot) {
     page.docs.map(async (f) => {
       const [s, control, role, journey] = await Promise.all([
         getDoc(doc(database, "tracking", f.id)),
-        getDoc(doc(database, "familyControls", f.id)),
-        hasPermission(permissionData, "roles.manage")
+        details
+          ? getDoc(doc(database, "familyControls", f.id))
+          : Promise.resolve(null),
+        details && hasPermission(permissionData, "roles.manage")
           ? getDoc(doc(database, "roles", f.id))
           : Promise.resolve(null),
-        getDoc(doc(database, "journeys", f.id)),
+        details
+          ? getDoc(doc(database, "journeys", f.id))
+          : Promise.resolve(null),
       ]);
       return {
         uid: f.id,
@@ -88,11 +95,11 @@ export async function listManagedFamilies(after?: QueryDocumentSnapshot) {
           ? ({
               ...s.data(),
               startedAt:
-                journey.data()?.startedAt ??
+                journey?.data()?.startedAt ??
                 (s.data().totalCompleted > 0 ? undefined : null),
             } as FamilySummary)
           : null,
-        remindersPaused: control.data()?.remindersPaused === true,
+        remindersPaused: control?.data()?.remindersPaused === true,
         role: role?.data()?.role ?? "member",
         permissions: effectivePermissions(role?.data() ?? { role: "member" }),
       } as ManagedFamily;

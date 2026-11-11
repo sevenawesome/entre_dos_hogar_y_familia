@@ -16,6 +16,8 @@ Fechas reúne cumpleaños y aniversarios de los próximos treinta días. Seguimi
 
 ## Dos canales separados
 
+Notificaciones y Correos abren automáticamente el listado de familias. El filtro acepta varias palabras en cualquier orden y partes del correo, sin distinguir mayúsculas o tildes. Busca entre las familias cargadas; se pueden cargar otras veinte o abrir la búsqueda por correo exacto/UID. Se muestran cinco resultados iniciales para mantener la pantalla breve y el selector consulta solo los perfiles y resúmenes necesarios. Al elegir una familia, el listado se cierra y muestra «Destinatario elegido» con nombre y correo; «Cambiar familia destinataria» permite volver al listado.
+
 Notificaciones solo guarda un mensaje en la bandeja privada. La familia lo recibe al abrir o sincronizar la app y puede mostrarse un aviso local; no garantiza push inmediato con la app cerrada. No consume correos.
 
 Correos permite buscar destinatario, gestionar administrativamente su recepción, redactar, revisar y confirmar un envío. Tiene permiso independiente y muestra reservas de cuota en UTC. Ajustes de correo requiere configurar la aplicación: remitente, respuesta, categorías, límites y dos plantillas. No hay correos diarios; solo bienvenida tras verificar, nivel conseguido y mensajes manuales. Las bajas firmadas desde los correos se respetan. El envío real sigue desactivado.
