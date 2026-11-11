@@ -77,3 +77,13 @@ La cuenta de Firebase y sus verificaciones/recuperaciones funcionan sin estos pa
 ## Validación
 
 `npm run check` comprueba tipos, lint y dominio; `npm run test:email` usa transporte simulado y reservas concurrentes; `npm run test:firebase` requiere los emuladores de Auth y Firestore. La comprobación local no envía correo real. Antes de activar el servidor falta autorizar una prueba controlada de recepción/baja. El despliegue conserva `SEND_ENABLED=false`.
+
+## Diseño unificado y correos de acceso
+
+Todos los correos nuevos de Resend comparten una plantilla con el logo oficial, azul marino, crema, dorado y el acento de amor. La firma se lee de `config/branding`, editable desde Admin. El logo se sirve como recurso público del mismo Worker en `/assets/logo.png`, sin fotos familiares ni datos de usuarios. No se modifica una carga ya reservada para reintento: se conserva idéntica por idempotencia.
+
+Verificación y recuperación tienen la misma plantilla preparada mediante enlaces seguros de Firebase. El servicio personalizado comparte las reservas conservadoras de 90/día y 2700/mes con el resto del correo, tiene límites por dirección/IP con claves opacas y no persiste enlaces de recuperación ni direcciones/IP en esos contadores. Si está desactivado, pausado, sin cuota o sin conexión, la app usa la verificación/recuperación integrada de Firebase. Esos correos nativos mantienen el diseño limitado del proveedor.
+
+**Estado actual:** `SEND_ENABLED=false` y `AUTH_EMAIL_ENABLED=false`; no se activó ningún envío real. La cuenta sigue funcionando con los correos gratuitos de Firebase. Antes de activar los correos de acceso personalizados hay que conceder a la cuenta de servicio el permiso específico `firebaseauth.users.sendEmail` mediante un rol separado. No ampliar el rol personalizado de borrado ni conceder Owner/Editor. Debe realizarse una prueba controlada de verificación/recuperación y recepción antes de activarlos para todos. Los enlaces de seguridad se generan únicamente en memoria y no pasan por la cola visible del panel. No se añade un enlace de baja a los mensajes de seguridad.
+
+Esta integración mantiene Spark y los planes gratuitos de Cloudflare/Resend dentro de sus cuotas; no hay cambio a Blaze ni contratación de un plan pago. Las reservas contemplan solo los correos enviados por esta app: otros usos de la misma cuenta de Resend también consumen su cuota.

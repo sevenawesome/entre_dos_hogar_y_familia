@@ -8,6 +8,7 @@ import {
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { store, actions } from "../store";
+import { tryBrandedAuthEmail } from "./branded-auth-email";
 export async function requestEmailVerification(
   user: User | null = auth?.currentUser ?? null,
 ) {
@@ -21,7 +22,8 @@ export async function requestEmailVerification(
       "Espera un minuto antes de solicitar otro correo. Revisa también la carpeta de spam.",
     );
   auth.languageCode = "es";
-  await sendEmailVerification(user);
+  if (!(await tryBrandedAuthEmail("verification", user.email ?? "", user)))
+    await sendEmailVerification(user);
   await AsyncStorage.setItem(key, String(Date.now()));
   store.dispatch(
     actions.verificationMessage(

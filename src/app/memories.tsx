@@ -1,8 +1,8 @@
 import { Text, View, Pressable } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
-import { useApp } from "../../store";
-import { Screen, Heading, Card, Button, colors, s } from "../../components/ui";
+import { useApp } from "../store";
+import { Screen, Heading, Card, Button, colors, s } from "../components/ui";
 export default function Memories() {
   const { levels, progress } = useApp();
   const memories = levels
@@ -20,11 +20,30 @@ export default function Memories() {
     );
   return (
     <Screen>
+      <Button
+        secondary
+        title="Volver a Información"
+        onPress={() => router.replace("/(tabs)/information")}
+      />
       <Heading
         eyebrow="SU HISTORIA, EN PEQUEÑOS MOMENTOS"
         title="Para volver a sentir."
         subtitle="Cada reto compartido deja algo. Aquí guardamos sus pasos, sus palabras y sus logros."
       />
+      <Card style={{ backgroundColor: colors.champagne }}>
+        <Text style={s.sectionTitle}>
+          Las palabras que celebran su historia
+        </Text>
+        <Text style={s.body}>
+          Las felicitaciones de Comunidad se guardan para ustedes, organizadas
+          por aniversario.
+        </Text>
+        <Button
+          secondary
+          title="Recuerdos de nuestros aniversarios"
+          onPress={() => router.push("/anniversary-memories")}
+        />
+      </Card>
       {!memories.length && (
         <Card style={{ alignItems: "center", paddingVertical: 40 }}>
           <Ionicons name="book-outline" size={46} color={colors.navy} />

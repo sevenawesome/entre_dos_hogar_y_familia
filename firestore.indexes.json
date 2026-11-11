@@ -41,6 +41,20 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "anniversaryMessages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "recipientUid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [
@@ -71,6 +85,11 @@
     },
     {
       "collectionGroup": "emailQueue",
+      "fieldPath": "body",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "anniversaryMessages",
       "fieldPath": "body",
       "indexes": []
     }

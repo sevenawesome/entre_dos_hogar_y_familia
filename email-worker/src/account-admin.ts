@@ -279,9 +279,34 @@ export async function stepDeletionJob(
                 "__name__",
               ]),
             ),
+            ...["recipientUid", "senderUid"].map((field) =>
+              repo.query(
+                "anniversaryMessages",
+                [{ field, op: "EQUAL", value: uid }],
+                25,
+                ["recipientUid"],
+              ),
+            ),
           ]);
           const allLoaded = pages.every((p) => p.length < 25);
-          const paths = pages.flat().map((d) => ({ path: d.path }));
+          const paths = [
+            ...new Map(
+              pages
+                .flat()
+                .flatMap((d) => [
+                  { path: d.path },
+                  ...(d.path.startsWith("anniversaryMessages/") &&
+                  typeof d.data.recipientUid === "string"
+                    ? [
+                        {
+                          path: `families/${d.data.recipientUid}/inbox/anniversary-${d.path.split("/").at(-1)}`,
+                        },
+                      ]
+                    : []),
+                ])
+                .map((p) => [p.path, p]),
+            ).values(),
+          ];
           if (allLoaded)
             for (const root of [
               "community",

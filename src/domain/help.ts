@@ -5,7 +5,7 @@ export const guideSteps = [
   {
     icon: "people-outline",
     title: "Un espacio para los dos",
-    body: "Creen una cuenta familiar y usen el mismo correo y contraseña en ambos teléfonos. Registren la fecha de su matrimonio; los cumpleaños son opcionales. Lo que escriban, sus fechas y sus avances será compartido.",
+    body: "Creen una cuenta familiar y usen el mismo correo y contraseña en ambos teléfonos. Registren la fecha de su matrimonio y una foto familiar: pueden tomarla con la cámara o elegirla de su galería. Los cumpleaños son opcionales. Lo que escriban, sus fechas y sus avances será compartido.",
   },
   {
     icon: "heart-outline",
@@ -30,6 +30,10 @@ export const guideSteps = [
 ] as const;
 export const helpSections = [
   {
+    title: "Felicitaciones que se vuelven recuerdos",
+    body: "El día del aniversario, las familias participantes con correo verificado pueden pulsar «Felicitar por su aniversario» en Comunidad. Solo se permite una felicitación por familia remitente y aniversario, aunque usen dos teléfonos. La pareja la recibe en privado y puede releerla en Recuerdos → Recuerdos de nuestros aniversarios. Los mensajes se conservan por año, incluso después de la celebración. Con avisos habilitados, el teléfono notifica cuando recibe el mensaje al abrir o sincronizar la app; no se garantiza un aviso inmediato con la app cerrada. Al eliminar una cuenta se eliminan también sus felicitaciones enviadas y recibidas.",
+  },
+  {
     title: "Comunidad y privacidad",
     body: "Participar es opcional. En Nosotros elijan un nombre público, su foto y si desean mostrar aniversario o retos y niveles conseguidos. Compartir el aniversario publica su fecha de matrimonio entre cuentas registradas. Pueden autorizar por separado el cumpleaños de cada integrante: se muestran nombre, foto, día y mes. El año de nacimiento, la edad, los correos, notas y cuestionarios no se publican. Pueden retirar su perfil en cualquier momento; otras personas podrían conservar lo que ya vieron.",
   },
@@ -39,7 +43,7 @@ export const helpSections = [
   },
   {
     title: "Fotos y consumo gratuito",
-    body: "Las fotos familiares e individuales se convierten en miniaturas JPEG; no se guarda el original. Toquen una foto para ampliarla. La familiar se comparte al participar en Comunidad; las individuales solo al autorizar el cumpleaños de esa persona. La aplicación usa Firebase Spark dentro de sus cuotas, sin Cloud Functions ni Storage. Los datos de comunidad y administración se cargan por páginas para cuidar ese consumo.",
+    body: "La foto familiar es obligatoria al registrarse; pueden usar cámara o galería. Se mantiene privada hasta que decidan participar en Comunidad. Las fotos familiares e individuales se convierten en miniaturas JPEG; no se guarda el original. Toquen una foto para ampliarla. La familiar se comparte al participar en Comunidad; las individuales solo al autorizar el cumpleaños de esa persona. La aplicación usa Firebase Spark dentro de sus cuotas, sin Cloud Functions ni Storage. Los datos de comunidad y administración se cargan por páginas para cuidar ese consumo.",
   },
   {
     title: "Qué encontrarán en cada pestaña",

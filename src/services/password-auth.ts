@@ -6,12 +6,18 @@ import {
   type Auth,
   type User,
 } from "firebase/auth";
+import { tryBrandedAuthEmail } from "./branded-auth-email.ts";
 
 /** Firebase's hosted email action finishes recovery; never reveal account existence. */
-export async function sendRecoveryLink(auth: Auth, email: string) {
+export async function sendRecoveryLink(
+  auth: Auth,
+  email: string,
+  branded = tryBrandedAuthEmail,
+) {
   const address = email.trim();
   if (!address) throw new Error("Escribe tu correo para recuperar el acceso.");
   auth.languageCode = "es";
+  if (await branded("recovery", address)) return;
   try {
     await sendPasswordResetEmail(auth, address);
   } catch (error) {

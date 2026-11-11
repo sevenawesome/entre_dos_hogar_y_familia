@@ -133,7 +133,8 @@ service cloud.firestore {
   }
   match /families/{uid} {
    allow read: if self(uid) || can('families.view');
-   allow create,update: if (active(uid) || (resource!=null && can('families.edit') && audited({'auditId':request.resource.data.adminAuditId},'family.profile.update',uid))) && (resource==null || request.resource.data.timezone==resource.data.timezone) && validFamily();
+   allow create,update: if (active(uid) || (resource!=null && can('families.edit') && audited({'auditId':request.resource.data.adminAuditId},'family.profile.update',uid))) && (resource==null || request.resource.data.timezone==resource.data.timezone) && validFamily()
+    && (resource!=null || (getAfter(/databases/$(database)/documents/avatars/$(uid)).data.dataUri is string && avatar(getAfter(/databases/$(database)/documents/avatars/$(uid)).data.dataUri)));
    allow delete: if self(uid) && deleting(uid);
    match /progress/{id} { allow read: if self(uid); allow create,update: if active(uid) && validProgress(uid,id); allow delete: if self(uid) && deleting(uid); }
    match /levelNews/{id} {
@@ -145,13 +146,18 @@ service cloud.firestore {
    }
    match /devices/{id} { allow read,delete: if self(uid); }
    match /inbox/{id} {
+    function deletingGreetingSender() {
+     let messageId=id.replace('^anniversary-','');
+     let message=get(/databases/$(database)/documents/anniversaryMessages/$(messageId)).data;
+     return signed() && deleting(request.auth.uid) && id.matches('anniversary-[a-f0-9]{64}') && message.senderUid==request.auth.uid && message.recipientUid==uid;
+    }
     allow read: if self(uid);
     allow create: if can('messages.send') && !deleting(uid) && exists(/databases/$(database)/documents/families/$(uid))
       && request.resource.data.keys().hasOnly(['title','body','senderUid','createdAt','auditId'])
       && text(request.resource.data.title,100) && text(request.resource.data.body,1200)
       && request.resource.data.senderUid==request.auth.uid && request.resource.data.createdAt==request.time
       && audited(request.resource.data,'message.send',uid);
-    allow delete: if self(uid) && deleting(uid);
+    allow delete: if (self(uid) && deleting(uid)) || deletingGreetingSender();
    }
   }
   match /tracking/{uid} {
@@ -235,8 +241,12 @@ service cloud.firestore {
   }
   match /avatars/{uid} {
    allow read: if self(uid);
-   allow create,update: if active(uid) && request.resource.data.keys().hasOnly(['dataUri','updatedAt']) && avatar(request.resource.data.dataUri) && request.resource.data.updatedAt==request.time;
-   allow delete: if self(uid);
+   allow create,update: if active(uid) && request.resource.data.keys().hasOnly(['dataUri','updatedAt']) && request.resource.data.dataUri is string && avatar(request.resource.data.dataUri) && request.resource.data.updatedAt==request.time;
+   allow delete: if self(uid) && deleting(uid);
+  }
+  match /anniversaryMessages/{id} {
+   allow read: if self(resource.data.recipientUid) || self(resource.data.senderUid);
+   allow delete: if (self(resource.data.recipientUid) && deleting(resource.data.recipientUid)) || (self(resource.data.senderUid) && deleting(resource.data.senderUid));
   }
   match /community/{uid} {
    allow read: if self(uid) || (signed() && resource.data.visible==true);

@@ -14,7 +14,7 @@ export default function Inbox() {
       <Heading
         eyebrow="ACOMPAÑAR SU CAMINO"
         title="Mensajes para ustedes"
-        subtitle="Un espacio para recibir orientación y ánimo del Departamento de Hogar y Familia."
+        subtitle="Orientación del equipo y felicitaciones de las familias que celebran con ustedes."
       />
       {demo && (
         <Notice text="Bandeja de demostración. Los envíos reales requieren una cuenta y las reglas de Firebase desplegadas." />
@@ -37,9 +37,19 @@ export default function Inbox() {
               {m.createdAt
                 ? new Date(String(m.createdAt)).toLocaleDateString("es")
                 : "Ahora"}{" "}
-              · Hogar y Familia
+              ·{" "}
+              {m.kind === "anniversaryGreeting"
+                ? "Comunidad"
+                : "Hogar y Familia"}
             </Text>
             <Text style={s.body}>{m.body}</Text>
+            {m.kind === "anniversaryGreeting" && (
+              <Button
+                secondary
+                title="Ver el recuerdo de aniversario"
+                onPress={() => router.push("/anniversary-memories")}
+              />
+            )}
           </Card>
         ))
       )}

@@ -39,7 +39,7 @@ export default function Information() {
       <Button
         secondary
         title="Nuestros recuerdos y reflexiones"
-        onPress={() => router.push("/(tabs)/memories")}
+        onPress={() => router.push("/memories")}
       />
       <Card style={{ backgroundColor: colors.champagne }}>
         <Ionicons name="heart-outline" size={30} color={colors.navy} />
@@ -110,7 +110,9 @@ export default function Information() {
           secondary
           icon="settings-outline"
           title={
-            demo ? "Vista previa de administración" : "Administrar Amor que permanece"
+            demo
+              ? "Vista previa de administración"
+              : "Administrar Amor que permanece"
           }
           onPress={() => router.push("/(tabs)/administration")}
         />

@@ -106,12 +106,21 @@ export function registerDevice(
               }
             : undefined,
         )) {
+          const anniversaryKey = item.anniversaryKey
+            ? `@entre-dos/anniversary-notified/${uid}/${item.anniversaryKey}`
+            : null;
+          if (anniversaryKey) {
+            const scheduled = await AsyncStorage.getItem(anniversaryKey);
+            if (scheduled && Date.parse(scheduled) <= Date.now()) continue;
+          }
           await n.scheduleNotificationAsync({
             content: {
               title: item.title,
               body: item.body,
               sound: "default",
-              data: { screen: "today" },
+              data: {
+                screen: item.anniversaryKey ? "anniversary-memories" : "today",
+              },
             },
             trigger: item.daily
               ? {
@@ -126,6 +135,8 @@ export function registerDevice(
                   channelId: "retos",
                 },
           });
+          if (anniversaryKey && item.date)
+            await AsyncStorage.setItem(anniversaryKey, item.date.toISOString());
         }
       }
       await AsyncStorage.setItem(prefKey(), JSON.stringify(prefs));
@@ -141,7 +152,17 @@ export async function disableDevice() {
   const p = await loadPreferences();
   await registerDevice({ ...p, enabled: false });
 }
-export async function presentInbox(messages: FamilyMessage[]) {
+let inboxPending = Promise.resolve();
+export function presentInbox(messages: FamilyMessage[]) {
+  const uid = store.getState().app.uid;
+  inboxPending = inboxPending
+    .catch(() => {})
+    .then(async () => {
+      if (store.getState().app.uid === uid) await showInbox(messages);
+    });
+  return inboxPending;
+}
+async function showInbox(messages: FamilyMessage[]) {
   const state = store.getState().app,
     prefs = await loadPreferences(),
     n = await notifications();
@@ -162,25 +183,35 @@ export async function presentInbox(messages: FamilyMessage[]) {
       shouldSetBadge: false,
     }),
   });
-  const latest = messages[0],
-    key = `@entre-dos/message-notified/${state.uid}`;
-  if (!latest.createdAt || (await AsyncStorage.getItem(key)) === latest.id)
-    return;
+  const key = `@entre-dos/messages-notified/${state.uid}`;
+  let seen: string[] = [];
+  try {
+    const value = JSON.parse((await AsyncStorage.getItem(key)) ?? "[]");
+    if (Array.isArray(value)) seen = value.filter((v) => typeof v === "string");
+  } catch {}
   if ((await n.getPermissionsAsync()).status !== "granted") return;
-  if (
-    latest.createdAt &&
-    Date.now() - Date.parse(String(latest.createdAt)) < 86400000
-  )
-    await n.scheduleNotificationAsync({
-      content: {
-        title: latest.title,
-        body: latest.body,
-        data: { screen: "inbox" },
-        sound: "default",
-      },
-      trigger: null,
-    });
-  await AsyncStorage.setItem(key, latest.id);
+  for (const message of [...messages].reverse()) {
+    if (seen.includes(message.id) || !message.createdAt) continue;
+    if (store.getState().app.uid !== state.uid) return;
+    const age = Date.now() - Date.parse(String(message.createdAt));
+    if (age >= 0 && age < 86400000)
+      await n.scheduleNotificationAsync({
+        content: {
+          title: message.title,
+          body: message.body,
+          data: {
+            screen:
+              message.kind === "anniversaryGreeting"
+                ? "anniversary-memories"
+                : "inbox",
+          },
+          sound: "default",
+        },
+        trigger: null,
+      });
+    seen = [...seen, message.id].slice(-150);
+    await AsyncStorage.setItem(key, JSON.stringify(seen));
+  }
 }
 let newsPending = Promise.resolve();
 /** Spark mode: a local notice when this phone receives the published catalog. */

@@ -119,7 +119,7 @@ export function JourneyBanner({
         <Button
           title="Volver a nuestros recuerdos"
           disabled={!!preview}
-          onPress={() => router.push("/(tabs)/memories")}
+          onPress={() => router.push("/memories")}
         />
         <Button
           secondary

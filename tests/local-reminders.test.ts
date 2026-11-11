@@ -137,3 +137,27 @@ describe("Programación local sin servidor", () => {
     );
   });
 });
+
+it("anniversary reminder states the years and remains scheduled after finishing all challenges", () => {
+  const plan = localReminderPlan(
+    { ...family, partner1BirthDate: null },
+    prefs,
+    false,
+    new Date("2026-11-08T12:00:00Z"),
+  );
+  assert.match(plan[0].body, /10 años/);
+  assert.equal(plan[0].date.toISOString(), "2026-11-09T00:00:00.000Z");
+  assert.ok(plan[0].anniversaryKey);
+  assert.match(plan[1].body, /11 años/);
+});
+it("first opening after the anniversary reminder time still plans one greeting today", () => {
+  const date = new Date("2026-11-09T01:00:00Z");
+  const plan = localReminderPlan(
+    { ...family, partner1BirthDate: null },
+    prefs,
+    false,
+    date,
+  );
+  assert.equal(plan[0].date.getTime(), date.getTime() + 1500);
+  assert.match(plan[0].body, /10 años/);
+});

@@ -7,6 +7,7 @@ export interface Env {
   FROM_EMAIL: string;
   SEND_ENABLED: string;
   ADMIN_ACCOUNTS_ENABLED?: string;
+  AUTH_EMAIL_ENABLED?: string;
 }
 export type Data = Record<string, unknown>;
 export interface Document<T = Data> {

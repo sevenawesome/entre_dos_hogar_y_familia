@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Text, View, Pressable } from "react-native";
+import { Text, Pressable } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useApp } from "../store";
@@ -9,13 +9,13 @@ import { friendlyError } from "../services/api";
 import {
   Screen,
   Heading,
-  Field,
   Button,
   Notice,
   Card,
   colors,
   s,
 } from "../components/ui";
+import { QuestionnairePresentation } from "../components/QuestionnairePresentation";
 export default function Questionnaire() {
   const { levelId } = useLocalSearchParams<{ levelId: string }>();
   const { levels, progress } = useApp();
@@ -47,11 +47,13 @@ export default function Questionnaire() {
       >
         <Ionicons name="arrow-back" size={24} color={colors.ink} />
       </Pressable>
-      <Heading
-        eyebrow={`NIVEL ${level?.order ?? ""} · REFLEXIÓN FINAL`}
-        title={finished ? "Lo que construimos." : "Lo mejor empieza ahora."}
-        subtitle="Reserven unos minutos para mirar atrás y responder juntos."
-      />
+      {finished && (
+        <Heading
+          eyebrow={`NIVEL ${level?.order ?? ""} · REFLEXIÓN FINAL`}
+          title="Lo que construimos."
+          subtitle="Reserven unos minutos para mirar atrás y responder juntos."
+        />
+      )}
       {!level || !isUnlocked(level, progress) || currentChallenge(level, p) ? (
         <Notice text="Completen todos los retos de este nivel para abrir su reflexión final." />
       ) : (
@@ -61,30 +63,20 @@ export default function Questionnaire() {
               text={`Nivel conseguido el ${new Date(p!.finishedAt!).toLocaleDateString("es")}. Sus respuestas quedaron guardadas.`}
             />
           )}
-          {level.questions.map((q, i) =>
-            finished ? (
+          {finished ? (
+            level.questions.map((q, i) => (
               <Card key={q.id}>
                 <Text style={s.eyebrow}>RECUERDO {i + 1}</Text>
                 <Text style={s.label}>{q.label}</Text>
                 <Text style={s.body}>{p?.answers[q.id]}</Text>
               </Card>
-            ) : (
-              <View key={q.id} style={{ gap: 8 }}>
-                <Text style={s.eyebrow}>
-                  PREGUNTA {i + 1} DE {level.questions.length}
-                </Text>
-                <Field
-                  label={q.label}
-                  multiline
-                  value={answers[q.id] ?? ""}
-                  maxLength={2000}
-                  onChangeText={(value) =>
-                    setAnswers({ ...answers, [q.id]: value })
-                  }
-                  placeholder="Nuestra respuesta…"
-                />
-              </View>
-            ),
+            ))
+          ) : (
+            <QuestionnairePresentation
+              level={level}
+              answers={answers}
+              onChange={(id, value) => setAnswers({ ...answers, [id]: value })}
+            />
           )}
           {!!error && <Notice text={error} error />}
           {!finished && (

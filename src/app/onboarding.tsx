@@ -16,7 +16,7 @@ export default function Onboarding() {
         subtitle={
           family
             ? "Agreguen la fecha de su matrimonio para continuar. Conservamos los datos y el progreso de su familia."
-            : "Cuéntennos de su familia y cuándo se casaron. La fecha de matrimonio es obligatoria."
+            : "Cuéntennos de su familia y cuándo se casaron. La fecha de matrimonio y una foto familiar son obligatorias. Pueden tomar la foto aquí o elegirla de su galería."
         }
       />
       <FamilyForm initial={family} onSaved={() => router.replace("/(tabs)")} />

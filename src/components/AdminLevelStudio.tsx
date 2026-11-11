@@ -12,6 +12,7 @@ import { levelIntroduction } from "../domain/level-news";
 import type { Challenge, Level } from "../domain/types";
 import { bundledLevels } from "../data/catalog";
 import { callBackend, friendlyError } from "../services/api";
+import { LevelPreviewModal } from "./LevelPreviewModal";
 import { LevelPresentation } from "./LevelPresentation";
 import { Button, Card, Field, Notice, colors, s } from "./ui";
 type StoredLevel = Level & { auditId?: string };
@@ -29,6 +30,7 @@ export function AdminLevelStudio() {
     [loaded, setLoaded] = useState(app.demo);
   const [error, setError] = useState(""),
     [message, setMessage] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [review, setReview] = useState<Level | null>(null);
   useEffect(() => {
     if (app.demo || !allowed) return;
@@ -236,8 +238,8 @@ export function AdminLevelStudio() {
         </Text>
         <Text style={s.small}>
           Guarda los cambios antes de cambiar de nivel. Completa los textos
-          obligatorios para guardar el borrador o publicar. La vista previa
-          cambia mientras escribes.
+          obligatorios para guardar el borrador o publicar. «Vista previa» abre
+          una ventana con el diseño que verá la pareja.
         </Text>
         {locked && (
           <Notice text="Puedes mejorar la presentación pública. Los retos, preguntas y prerrequisito publicados quedan protegidos para conservar el progreso." />
@@ -255,7 +257,9 @@ export function AdminLevelStudio() {
               key={id}
               accessibilityRole="tab"
               accessibilityState={{ selected: tab === id }}
-              onPress={() => setTab(id)}
+              onPress={() =>
+                id === "preview" ? setPreviewOpen(true) : setTab(id)
+              }
               style={{
                 padding: 12,
                 borderRadius: 12,
@@ -512,38 +516,6 @@ export function AdminLevelStudio() {
             />
           </>
         )}
-        {tab === "preview" && (
-          <>
-            <Notice text="Vista previa privada: esta presentación será pública. La muestra de reto de abajo solo se ve aquí y al avanzar en el recorrido." />
-            <LevelPresentation info={levelIntroduction(draft)} />
-            <Card
-              style={{
-                backgroundColor: colors.loveMist,
-                borderColor: colors.loveLine,
-              }}
-            >
-              <Text style={s.eyebrow}>MUESTRA PRIVADA · RETO {at + 1}</Text>
-              <Text style={s.sectionTitle}>
-                {challenge?.title || "Título del reto"}
-              </Text>
-              <Text style={s.body}>
-                {challenge?.description || "La actividad aparecerá aquí."}
-              </Text>
-              <Text style={s.label}>
-                {challenge?.reflection ||
-                  "La pregunta para conversar aparecerá aquí."}
-              </Text>
-            </Card>
-            <Text style={s.label}>
-              Cuestionario final · vista administrativa
-            </Text>
-            {draft.questions.map((q, i) => (
-              <Text key={q.id} style={s.body}>
-                {i + 1}. {q.label || "Completa esta pregunta"}
-              </Text>
-            ))}
-          </>
-        )}
         <Button
           secondary
           title={locked ? "Guardar presentación" : "Guardar borrador privado"}
@@ -559,10 +531,18 @@ export function AdminLevelStudio() {
           />
         )}
       </Card>
-      <Card>
-        <Text style={s.eyebrow}>ASÍ SE ESTÁ QUEDANDO SU PRESENTACIÓN</Text>
-        <LevelPresentation info={levelIntroduction(draft)} />
-      </Card>
+      <Button
+        secondary
+        title="Ver cómo se verá en la app"
+        onPress={() => setPreviewOpen(true)}
+      />
+      {previewOpen && (
+        <LevelPreviewModal
+          level={draft}
+          challengeIndex={at}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
       <Modal
         visible={!!review}
         transparent

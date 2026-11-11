@@ -179,7 +179,14 @@ function AppLayout() {
         /^[a-zA-Z0-9_-]{1,100}$/.test(levelId)
       )
         router.push({ pathname: "/level-intro", params: { levelId } });
-      else router.push(screen === "inbox" ? "/inbox" : "/(tabs)");
+      else
+        router.push(
+          screen === "anniversary-memories"
+            ? "/anniversary-memories"
+            : screen === "inbox"
+              ? "/inbox"
+              : "/(tabs)",
+        );
     });
     return () => {
       state.remove();

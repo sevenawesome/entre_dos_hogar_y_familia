@@ -7,6 +7,9 @@ import { updateFamily } from "../services/actions";
 import { friendlyError } from "../services/api";
 import { displayMarriageDate, parseMarriageDate } from "../domain/anniversary";
 import { DateField } from "./DateField";
+import { Avatar } from "./Avatar";
+import { pickPhoto } from "../services/photos";
+import { validFamilyPhoto } from "../domain/family-photo";
 type ChildDraft = Child & { id: string; birthdayText: string };
 const childId = () =>
   `child-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
@@ -17,8 +20,22 @@ export function FamilyForm({
 }: {
   initial?: Family | null;
   onSaved: () => void;
-  onSave?: (family: Family) => Promise<void>;
+  onSave?: (family: Family, photo?: string | null) => Promise<void>;
 }) {
+  const [photo, setPhoto] = useState<string | null>(null),
+    [picking, setPicking] = useState(false);
+  async function choose(source: "library" | "camera") {
+    setPicking(true);
+    setError("");
+    try {
+      const selected = await pickPhoto(384, 44000, source);
+      if (selected) setPhoto(selected);
+    } catch (e) {
+      setError(friendlyError(e));
+    } finally {
+      setPicking(false);
+    }
+  }
   const [name, setName] = useState(initial?.name ?? ""),
     [partner1, setPartner1] = useState(initial?.partner1 ?? ""),
     [partner2, setPartner2] = useState(initial?.partner2 ?? ""),
@@ -41,6 +58,12 @@ export function FamilyForm({
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   async function save() {
+    if (!initial && !validFamilyPhoto(photo)) {
+      setError(
+        "La foto de la familia es obligatoria. Tomen una foto o elijan una de la galería.",
+      );
+      return;
+    }
     const timezone =
       initial?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
     const parsedMarriageDate = marriageDate.trim()
@@ -85,26 +108,29 @@ export function FamilyForm({
     }
     setBusy(true);
     try {
-      await onSave({
-        name: name.trim(),
-        partner1: partner1.trim(),
-        partner2: partner2.trim(),
-        children: children.map(({ birthdayText, ...child }) => ({
-          ...child,
-          name: child.name.trim(),
-          birthDate: birthdayText.trim()
-            ? parseMarriageDate(birthdayText, timezone)
+      await onSave(
+        {
+          name: name.trim(),
+          partner1: partner1.trim(),
+          partner2: partner2.trim(),
+          children: children.map(({ birthdayText, ...child }) => ({
+            ...child,
+            name: child.name.trim(),
+            birthDate: birthdayText.trim()
+              ? parseMarriageDate(birthdayText, timezone)
+              : null,
+          })),
+          timezone,
+          marriageDate: parsedMarriageDate,
+          partner1BirthDate: partner1Birthday.trim()
+            ? parseMarriageDate(partner1Birthday, timezone)
             : null,
-        })),
-        timezone,
-        marriageDate: parsedMarriageDate,
-        partner1BirthDate: partner1Birthday.trim()
-          ? parseMarriageDate(partner1Birthday, timezone)
-          : null,
-        partner2BirthDate: partner2Birthday.trim()
-          ? parseMarriageDate(partner2Birthday, timezone)
-          : null,
-      });
+          partner2BirthDate: partner2Birthday.trim()
+            ? parseMarriageDate(partner2Birthday, timezone)
+            : null,
+        },
+        !initial ? photo : undefined,
+      );
       onSaved();
     } catch (e) {
       setError(friendlyError(e));
@@ -114,6 +140,40 @@ export function FamilyForm({
   }
   return (
     <View style={{ gap: 18 }}>
+      {!initial && (
+        <View
+          style={{
+            gap: 14,
+            alignItems: "center",
+            padding: 18,
+            borderRadius: 22,
+            backgroundColor: colors.cream,
+            borderWidth: 1,
+            borderColor: colors.line,
+          }}
+        >
+          <Text style={s.sectionTitle}>Foto de su familia · obligatoria</Text>
+          <Avatar uri={photo} name={name || "Su familia"} size={100} />
+          <Button
+            secondary
+            title="Tomar foto con la cámara"
+            icon="camera-outline"
+            busy={picking}
+            onPress={() => choose("camera")}
+          />
+          <Button
+            secondary
+            title="Elegir foto de la galería"
+            icon="image-outline"
+            disabled={picking}
+            onPress={() => choose("library")}
+          />
+          <Text style={s.small}>
+            Se guarda una miniatura privada. Solo se comparte en Comunidad si
+            ustedes lo autorizan.
+          </Text>
+        </View>
+      )}
       <Field
         label="Así se llama nuestra familia"
         value={name}
@@ -284,6 +344,7 @@ export function FamilyForm({
         title={initial ? "Guardar cambios" : "Crear nuestro espacio"}
         onPress={save}
         busy={busy}
+        disabled={picking}
       />
     </View>
   );

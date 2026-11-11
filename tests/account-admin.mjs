@@ -641,3 +641,31 @@ test("Google account transport scopes deletion to its project and requests no ha
     "projects/demo-entre-dos/databases/(default)/documents/families/a/progress/l1",
   );
 });
+
+test("owner cleanup removes sent and received anniversary memories and notification copies without reading message bodies", async () => {
+  const r = setup();
+  r.seed("anniversaryMessages/sent", {
+    senderUid: "a",
+    recipientUid: "b",
+    body: "private",
+  });
+  r.seed("anniversaryMessages/received", {
+    senderUid: "b",
+    recipientUid: "a",
+    body: "private",
+  });
+  r.seed("families/b/inbox/anniversary-sent", { body: "private" });
+  r.seed("families/a/inbox/anniversary-received", { body: "private" });
+  const p = await queued(r);
+  await stepDeletionJob(r, p.job.id, now);
+  assert.equal(r.docs.has("anniversaryMessages/sent"), false);
+  assert.equal(r.docs.has("anniversaryMessages/received"), false);
+  assert.equal(r.docs.has("families/b/inbox/anniversary-sent"), false);
+  assert.ok(r.accounts.has("owner"));
+  assert.ok(r.accounts.has("admin"));
+  assert.ok(
+    r.masks
+      .filter((m) => m.path === "anniversaryMessages")
+      .every((m) => !m.mask.includes("body")),
+  );
+});

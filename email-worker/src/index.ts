@@ -1,5 +1,19 @@
 import { defaultBranding, validateBranding } from "../../src/domain/branding";
 import { accountsRepository } from "./accounts-google";
+import { communityRequest } from "./community";
+import { brandedEmail } from "./email-brand";
+import { authEmailRequest } from "./auth-email";
+export {
+  authEmailRequest,
+  reserveAuthEmail,
+  generateAuthLink,
+} from "./auth-email";
+export { brandedEmail } from "./email-brand";
+export {
+  communityRequest,
+  sendAnniversaryGreeting,
+  greetingId,
+} from "./community";
 import {
   accountsHeaders,
   deletionCycle,
@@ -212,7 +226,13 @@ export async function emailPayload(
   );
   const link = `${env.PUBLIC_BASE_URL}/unsubscribe?uid=${encodeURIComponent(uid)}&token=${encodeURIComponent(token)}`;
   const text = `Amor que permanece${byline ? ` · ${byline}` : ""}\n\n${draft.lines.join("\n\n")}\n\nDejar de recibir correos opcionales: ${link}\nCreado por SevenAwesome · https://www.sevenawesome.com/`;
-  const html = `<!doctype html><html lang="es"><body style="margin:0;background:#FBF7EE;color:#06264A;font:16px Arial,sans-serif"><div style="max-width:560px;margin:auto;padding:32px"><h1 style="color:#A77819">♡ Amor que permanece</h1>${byline ? `<p>${escapeHtml(byline)}</p>` : ""}<div style="background:white;border-radius:22px;padding:26px"><h2>${escapeHtml(draft.subject)}</h2>${draft.lines.map((line) => `<p style="line-height:1.7">${escapeHtml(line).replace(/\n/g, "<br>")}</p>`).join("")}</div><p style="font-size:13px;line-height:1.7">Reciben este correo sobre su cuenta y participación en Amor que permanece. <a href="${escapeHtml(link)}">Dejar de recibir correos opcionales</a>.</p><p style="font-size:13px">Creado por <a href="https://www.sevenawesome.com/">SevenAwesome</a></p></div></body></html>`;
+  const html = brandedEmail({
+    title: draft.subject,
+    lines: draft.lines,
+    byline,
+    baseUrl: env.PUBLIC_BASE_URL,
+    unsubscribe: link,
+  });
   return {
     from,
     reply_to: settings.replyTo,
@@ -746,6 +766,52 @@ export default {
       );
   },
   async fetch(request: Request, env: Env) {
+    if (
+      ["/auth/email/verification", "/auth/email/recovery"].includes(
+        new URL(request.url).pathname,
+      )
+    ) {
+      if (request.method === "OPTIONS")
+        return new Response(null, { status: 204, headers: accountsHeaders });
+      if (env.SEND_ENABLED !== "true" || env.AUTH_EMAIL_ENABLED !== "true")
+        return Response.json(
+          { ok: true, provider: "firebase" },
+          { headers: accountsHeaders },
+        );
+      try {
+        return await authEmailRequest(
+          request,
+          env,
+          await accountsRepository(env),
+        );
+      } catch {
+        return Response.json(
+          { ok: true, provider: "firebase" },
+          { headers: accountsHeaders },
+        );
+      }
+    }
+    if (new URL(request.url).pathname === "/community/anniversary-message") {
+      if (request.method === "OPTIONS")
+        return new Response(null, { status: 204, headers: accountsHeaders });
+      if (!request.headers.get("Authorization"))
+        return Response.json(
+          { error: "Inicia sesión." },
+          { status: 401, headers: accountsHeaders },
+        );
+      try {
+        return await communityRequest(
+          request,
+          env,
+          await accountsRepository(env),
+        );
+      } catch {
+        return Response.json(
+          { error: "Servicio de comunidad no disponible." },
+          { status: 503, headers: accountsHeaders },
+        );
+      }
+    }
     if (new URL(request.url).pathname.startsWith("/admin/accounts")) {
       if (request.method === "OPTIONS")
         return new Response(null, { status: 204, headers: accountsHeaders });

@@ -49,20 +49,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="memories"
-        options={{
-          href: null,
-          title: "Recuerdos",
-          tabBarIcon: ({ focused, size }) => (
-            <Ionicons
-              name="book-outline"
-              size={size}
-              color={focused ? colors.navy : colors.muted}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="community"
         options={{
           title: "Comunidad",

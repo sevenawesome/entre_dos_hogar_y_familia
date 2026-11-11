@@ -16,12 +16,13 @@ export default function Privacy() {
         <Text style={s.body}>
           El correo de acceso, los nombres o apodos de la familia, la fecha de
           matrimonio y los cumpleaños que agreguen, sus retos completados, las
-          notas y la reflexión final, miniaturas familiares e individuales si
-          las eligen, el estado de verificación del correo, el inicio del
-          recorrido y los mensajes del equipo de acompañamiento. El horario de
-          los recordatorios se guarda en cada teléfono. La fecha de matrimonio
-          es obligatoria para registrar la familia; las fechas de cumpleaños son
-          opcionales.
+          notas y la reflexión final, una miniatura familiar obligatoria y las
+          individuales si las eligen, las felicitaciones de aniversario, el
+          estado de verificación del correo, el inicio del recorrido y los
+          mensajes del equipo de acompañamiento. El horario de los recordatorios
+          se guarda en cada teléfono. La fecha de matrimonio y una foto familiar
+          son obligatorias para registrar la familia; las fechas de cumpleaños
+          son opcionales.
         </Text>
         <Text style={s.sectionTitle}>Una cuenta para los dos</Text>
         <Text style={s.body}>
@@ -34,9 +35,9 @@ export default function Privacy() {
           Los avisos pueden aparecer en la pantalla bloqueada e incluyen el
           título del reto y su disponibilidad, un saludo de aniversario o el
           nombre de quien cumple años. Al sincronizar también pueden mostrar
-          mensajes de la administración. Nunca incluyen sus notas ni respuestas.
-          Pueden pausar los avisos desde Nosotros o desde los ajustes del
-          teléfono.
+          mensajes de la administración o felicitaciones de otras familias.
+          Nunca incluyen sus notas ni respuestas de los retos. Pueden pausar los
+          avisos desde Nosotros o desde los ajustes del teléfono.
         </Text>
         <Text style={s.sectionTitle}>Sus datos en Firebase</Text>
         <Text style={s.body}>
@@ -65,7 +66,12 @@ export default function Privacy() {
           correos, notas y cuestionarios no se publican. Sin ese permiso, las
           fotos individuales quedan en la cuenta familiar. Las fotos se reducen
           a miniaturas; no guardamos los originales. Pueden retirar su perfil,
-          aunque otras personas podrían conservar lo que ya vieron.
+          aunque otras personas podrían conservar lo que ya vieron. El día de su
+          aniversario, otras familias participantes con correo verificado pueden
+          enviarles una felicitación por familia. Se conserva de forma privada
+          para la pareja y su remitente, asociada al aniversario de ese año. Al
+          eliminar una cuenta se eliminan también las felicitaciones enviadas y
+          recibidas y sus copias en las bandejas de la app.
         </Text>
         <Text style={s.sectionTitle}>Correos opcionales</Text>
         <Text style={s.body}>

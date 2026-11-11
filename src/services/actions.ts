@@ -45,12 +45,13 @@ export async function beginJourney(levelId: string) {
   store.dispatch(actions.journey(saved));
   return saved;
 }
-export async function updateFamily(family: Family) {
+export async function updateFamily(family: Family, photo?: string | null) {
   const state = store.getState().app;
   if (state.demo) {
     store.dispatch(actions.family(validateFamilyProfile(family)));
+    if (photo) store.dispatch(actions.avatar(photo));
     syncDemoProfile();
-  } else await saveFamily(state.uid!, family);
+  } else await saveFamily(state.uid!, family, photo);
 }
 export async function completeChallenge(
   levelId: string,

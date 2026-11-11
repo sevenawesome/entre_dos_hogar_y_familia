@@ -21,13 +21,23 @@ import type {
 export async function pickPhoto(
   size: number,
   maxLength: number,
+  source: "library" | "camera" = "library",
 ): Promise<string | null> {
-  const result = await ImagePicker.launchImageLibraryAsync({
+  if (source === "camera") {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted)
+      throw Error("Permite usar la cámara o elige una foto de la galería.");
+  }
+  const options = {
     mediaTypes: ["images"],
     allowsEditing: true,
     aspect: [1, 1],
     quality: 1,
-  });
+  } satisfies ImagePicker.ImagePickerOptions;
+  const result =
+    source === "camera"
+      ? await ImagePicker.launchCameraAsync(options)
+      : await ImagePicker.launchImageLibraryAsync(options);
   if (result.canceled) return null;
   const asset = result.assets[0],
     edge = Math.min(asset.width, asset.height);
@@ -176,10 +186,11 @@ export async function saveFamilySharing(
       },
       people,
     );
-    tx.set(doc(database, "avatars", uid), {
-      dataUri: photo,
-      updatedAt: serverTimestamp(),
-    });
+    if (photo)
+      tx.set(doc(database, "avatars", uid), {
+        dataUri: photo,
+        updatedAt: serverTimestamp(),
+      });
     if (portraits.exists())
       tx.set(photoRef, {
         people,

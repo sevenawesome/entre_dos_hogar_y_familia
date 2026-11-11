@@ -53,7 +53,7 @@
     "test:firebase": "node --experimental-strip-types --test tests/spark.rules.mjs tests/verification.auth.mjs",
     "email:typecheck": "tsc --project email-worker/tsconfig.json",
     "email:build": "npm run email:typecheck && npx --yes wrangler@4.158.0 deploy --dry-run --config email-worker/wrangler.jsonc --outdir ../.cache/email-worker",
-    "test:email": "npm run email:build && node --test tests/email-worker.mjs tests/account-admin.mjs"
+    "test:email": "npm run email:build && node --test tests/email-worker.mjs tests/account-admin.mjs tests/community-mail.mjs"
   },
   "overrides": {
     "@grpc/grpc-js": "^1.14.7"

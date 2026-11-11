@@ -229,9 +229,13 @@ export function subscribeCatalog(
     onError,
   );
 }
-export async function saveFamily(uid: string, family: Family) {
+export async function saveFamily(
+  uid: string,
+  family: Family,
+  photo?: string | null,
+) {
   const { saveSparkFamily } = await import("./spark");
-  await saveSparkFamily(uid, family);
+  await saveSparkFamily(uid, family, photo);
 }
 export async function callBackend(name: string, data: unknown) {
   if (name === "deleteFamilyAccount") {

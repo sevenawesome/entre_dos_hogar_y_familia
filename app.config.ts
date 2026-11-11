@@ -48,7 +48,8 @@ const config: ExpoConfig = {
       {
         photosPermission:
           "Amor que permanece usa la foto que elijas para el perfil de tu familia.",
-        cameraPermission: false,
+        cameraPermission:
+          "Amor que permanece usa la cámara solo cuando elijas tomar la foto de tu familia.",
         microphonePermission: false,
       },
     ],

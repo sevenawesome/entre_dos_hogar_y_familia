@@ -67,6 +67,10 @@ async function createFamily(
   const db = ctx(uid),
     batch = writeBatch(db);
   batch.set(doc(db, "families", uid), profile);
+  batch.set(doc(db, "avatars", uid), {
+    dataUri: "data:image/jpeg;base64,AAAA",
+    updatedAt: serverTimestamp(),
+  });
   batch.set(doc(db, "tracking", uid), {
     uid,
     familyName: family.name,
@@ -612,6 +616,10 @@ test("fifty challenges and six final answers fit the rules evaluation budget", a
   await assertSucceeds(b.commit());
 });
 test("a family profile with ten children fits the validation budget", async () => {
+  await seed("avatars/a", {
+    dataUri: "data:image/jpeg;base64,AAAA",
+    updatedAt: Timestamp.now(),
+  });
   const db = ctx("a"),
     f = {
       ...family,
@@ -1676,4 +1684,91 @@ test("deletion jobs are server-only and a marked account cannot receive an admin
     );
     await assertFails(deleteDoc(doc(db, path)));
   }
+});
+
+test("family registration requires an atomic private photo; existing photos can be replaced but not removed", async () => {
+  await assertFails(setDoc(doc(ctx("new"), "families/new"), family));
+  const db = ctx("new"),
+    b = writeBatch(db);
+  b.set(doc(db, "families/new"), family);
+  b.set(doc(db, "avatars/new"), {
+    dataUri: "data:image/jpeg;base64,AAAA",
+    updatedAt: serverTimestamp(),
+  });
+  await assertSucceeds(b.commit());
+  await assertFails(deleteDoc(doc(db, "avatars/new")));
+  await assertFails(
+    setDoc(doc(db, "avatars/new"), {
+      dataUri: null,
+      updatedAt: serverTimestamp(),
+    }),
+  );
+  await assertSucceeds(
+    setDoc(doc(db, "avatars/new"), {
+      dataUri: "data:image/jpeg;base64,BBBB",
+      updatedAt: serverTimestamp(),
+    }),
+  );
+  await seed("families/legacy", family);
+  await assertSucceeds(
+    setDoc(doc(ctx("legacy"), "families/legacy"), {
+      ...family,
+      name: "Familia actualizada",
+    }),
+  );
+});
+
+test("anniversary memories are private, server-created and immutable; deletion cleans outbound notifications", async () => {
+  const id = "a".repeat(64),
+    message = {
+      recipientUid: "b",
+      senderUid: "a",
+      senderAlias: "Familia A",
+      anniversaryDate: "2026-11-10",
+      years: 10,
+      body: "Privado",
+      createdAt: Timestamp.now(),
+    };
+  await seed("anniversaryMessages/" + id, message);
+  await seed("families/b/inbox/anniversary-" + id, {
+    ...message,
+    kind: "anniversaryGreeting",
+    title: "Felicidades",
+  });
+  await assertSucceeds(getDoc(doc(ctx("b"), "anniversaryMessages", id)));
+  await assertSucceeds(getDoc(doc(ctx("a"), "anniversaryMessages", id)));
+  await assertFails(
+    getDoc(doc(ctx("administrator"), "anniversaryMessages", id)),
+  );
+  await assertFails(getDoc(doc(ctx("c"), "anniversaryMessages", id)));
+  await assertSucceeds(
+    getDocs(
+      query(
+        collection(ctx("b"), "anniversaryMessages"),
+        where("recipientUid", "==", "b"),
+      ),
+    ),
+  );
+  await assertFails(
+    setDoc(doc(ctx("a"), "anniversaryMessages", "forged"), message),
+  );
+  await assertFails(
+    updateDoc(doc(ctx("b"), "anniversaryMessages", id), { body: "cambio" }),
+  );
+  await assertFails(deleteDoc(doc(ctx("a"), "anniversaryMessages", id)));
+  await assertFails(
+    deleteDoc(doc(ctx("a"), "families/b/inbox/anniversary-" + id)),
+  );
+  await seed("accountDeletion/a", { requestedAt: Timestamp.now() });
+  const senderDb = ctx("a"),
+    b = writeBatch(senderDb);
+  b.delete(doc(senderDb, "families/b/inbox/anniversary-" + id));
+  b.delete(doc(senderDb, "anniversaryMessages", id));
+  await assertSucceeds(b.commit());
+  // The notification may already be gone after recipient cleanup; sender deletion remains resumable.
+  await seed("anniversaryMessages/" + id, message);
+  const again = writeBatch(senderDb);
+  again.delete(doc(senderDb, "families/b/inbox/anniversary-" + id));
+  again.delete(doc(senderDb, "anniversaryMessages", id));
+  await assertSucceeds(again.commit());
 });

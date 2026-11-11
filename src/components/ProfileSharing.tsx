@@ -59,11 +59,11 @@ export function ProfileSharing() {
       setBusy(false);
     }
   }
-  async function choosePhoto() {
+  async function choosePhoto(source: "library" | "camera" = "library") {
     setError("");
     try {
       setBusy(true);
-      const photo = await pickPhoto(384, AVATAR_LIMIT);
+      const photo = await pickPhoto(384, AVATAR_LIMIT, source);
       if (!photo) return;
       await save(photo);
     } catch (e) {
@@ -100,16 +100,15 @@ export function ProfileSharing() {
         title="Elegir foto de perfil"
         icon="image-outline"
         busy={busy}
-        onPress={choosePhoto}
+        onPress={() => choosePhoto()}
       />
-      {!!avatar && (
-        <Button
-          secondary
-          title="Quitar nuestra foto"
-          disabled={busy}
-          onPress={() => save(null)}
-        />
-      )}
+      <Button
+        secondary
+        title="Tomar una nueva foto familiar"
+        icon="camera-outline"
+        disabled={busy}
+        onPress={() => choosePhoto("camera")}
+      />
       <Text style={s.small}>
         La foto es de la cuenta compartida. Solo aparecerá en comunidad si
         activan la participación. Asegúrense de contar con el consentimiento de

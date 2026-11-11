@@ -13,7 +13,8 @@ import { router } from "expo-router";
 import { db } from "../../services/firebase";
 import { useApp } from "../../store";
 import type { CommunityProfile } from "../../domain/types";
-import { getAnniversary } from "../../domain/anniversary";
+import { getAnniversary, localDateISO } from "../../domain/anniversary";
+import { AnniversaryGreeting } from "../../components/AnniversaryGreeting";
 import { useNow } from "../../components/useNow";
 import { PhotoViewer } from "../../components/PhotoViewer";
 import { upcomingCommunityBirthdays } from "../../domain/people";
@@ -35,7 +36,7 @@ const demoProfiles: CommunityProfile[] = [
     visible: true,
     shareAnniversary: true,
     shareProgress: true,
-    marriageDate: "2016-11-08",
+    marriageDate: `2016-${localDateISO("America/La_Paz").slice(5)}`,
     timezone: "America/La_Paz",
     completedCount: 18,
     finishedCount: 0,
@@ -144,7 +145,11 @@ export default function Community() {
             (m) => m.year === anniversary?.currentYears,
           ),
           next = anniversaryCatalog.milestones.find(
-            (m) => m.year === anniversary?.years,
+            (m) =>
+              m.year ===
+              (anniversary?.isToday
+                ? anniversary.years + 1
+                : anniversary?.years),
           );
         return (
           <Card
@@ -192,7 +197,11 @@ export default function Community() {
                     {current ? ` · Bodas de ${current.material}` : ""}
                   </Text>
                   <Text style={s.small}>
-                    Próximamente {anniversary.years} años
+                    Próximamente{" "}
+                    {anniversary.isToday
+                      ? anniversary.years + 1
+                      : anniversary.years}{" "}
+                    años
                     {next ? ` · Bodas de ${next.material}` : ""}
                   </Text>
                   <Button
@@ -216,6 +225,14 @@ export default function Community() {
                 Su aniversario queda en su espacio privado.
               </Text>
             )}
+            {anniversary?.isToday &&
+              anniversary.years > 0 &&
+              profile.uid !== uid && (
+                <AnniversaryGreeting
+                  key={anniversary.nextDate}
+                  profile={profile}
+                />
+              )}
             {profile.shareProgress && (
               <View
                 style={{

@@ -83,8 +83,11 @@ test("forgotten password issues a usable recovery link without changing the fami
     const { user } = await createUserWithEmailAndPassword(auth, email, old),
       uid = user.uid;
     await signOut(auth);
-    await assert.rejects(sendRecoveryLink(auth, ""), /correo/);
-    await sendRecoveryLink(auth, `  ${email}  `);
+    await assert.rejects(
+      sendRecoveryLink(auth, "", async () => false),
+      /correo/,
+    );
+    await sendRecoveryLink(auth, `  ${email}  `, async () => false);
     const codes = await (
       await fetch(
         "http://127.0.0.1:9099/emulator/v1/projects/demo-entre-dos/oobCodes",
@@ -104,7 +107,11 @@ test("forgotten password issues a usable recovery link without changing the fami
       confirmPasswordReset(auth, code.oobCode, next),
       /invalid-action-code|expired-action-code/,
     );
-    await sendRecoveryLink(auth, `unknown-${Date.now()}@example.com`);
+    await sendRecoveryLink(
+      auth,
+      `unknown-${Date.now()}@example.com`,
+      async () => false,
+    );
   } finally {
     await deleteApp(app);
   }

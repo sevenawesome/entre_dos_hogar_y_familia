@@ -263,6 +263,13 @@ export function AnniversaryCard({
             Ver todas las categorías de bodas →
           </Text>
         </Pressable>
+        {isToday && (
+          <Button
+            secondary
+            title="Leer nuestras felicitaciones"
+            onPress={() => router.push("/anniversary-memories")}
+          />
+        )}
       </View>
       <View
         style={{

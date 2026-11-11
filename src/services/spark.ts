@@ -24,6 +24,7 @@ import {
   publicProjectionFromSummary,
 } from "../domain/community";
 import { validateFamilyProfile } from "../domain/admin-validation";
+import { validFamilyPhoto } from "../domain/family-photo";
 import { validatePortraits, publicBirthdayPeople } from "../domain/people";
 import { nextChallengeAvailableAt } from "../domain/journey-timing";
 import type {
@@ -41,18 +42,38 @@ const database = () => {
     throw new Error("Inicia sesión para guardar sus datos.");
   return db;
 };
-export async function saveSparkFamily(uid: string, family: Family) {
+export async function saveSparkFamily(
+  uid: string,
+  family: Family,
+  photo?: string | null,
+) {
   family = validateFamilyProfile(family);
   const databaseRef = database();
   await runTransaction(databaseRef, async (tx) => {
     const summaryRef = doc(databaseRef, "tracking", uid),
       photoRef = doc(databaseRef, "portraits", uid),
-      profileRef = doc(databaseRef, "community", uid);
-    const [summary, photos, profile] = await Promise.all([
+      profileRef = doc(databaseRef, "community", uid),
+      familyRef = doc(databaseRef, "families", uid),
+      avatarRef = doc(databaseRef, "avatars", uid);
+    const [summary, photos, profile, oldFamily, oldAvatar] = await Promise.all([
       tx.get(summaryRef),
       tx.get(photoRef),
       tx.get(profileRef),
+      tx.get(familyRef),
+      tx.get(avatarRef),
     ]);
+    if (
+      !oldFamily.exists() &&
+      !validFamilyPhoto(photo ?? oldAvatar.data()?.dataUri)
+    )
+      throw Error(
+        "Para completar el registro necesitan una foto de su familia.",
+      );
+    if (photo) {
+      if (!validFamilyPhoto(photo))
+        throw Error("La foto no tiene un formato válido.");
+      tx.set(avatarRef, { dataUri: photo, updatedAt: serverTimestamp() });
+    }
     const people = validatePortraits(
       (photos.data()?.people ?? {}) as FamilyPortraits,
       family,
@@ -376,6 +397,33 @@ export async function deleteSparkAccount() {
       if (page.empty) break;
       const clean = writeBatch(databaseRef);
       page.docs.forEach((d) => clean.delete(d.ref));
+      await clean.commit();
+    }
+  }
+  for (const field of ["recipientUid", "senderUid"]) {
+    for (;;) {
+      const page = await getDocs(
+        query(
+          collection(databaseRef, "anniversaryMessages"),
+          where(field, "==", uid),
+          limit(8),
+        ),
+      );
+      if (page.empty) break;
+      const clean = writeBatch(databaseRef);
+      for (const d of page.docs) {
+        clean.delete(d.ref);
+        if (field === "senderUid")
+          clean.delete(
+            doc(
+              databaseRef,
+              "families",
+              d.data().recipientUid,
+              "inbox",
+              `anniversary-${d.id}`,
+            ),
+          );
+      }
       await clean.commit();
     }
   }

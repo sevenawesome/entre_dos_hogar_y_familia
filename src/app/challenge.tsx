@@ -1,3 +1,4 @@
+import { ChallengePresentation } from "../components/ChallengePresentation";
 import { useState } from "react";
 import { Text, View, Pressable } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -14,14 +15,12 @@ import { journeyStarted } from "../domain/journey-timing";
 import { friendlyError } from "../services/api";
 import {
   Screen,
-  Heading,
   Card,
   Field,
   Button,
   Notice,
   colors,
   s,
-  serif,
 } from "../components/ui";
 export default function Challenge() {
   const { levelId, challengeId } = useLocalSearchParams<{
@@ -96,55 +95,10 @@ export default function Challenge() {
         </View>
       ) : (
         <>
-          <Heading
-            eyebrow={`NIVEL ${level.order} · RETO ${String(challenge.order).padStart(2, "0")}`}
-            title={challenge.title}
-            subtitle={challenge.stage}
+          <ChallengePresentation
+            challenge={challenge}
+            levelOrder={level.order}
           />
-          <View style={[s.row, { marginTop: -12 }]}>
-            <Ionicons name="time-outline" size={18} color={colors.navy} />
-            <Text style={s.small}>{challenge.minutes} minutos sugeridos</Text>
-            <Text style={s.small}>·</Text>
-            <Text style={s.small}>A su ritmo</Text>
-          </View>
-          <Card>
-            <Text style={[s.eyebrow, { color: colors.love }]}>
-              LA INVITACIÓN DE HOY
-            </Text>
-            <Text
-              style={[
-                s.body,
-                { fontSize: 18, lineHeight: 30, color: colors.ink },
-              ]}
-            >
-              {challenge.description}
-            </Text>
-          </Card>
-          <Card
-            style={{
-              backgroundColor: colors.loveMist,
-              borderColor: colors.loveLine,
-            }}
-          >
-            <Ionicons
-              name="chatbubbles-outline"
-              size={25}
-              color={colors.love}
-            />
-            <Text style={[s.eyebrow, { color: colors.love }]}>
-              PARA CONVERSAR JUNTOS
-            </Text>
-            <Text
-              style={{
-                fontFamily: serif,
-                fontSize: 25,
-                lineHeight: 34,
-                color: colors.ink,
-              }}
-            >
-              {challenge.reflection}
-            </Text>
-          </Card>
           {completion ? (
             <>
               <Notice

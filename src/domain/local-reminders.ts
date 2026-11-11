@@ -5,6 +5,7 @@ export interface LocalReminder {
   body: string;
   date?: Date;
   daily?: boolean;
+  anniversaryKey?: string;
 }
 export interface PendingChallengeReminder {
   order: number;
@@ -42,6 +43,7 @@ export function localReminderPlan(
   const events = [
     {
       date: family.marriageDate,
+      anniversary: true,
       title: "¡Feliz aniversario! ♡",
       body: "Hoy celebran su historia de amor. Descubran sus bodas y regálense un momento juntos.",
     },
@@ -68,7 +70,19 @@ export function localReminderPlan(
       if (!next) break;
       const [y, m, d] = next.nextDate.split("-").map(Number);
       const date = new Date(y, m - 1, d, prefs.hour, prefs.minute, 0);
-      if (date > now) plan.push({ title: event.title, body: event.body, date });
+      if (
+        date > now ||
+        ("anniversary" in event && next.isToday && next.years > 0)
+      )
+        plan.push({
+          title: event.title,
+          body:
+            "anniversary" in event
+              ? `Hoy celebran ${next.years} ${next.years === 1 ? "año" : "años"} de matrimonio. ¡Feliz aniversario! Su comunidad puede dejarles una felicitación para recordar.`
+              : event.body,
+          date: date > now ? date : new Date(now.getTime() + 1500),
+          ...("anniversary" in event ? { anniversaryKey: next.key } : {}),
+        });
       cursor = new Date(y, m - 1, d + 1, 12, 0, 0);
     }
   }

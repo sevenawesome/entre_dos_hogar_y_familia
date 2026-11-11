@@ -139,4 +139,6 @@ export interface FamilyMessage {
   body: string;
   senderUid: string;
   createdAt: unknown;
+  kind?: "anniversaryGreeting";
+  anniversaryDate?: string;
 }
