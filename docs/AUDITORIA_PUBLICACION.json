@@ -1,0 +1,204 @@
+{
+  "aplicacion": "Amor que permanece",
+  "fecha": "2026-11-11",
+  "commitRevisado": "ecd3b44ae2255463ad5cace20be9a2cae980185d",
+  "decision": "NO ENVIAR TODAVIA A REVISION DE TIENDAS",
+  "alcance": "Revision de codigo, configuracion Expo, proyecto EAS mediante consultas de lectura, pruebas automatizadas, dependencias y politicas oficiales. No certifica comportamiento de un binario instalado ni sustituye las pruebas fisicas.",
+  "comprobaciones": {
+    "tipos": "correcto",
+    "lint": "correcto",
+    "pruebasApp": 127,
+    "pruebasFirestoreYAuth": 59,
+    "pruebasServicio": 56,
+    "totalPruebas": 242,
+    "expoDoctor": {
+      "correctas": 19,
+      "total": 20,
+      "pendiente": "Diez paquetes requieren actualizaciones de parche compatibles con SDK 58."
+    },
+    "dependencias": {
+      "paquetesConAvisosModerados": 5,
+      "avisosUnicos": 2,
+      "altas": 0,
+      "criticas": 0,
+      "alcance": "npm audit --omit=dev en raiz; las cadenas senaladas son herramientas Node de Expo (glob/minimatch), no una explotacion comprobada del binario movil.",
+      "noEjecutado": "No aplicar npm audit fix --force: propone bajar Expo a SDK 52."
+    },
+    "icono": {
+      "dimensiones": "1024x1024",
+      "opaco": true
+    },
+    "eas": {
+      "proyecto": "@sevenawesomes-team/entre-dos-by-departamento-de-hogar-y-familia",
+      "id": "f9af2154-9d1b-49d6-bae8-588d83ce3ad7",
+      "slugLocal": "entre-dos",
+      "slugRegistrado": "entre-dos-by-departamento-de-hogar-y-familia",
+      "variablesProductionProyecto": 0,
+      "variablesProductionCuenta": 0,
+      "compilacionesEncontradas": 0
+    }
+  },
+  "hallazgos": [
+    {
+      "id": "PUB-01",
+      "prioridad": "P0",
+      "tema": "Eliminacion real por solicitud del usuario",
+      "evidencia": [
+        "src/services/spark.ts:343",
+        "src/services/account-state.ts:2",
+        "src/app/(tabs)/family.tsx:294",
+        "src/app/privacy.tsx"
+      ],
+      "situacion": "Nosotros solo desactiva la cuenta; el borrado total requiere al propietario. El registro incompleto tampoco tiene una salida clara para eliminar la cuenta.",
+      "accion": "Conservar Desactivar (recuperable), agregar Eliminar definitivamente con confirmacion y reautenticacion dentro de la app, limpiar Auth, fotos y datos, y publicar el recurso web de solicitud exigido por Google. No convertir el borrado solicitado en congelacion. Resolver la transferencia administrativa para la cuenta propietaria sin dejar el programa sin responsable.",
+      "fuentes": [
+        "https://developer.apple.com/help/app-review/guideline-reference/5-1-1-account-deletion",
+        "https://support.google.com/googleplay/android-developer/answer/13327111"
+      ]
+    },
+    {
+      "id": "PUB-02",
+      "prioridad": "P0",
+      "tema": "Moderacion de Comunidad",
+      "evidencia": [
+        "src/app/(tabs)/community.tsx",
+        "src/components/AnniversaryGreeting.tsx",
+        "firestore.rules"
+      ],
+      "situacion": "Hay fotos, alias y felicitaciones entre familias; no se encontraron reportes, bloqueos entre familias ni aceptacion de normas de contenido.",
+      "accion": "Agregar normas y aceptacion previa a publicar, denuncia de perfiles/fotos/mensajes, bloqueo de remitentes, revision y retiro de contenido por administradores, y contacto visible. Aplicar el bloqueo tambien en el servicio y las reglas, no solo ocultarlo en pantalla. Si se aplaza, retirar esas funciones de la primera version.",
+      "fuentes": [
+        "https://developer.apple.com/app-store/review/guidelines/#user-generated-content",
+        "https://support.google.com/googleplay/android-developer/answer/9876937"
+      ]
+    },
+    {
+      "id": "PUB-03",
+      "prioridad": "P0",
+      "tema": "Politica publica y declaracion de datos",
+      "evidencia": [
+        "src/app/privacy.tsx",
+        "src/app/(tabs)/information.tsx",
+        "docs/PARA_TERMINAR.md"
+      ],
+      "situacion": "Existe texto de privacidad dentro de la app, pero falta confirmar el titular legal, su contacto, paises y URLs publicas de privacidad/soporte/eliminacion. No se verificaron formularios de las tiendas.",
+      "accion": "Publicar las paginas con responsable y contacto reales, concretar retencion/borrado, completar App Privacy y Data safety segun datos y proveedores realmente usados, y mantener coherencia con la app. Declarar nombres/correo, fotos, fechas, progreso, notas, cuestionarios y mensajes segun corresponda.",
+      "fuentes": [
+        "https://support.google.com/googleplay/android-developer/answer/10144311",
+        "https://developer.apple.com/app-store/review/guidelines/#privacy"
+      ]
+    },
+    {
+      "id": "PUB-04",
+      "prioridad": "P0",
+      "tema": "Proyecto de Expo no alineado",
+      "evidencia": [
+        "app.config.ts:22"
+      ],
+      "situacion": "eas project:info falla con el proyecto actual por diferencia de slug. La consulta con una configuracion aislada y el slug registrado confirma que el proyecto existe.",
+      "accion": "Alinear el slug local con el proyecto existente o decidir un renombrado controlado. El nombre visible Amor que permanece es independiente. Confirmar los identificadores com.sevenawesome.entredos antes de crear las fichas de las tiendas."
+    },
+    {
+      "id": "PUB-05",
+      "prioridad": "P0",
+      "tema": "Variables de compilacion en la nube",
+      "evidencia": [
+        "app.config.ts:5",
+        "eas.json"
+      ],
+      "situacion": "Se consultaron los entornos production del proyecto y de la cuenta de Expo: estan vacios. El .env local esta excluido de Git; no se debe depender de ese archivo para el build remoto.",
+      "accion": "Cargar la configuracion publica de Firebase ya proporcionada en Expo production y configurar preview. No poner GOOGLE_SERVICE_ACCOUNT ni RESEND_API_KEY en EXPO_PUBLIC_*. Verificar el perfil production y sus variables antes del primer build.",
+      "fuentes": [
+        "https://docs.expo.dev/eas/environment-variables/"
+      ]
+    },
+    {
+      "id": "PUB-06",
+      "prioridad": "P1",
+      "tema": "Compilaciones firmadas y pruebas fisicas",
+      "evidencia": [
+        "eas.json",
+        "docs/PARA_TERMINAR.md"
+      ],
+      "situacion": "Expo no registra compilaciones; las exportaciones JavaScript y Expo Go no comprueban el funcionamiento final del binario de tienda.",
+      "accion": "Crear AAB Android e IPA iOS, comprobar API objetivo y toolchain vigentes, icono/splash/permisos, reabrir desde notificaciones con app cerrada, esperar el desbloqueo, sincronizar dos telefonos, probar camara/galeria/adjuntos, fin de nivel, anuncio de nivel, roles y ciclo de cuentas. Probar desconexion, reinicio y zonas horarias. Hay soporte iPad activado: probarlo y preparar sus recursos o decidir retirarlo.",
+      "fuentes": [
+        "https://docs.expo.dev/submit/android/",
+        "https://docs.expo.dev/submit/ios/",
+        "https://support.google.com/googleplay/android-developer/answer/11926878",
+        "https://developer.apple.com/news/upcoming-requirements/"
+      ]
+    },
+    {
+      "id": "PUB-07",
+      "prioridad": "P1",
+      "tema": "Cuentas, fichas y acceso de revisores",
+      "situacion": "Falta confirmar Apple Developer, Play Console, titular y tipo de cuenta. No se crearon fichas ni se verificaron firmas.",
+      "accion": "Preparar descripcion, capturas de la app real, iconos/grafico Play, edad y publico objetivo, politicas, soporte, clasificaciones y cuenta de revision sin permisos administrativos. Explicar la espera diaria en notas al revisor. Confirmar gratuidad y paises. Para cuentas personales nuevas de Play, planear 12 probadores durante 14 dias continuos antes de solicitar produccion.",
+      "fuentes": [
+        "https://support.google.com/googleplay/android-developer/answer/14151465",
+        "https://developer.apple.com/app-store/review/guidelines/"
+      ]
+    },
+    {
+      "id": "PUB-08",
+      "prioridad": "P1",
+      "tema": "Parches y dependencias",
+      "situacion": "Expo Doctor indica 10 actualizaciones de parche pendientes. npm audit informa 5 paquetes afectados por 2 avisos moderados en herramientas de Expo.",
+      "accion": "Actualizar con expo install manteniendo SDK 58, revisar las cadenas glob/minimatch de forma compatible y repetir tipos, lint, pruebas, doctor y compilaciones. No usar force ni bajar de SDK para silenciar el informe.",
+      "fuentes": [
+        "https://github.com/advisories/GHSA-3g3m-2fjr-6pw4",
+        "https://github.com/advisories/GHSA-g3hv-75wg-m249"
+      ]
+    },
+    {
+      "id": "PUB-09",
+      "prioridad": "P1",
+      "tema": "Foto obligatoria y datos de menores",
+      "evidencia": [
+        "src/components/FamilyForm.tsx:61",
+        "src/app/onboarding.tsx",
+        "src/domain/people.ts"
+      ],
+      "situacion": "El registro exige una foto para acceder a retos aunque la participacion comunitaria sea opcional. Se pueden compartir fotos y dias de cumpleanos de hijos con autorizacion de la cuenta familiar.",
+      "accion": "Recomendacion de revision: permitir una foto opcional o avatar para usar los retos y reservar la foto para compartir en Comunidad. Definir que las cuentas son para adultos, revisar consentimiento para compartir a cada integrante y evitar publicar datos innecesarios de menores. La posible objecion a exigir foto es una inferencia por minimizacion de datos, no un rechazo confirmado.",
+      "fuentes": [
+        "https://developer.apple.com/app-store/review/guidelines/#privacy"
+      ]
+    },
+    {
+      "id": "PUB-10",
+      "prioridad": "P1",
+      "tema": "Correos personalizados y alcance de la primera version",
+      "situacion": "Resend y Cloudflare estan preparados, pero SEND_ENABLED y AUTH_EMAIL_ENABLED siguen apagados; no hay prueba real de recepcion, rebote ni baja. Verificacion/recuperacion siguen usando Firebase.",
+      "accion": "Decidir si los correos personalizados entran en la primera version. Si entran: revisar cola, autorizar prueba a una direccion concreta, comprobar recepcion/baja y luego activar con limites. Si se aplazan: reflejarlo claramente en interfaz y ficha. No activar envios automaticamente durante esta auditoria."
+    },
+    {
+      "id": "PUB-11",
+      "prioridad": "P2",
+      "tema": "Operacion y limites gratuitos",
+      "situacion": "Spark, fotos y adjuntos en Firestore y avisos locales evitan funciones de pago. Las cuotas siguen siendo finitas y los mensajes administrativos no son push remoto instantaneo.",
+      "accion": "Definir contacto de soporte, proceso para reportes/borrados, supervision de cuotas, limpieza de pruebas sin borrar al propietario, y una prueba de carga moderada. Mantener estas limitaciones claras en la ficha y en la ayuda."
+    }
+  ],
+  "preservado": [
+    "No se activaron correos",
+    "No se alteraron familias, roles o configuracion remota",
+    "No se iniciaron builds ni envios a tiendas",
+    "La desactivacion recuperable y la proteccion del propietario siguen intactas"
+  ],
+  "ordenPropuesto": [
+    "Resolver borrado real y moderacion",
+    "Definir titular y publicar privacidad/soporte/eliminacion",
+    "Alinear Expo, configurar variables y actualizar parches",
+    "Crear compilaciones firmadas y ejecutar pruebas fisicas",
+    "Completar fichas, beta en tiendas y despues solicitar lanzamiento publico"
+  ],
+  "datosPendientesDelTitular": [
+    "Cuenta Apple Developer activa",
+    "Cuenta Play Console y tipo personal/organizacion",
+    "Responsable legal y nombre que figurara en las tiendas",
+    "Pais/paises y correo de privacidad/soporte",
+    "Decision sobre correos personalizados en la primera version"
+  ]
+}
