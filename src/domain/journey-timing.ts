@@ -27,3 +27,12 @@ export function journeyAvailableAt(progress: ProgressMap): string | null {
     .filter((v): v is number => v !== null);
   return times.length ? new Date(Math.max(...times)).toISOString() : null;
 }
+
+/** Round up so a challenge never appears ready before its full waiting period. */
+export function remainingChallengeMinutes(
+  availableAt: string | null,
+  now = new Date(),
+) {
+  const at = milliseconds(availableAt);
+  return at === null ? 0 : Math.max(0, Math.ceil((at - now.getTime()) / 60000));
+}

@@ -20,7 +20,7 @@ export const guideSteps = [
   {
     icon: "notifications-outline",
     title: "Háganle espacio a su momento",
-    body: "En Nosotros, cada teléfono puede activar sus recordatorios y elegir un horario. Si un reto queda pendiente, volveremos a recordarlo. También recibirán saludos para su aniversario y los cumpleaños que registren.",
+    body: "En Nosotros, cada teléfono puede activar sus recordatorios y elegir un horario. El reto muestra cuántos minutos faltan para habilitarlo y les avisaremos cuando se cumpla la espera, con los avisos activados. Si un reto queda pendiente, volveremos a recordarlo. También recibirán saludos para su aniversario y los cumpleaños que registren.",
   },
   {
     icon: "book-outline",

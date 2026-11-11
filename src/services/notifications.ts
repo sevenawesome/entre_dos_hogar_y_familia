@@ -121,7 +121,7 @@ export function registerDevice(
               data: {
                 screen: item.anniversaryKey
                   ? "anniversary-memories"
-                  : item.daily
+                  : item.daily || item.challengeAvailable
                     ? "challenge"
                     : "family",
               },

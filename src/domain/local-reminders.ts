@@ -6,6 +6,7 @@ export interface LocalReminder {
   date?: Date;
   daily?: boolean;
   anniversaryKey?: string;
+  challengeAvailable?: boolean;
 }
 export interface PendingChallengeReminder {
   order: number;
@@ -40,6 +41,13 @@ export function localReminderPlan(
         },
       ]
     : [];
+  if (hasPendingLevel && challenge && waiting)
+    plan.push({
+      challengeAvailable: true,
+      date: available,
+      title: "¡Su próximo reto ya está disponible! ♡",
+      body: `Reto ${challenge.order}: «${challenge.title}». Abran su momento juntos y marquen «Lo hicimos juntos» cuando lo completen.`,
+    });
   const events = [
     {
       date: family.marriageDate,

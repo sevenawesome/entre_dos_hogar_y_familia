@@ -161,3 +161,72 @@ it("first opening after the anniversary reminder time still plans one greeting t
   assert.equal(plan[0].date.getTime(), date.getTime() + 1500);
   assert.match(plan[0].body, /10 años/);
 });
+
+it("schedules one unlock notice at the actual end of the wait, independently from the daily hour", () => {
+  const now = new Date("2026-11-11T16:32:10Z"),
+    availableAt = "2026-11-12T16:32:10Z";
+  const plan = localReminderPlan(family, prefs, true, now, {
+    order: 3,
+    title: "Escucharnos",
+    availableAt,
+  });
+  const unlock = plan.filter((p: any) => p.challengeAvailable);
+  assert.equal(unlock.length, 1);
+  assert.equal(unlock[0].daily, undefined);
+  assert.equal(unlock[0].date.getTime(), Date.parse(availableAt));
+  assert.match(unlock[0].title, /ya está disponible/);
+  assert.match(unlock[0].body, /Reto 3.*Escucharnos/);
+  assert.equal(plan.filter((p: any) => p.daily).length, 1);
+});
+it("does not repeat unlock notices after availability, with paused reminders, or without a pending level", () => {
+  const challenge = {
+    order: 2,
+    title: "Su reto",
+    availableAt: "2026-11-12T16:32:10Z",
+  };
+  for (const now of [challenge.availableAt, "2026-11-13T16:32:10Z"]) {
+    const plan = localReminderPlan(
+      family,
+      prefs,
+      true,
+      new Date(now),
+      challenge,
+    );
+    assert.equal(
+      plan.some((p: any) => p.challengeAvailable),
+      false,
+    );
+    assert.match(plan[0].body, /hasta que lo completen/);
+  }
+  for (const [enabled, pending] of [
+    [false, true],
+    [true, false],
+  ]) {
+    const plan = localReminderPlan(
+      family,
+      { ...prefs, enabled },
+      pending,
+      new Date("2026-11-11T16:32:10Z"),
+      challenge,
+    );
+    assert.equal(
+      plan.some((p: any) => p.challengeAvailable),
+      false,
+    );
+  }
+});
+it("does not schedule an unlock notification for an immediate first challenge or an invalid deadline", () => {
+  for (const availableAt of [null, "invalid"]) {
+    const plan = localReminderPlan(
+      family,
+      prefs,
+      true,
+      new Date("2026-11-11T16:32:10Z"),
+      { order: 1, title: "Primer reto", availableAt },
+    );
+    assert.equal(
+      plan.some((p: any) => p.challengeAvailable),
+      false,
+    );
+  }
+});

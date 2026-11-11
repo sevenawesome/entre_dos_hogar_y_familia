@@ -11,7 +11,11 @@ import {
   isUnlocked,
 } from "../domain/progress";
 import { completeChallenge } from "../services/actions";
-import { journeyStarted } from "../domain/journey-timing";
+import {
+  journeyStarted,
+  journeyAvailableAt,
+  remainingChallengeMinutes,
+} from "../domain/journey-timing";
 import { friendlyError } from "../services/api";
 import {
   Screen,
@@ -28,7 +32,9 @@ export default function Challenge() {
     challengeId: string;
   }>();
   const { levels, progress, journey } = useApp();
-  const now = useNow();
+  const availableAt = journeyAvailableAt(progress);
+  const now = useNow(availableAt);
+  const waitMinutes = remainingChallengeMinutes(availableAt, now);
   const level = levels.find((l) => l.id === levelId),
     challenge = level?.challenges.find((c) => c.id === challengeId),
     p = progress[levelId],
@@ -137,15 +143,50 @@ export default function Challenge() {
                   completado.
                 </Text>
               </Pressable>
-              {!allowed && (
-                <Notice
-                  text={
-                    isUnlocked(level, progress) &&
-                    currentChallenge(level, p)?.id === challenge.id
-                      ? "Su próximo reto se abre 24 horas después de completar el anterior. Disfruten lo que ya compartieron."
-                      : "Completen primero los retos anteriores para llegar a este momento."
-                  }
-                />
+              {!allowed &&
+              waitMinutes > 0 &&
+              journeyStarted(progress, journey) &&
+              isUnlocked(level, progress) &&
+              currentChallenge(level, p)?.id === challenge.id ? (
+                <Card
+                  style={{
+                    backgroundColor: colors.loveMist,
+                    borderColor: colors.love,
+                  }}
+                >
+                  <Text style={s.eyebrow}>UN MOMENTO PARA CADA DÍA</Text>
+                  <Text style={[s.sectionTitle, { color: colors.love }]}>
+                    {waitMinutes === 1 ? "Falta" : "Faltan"}{" "}
+                    {new Intl.NumberFormat("es").format(waitMinutes)}{" "}
+                    {waitMinutes === 1 ? "minuto" : "minutos"}
+                  </Text>
+                  <Text style={s.body}>
+                    «Lo hicimos juntos» se habilitará el{" "}
+                    {new Intl.DateTimeFormat("es", {
+                      day: "numeric",
+                      month: "long",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }).format(new Date(availableAt!))}
+                    , 24 horas después del reto anterior.
+                  </Text>
+                  <Text style={s.small}>
+                    Con los avisos activados en este teléfono, les recordaremos
+                    cuando esté disponible. Al tocar el aviso abrirán su reto
+                    pendiente.
+                  </Text>
+                </Card>
+              ) : (
+                !allowed && (
+                  <Notice
+                    text={
+                      isUnlocked(level, progress) &&
+                      currentChallenge(level, p)?.id === challenge.id
+                        ? "Su próximo reto se abre 24 horas después de completar el anterior. Disfruten lo que ya compartieron."
+                        : "Completen primero los retos anteriores para llegar a este momento."
+                    }
+                  />
+                )
               )}
               {!!error && <Notice error text={error} />}
               <Button
