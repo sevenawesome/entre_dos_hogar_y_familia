@@ -71,7 +71,7 @@ export const helpSections = [
   },
   {
     title: "Cumpleaños familiares",
-    body: "Las fechas de nacimiento son opcionales para ambos integrantes y sus hijos. Agreguen una foto individual en Nosotros para reconocer a quien cumple años. En Comunidad aparecen los cumpleaños autorizados de los próximos 30 días, sin edades ni año de nacimiento. Sirven para calcular las edades, el siguiente cumpleaños y la barra anual. Los saludos de aniversario y cumpleaños pueden continuar después de terminar todos los niveles si los avisos están activos.",
+    body: "Las fechas de nacimiento son opcionales para ambos integrantes y sus hijos. Agreguen una foto individual en Nosotros para reconocer a quien cumple años. En Comunidad aparecen los cumpleaños autorizados de los próximos 30 días, sin edades ni año de nacimiento. Administración → Celebraciones permite filtrar cumpleaños y ver 30 días o todo el año. Sirven para calcular las edades, el siguiente cumpleaños y la barra anual. Los saludos de aniversario y cumpleaños pueden continuar después de terminar todos los niveles si los avisos están activos.",
   },
   {
     title: "Confirmar el correo de la cuenta",
@@ -83,15 +83,15 @@ export const helpSections = [
   },
   {
     title: "Correos de su cuenta",
-    body: "Al completar el registro y verificar la dirección compartida podrán recibir una bienvenida, una felicitación al conseguir cada nivel y avisos manuales del equipo. La administración configura estos envíos; no se mandan correos diarios de retos, cumpleaños ni aniversarios. Cloudflare prepara el envío y Resend lo manda a la dirección verificada, sin notas, cuestionarios ni fotos. Cada correo incluye un enlace de baja que la administración respeta. La entrega depende de la cuota y del proveedor. Los avisos del teléfono y los correos de acceso de Firebase son independientes.",
+    body: "Al completar el registro y verificar la dirección compartida podrán recibir una bienvenida, una felicitación al conseguir cada nivel y avisos manuales del equipo. La administración configura estos envíos; no se mandan correos diarios de retos, cumpleaños ni aniversarios. Cloudflare prepara el envío y Resend lo manda a la dirección verificada. No se incluyen sus notas, cuestionarios ni fotos privadas; el equipo puede adjuntar expresamente documentos o imágenes al redactar un mensaje. Cada correo incluye un enlace de baja que la administración respeta. La entrega depende de la cuota y del proveedor. Los avisos del teléfono y los correos de acceso de Firebase son independientes.",
   },
   {
     title: "Una cuenta y datos compartidos",
     body: "Ambos pueden leer las notas, respuestas y fechas guardadas. Los avisos locales pueden mostrar un saludo con el nombre de quien cumple años. Las notas y reflexiones nunca se incluyen. Usen una contraseña segura y guarden solo lo que deseen compartir.",
   },
   {
-    title: "Pausar, salir o eliminar la cuenta",
-    body: "Pausar avisos afecta al teléfono configurado. Cerrar sesión detiene los avisos de ese teléfono. Eliminar la cuenta familiar desde Nosotros borra la cuenta y los datos compartidos de ambos; se necesita volver a iniciar sesión si la sesión no es reciente.",
+    title: "Pausar, salir o desactivar la cuenta",
+    body: "Pausar avisos afecta al teléfono configurado. Cerrar sesión detiene los avisos de ese teléfono. Desactivar la cuenta desde Nosotros cierra el acceso de ambos y oculta la familia. Los datos y fotos quedan conservados en privado; el propietario puede restablecerla desde Admin → Cuentas y reinicio → Desactivadas. La eliminación total desde Admin borra la cuenta y sus datos sin recuperación. Se necesita un inicio de sesión reciente.",
   },
   {
     title: "Cuidarse también es adaptar o detenerse",

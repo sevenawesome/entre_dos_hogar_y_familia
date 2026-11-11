@@ -54,3 +54,13 @@ El procesamiento es paginado y reanudable desde el módulo; el cron también ava
 El aniversario activa una felicitación por familia remitente y año. El Worker valida la cuenta verificada, la participación de ambas familias, la fecha en la zona de la destinataria y una clave única para evitar duplicados entre teléfonos. Guarda en un único lote el recuerdo privado y el mensaje de la bandeja. Recuerdos → Recuerdos de nuestros aniversarios permite consultarlas por año. El panel de administración no tiene acceso a estos textos. Los borrados de cuenta eliminan también mensajes enviados, recibidos y sus copias en bandejas. No se emiten correos por aniversario.
 
 La foto familiar es obligatoria para nuevos registros y se guarda en la misma transacción que el perfil. Puede tomarse con la cámara o seleccionarse de la galería. No se publica sin participar en Comunidad. Los perfiles anteriores conservan acceso para completar su foto.
+
+## Desactivación recuperable y eliminación total
+
+Nosotros → Desactivar cuenta bloquea Firebase Authentication y oculta a la familia, conservando fotos, progreso y recuerdos en privado. `accountSuspensions/{uid}` bloquea las sesiones antiguas mediante las reglas y el servicio; un proceso pendiente se reintenta con exclusión temporal. El propietario está protegido frente a la desactivación. No se envían correos a cuentas desactivadas ni desde administradores desactivados.
+
+El propietario encuentra las cuentas en **Cuentas y reinicio → Desactivadas** y puede restablecerlas con confirmación e inicio de sesión reciente. La familia vuelve a entrar con su cuenta; Comunidad permanece privada hasta que la active otra vez. Una cuenta desactivada directamente en Firebase sin un registro de desactivación no se ofrece como recuperable desde este flujo.
+
+El borrado total desde Admin conserva su confirmación y auditoría, elimina Auth y todos los datos/fotos asociados, incluido el registro de desactivación, y no puede restablecerse. El reinicio sigue protegiendo propietario y administradores. La cuenta de servicio usa un rol personalizado independiente `entreDosAccountState` con `firebaseauth.users.update`; el rol de eliminación conserva únicamente `firebaseauth.users.delete`. No se modifican cuentas reales durante las pruebas.
+
+Celebraciones permite elegir Todas, Cumpleaños o Aniversario y un período de 30 días o 365 días. Las fechas de nacimiento deben estar guardadas en Nosotros, incluyendo las de hijos e hijas. Solo se muestran eventos de familias activas cargadas en el panel.

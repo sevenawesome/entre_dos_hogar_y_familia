@@ -32,7 +32,8 @@ export async function requireMember(
     !account ||
     account.disabled ||
     claims.auth_time < account.validSince ||
-    (await repo.get(`accountDeletion/${claims.sub}`, ["requestedAt"]))
+    (await repo.get(`accountDeletion/${claims.sub}`, ["requestedAt"])) ||
+    (await repo.get(`accountSuspensions/${claims.sub}`))
   )
     throw new MemberError(403, "Esta cuenta no está disponible.");
   if (requireVerified && (!account.verified || !claims.email_verified))

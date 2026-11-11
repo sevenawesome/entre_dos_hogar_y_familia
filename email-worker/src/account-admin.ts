@@ -1,6 +1,8 @@
 import type { AccountsRepository, AuthAccount } from "./accounts-google";
 import { verifyFirebaseToken, type FirebaseClaims } from "./firebase-token";
 import type { Data, Document, Env, Write } from "./google";
+import { restoreAccount } from "./account-state";
+import { MemberError } from "./member-auth";
 
 const validUid = (uid: unknown): uid is string =>
   typeof uid === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(uid);
@@ -318,6 +320,7 @@ export async function stepDeletionJob(
               "emailPreferences",
               "families",
               "roles",
+              "accountSuspensions",
             ])
               paths.push({ path: `${root}/${uid}` });
           if (!(await repo.removeDocuments(paths)))
@@ -452,9 +455,10 @@ export async function handleAccountsRequest(
               name: "Identificador no compatible con la gestión automática",
               protected: true,
             };
-          const [family, role] = await Promise.all([
+          const [family, role, suspension] = await Promise.all([
             repo.get(`families/${a.uid}`, ["name"]),
             repo.get(`roles/${a.uid}`, ["role"]),
+            repo.get(`accountSuspensions/${a.uid}`, ["state"]),
           ]);
           return {
             uid: a.uid,
@@ -465,6 +469,8 @@ export async function handleAccountsRequest(
                 : "Sin perfil familiar",
             protected:
               a.uid === claims.sub || (!!role && role.data.role !== "member"),
+            disabled: a.disabled || !!suspension,
+            restorable: !!suspension && suspension.data.state === "disabled",
           };
         }),
       );
@@ -504,6 +510,17 @@ export async function handleAccountsRequest(
       body = JSON.parse(text);
     } catch {
       throw new HttpError(400, "Solicitud inválida.");
+    }
+    const restoreMatch = path.match(
+      /^\/admin\/accounts\/([A-Za-z0-9_-]{1,128})\/restore$/,
+    );
+    if (restoreMatch) {
+      if (now.getTime() / 1000 - claims.auth_time > 300)
+        throw new HttpError(
+          401,
+          "Vuelve a iniciar sesión para restablecer una cuenta.",
+        );
+      return json(await restoreAccount(repo, restoreMatch[1], claims.sub, now));
     }
     if (path === "/admin/accounts/preview") {
       if (!(await repo.canDeleteAccounts()))
@@ -546,11 +563,11 @@ export async function handleAccountsRequest(
     return json(
       {
         error:
-          e instanceof HttpError
+          e instanceof HttpError || e instanceof MemberError
             ? e.message
             : "No pudimos completar la solicitud. Vuelve a intentarlo.",
       },
-      e instanceof HttpError ? e.status : 503,
+      e instanceof HttpError || e instanceof MemberError ? e.status : 503,
     );
   }
 }

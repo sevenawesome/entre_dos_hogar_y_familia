@@ -1,9 +1,13 @@
+import { useState } from "react";
+import { DeliveryPreviewModal } from "../components/DeliveryPreviewModal";
+import type { FamilyMessage } from "../domain/types";
 import { Text } from "react-native";
 import { router } from "expo-router";
 import { useApp } from "../store";
 import { Screen, Heading, Card, Button, Notice, s } from "../components/ui";
 export default function Inbox() {
-  const { inbox, demo } = useApp();
+  const { inbox, demo, family } = useApp();
+  const [opened, setOpened] = useState<FamilyMessage | null>(null);
   return (
     <Screen>
       <Button
@@ -42,7 +46,14 @@ export default function Inbox() {
                 ? "Comunidad"
                 : "Hogar y Familia"}
             </Text>
-            <Text style={s.body}>{m.body}</Text>
+            <Text style={s.body} numberOfLines={2}>
+              {m.body}
+            </Text>
+            <Button
+              secondary
+              title="Abrir mensaje"
+              onPress={() => setOpened(m)}
+            />
             {m.kind === "anniversaryGreeting" && (
               <Button
                 secondary
@@ -52,6 +63,15 @@ export default function Inbox() {
             )}
           </Card>
         ))
+      )}
+      {opened && (
+        <DeliveryPreviewModal
+          name={family?.name ?? "su familia"}
+          title={opened.title}
+          body={opened.body}
+          attachments={opened.attachments ?? []}
+          onClose={() => setOpened(null)}
+        />
       )}
     </Screen>
   );

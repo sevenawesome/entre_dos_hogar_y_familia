@@ -92,6 +92,16 @@
       "collectionGroup": "anniversaryMessages",
       "fieldPath": "body",
       "indexes": []
+    },
+    {
+      "collectionGroup": "inbox",
+      "fieldPath": "attachments",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "emailQueue",
+      "fieldPath": "attachments",
+      "indexes": []
     }
   ]
 }

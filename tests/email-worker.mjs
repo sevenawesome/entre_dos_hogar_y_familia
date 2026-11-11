@@ -625,3 +625,85 @@ test("new mail uses the configured byline, escapes markup and permits an empty s
       );
   }
 });
+
+test("manual mail transports validated attachments and removes their stored copies after acceptance", async () => {
+  const repo = setup(),
+    t = transport();
+  repo.docs.delete("mailEvents/welcome-a");
+  repo.seed("roles/admin", { role: "admin" });
+  const base64 = Buffer.from("%PDF-1.4\nlocal test document").toString(
+    "base64",
+  );
+  repo.seed("emailQueue/attachment", {
+    uid: "a",
+    senderUid: "admin",
+    title: "Documento",
+    body: "Adjunto de prueba",
+    createdAt: now,
+    state: "pending",
+    attachments: [
+      {
+        name: "guia.pdf",
+        mime: "application/pdf",
+        base64,
+        size: Buffer.from(base64, "base64").length,
+      },
+    ],
+  });
+  await runCycle(repo, env, now, t.fetcher);
+  assert.deepEqual(t.sent[0].body.attachments, [
+    { filename: "guia.pdf", content: base64 },
+  ]);
+  assert.equal(
+    repo.docs.get("emailQueue/attachment").data.attachments,
+    undefined,
+  );
+  assert.equal(
+    repo.docs.get("mailJobs/admin-attachment").data.payload,
+    undefined,
+  );
+});
+test("invalid attachments never reach the provider or reserve mail quota", async () => {
+  const repo = setup(),
+    t = transport();
+  repo.docs.delete("mailEvents/welcome-a");
+  repo.seed("roles/admin", { role: "admin" });
+  repo.seed("emailQueue/invalid", {
+    uid: "a",
+    senderUid: "admin",
+    title: "Documento",
+    body: "Prueba",
+    createdAt: now,
+    state: "pending",
+    attachments: [
+      { name: "script.exe", mime: "application/pdf", base64: "YWJj", size: 3 },
+    ],
+  });
+  await runCycle(repo, env, now, t.fetcher);
+  assert.equal(t.sent.length, 0);
+  assert.equal(
+    repo.docs.get("emailQueue/invalid").data.state,
+    "invalid_attachments",
+  );
+  assert.equal(repo.docs.has("mailRuntime/day-2026-11-06"), false);
+});
+test("recoverable suspensions suppress recipient mail and previously queued administrator mail", async () => {
+  for (const uid of ["a", "admin"]) {
+    const repo = setup(),
+      t = transport();
+    repo.docs.delete("mailEvents/welcome-a");
+    repo.seed("roles/admin", { role: "admin" });
+    repo.seed(`accountSuspensions/${uid}`, { state: "pending" });
+    repo.seed("emailQueue/blocked", {
+      uid: "a",
+      senderUid: "admin",
+      title: "Aviso",
+      body: "Prueba",
+      createdAt: now,
+      state: "pending",
+    });
+    await runCycle(repo, env, now, t.fetcher);
+    assert.equal(t.sent.length, 0);
+    assert.equal(repo.docs.get("emailQueue/blocked").data.state, "suppressed");
+  }
+});

@@ -62,6 +62,7 @@ export async function sendAnniversaryGreeting(
     !to?.data.visible ||
     !to.data.shareAnniversary ||
     deleted ||
+    !!(await repo.get(`accountSuspensions/${recipient}`)) ||
     !targetFamily
   )
     throw new MemberError(

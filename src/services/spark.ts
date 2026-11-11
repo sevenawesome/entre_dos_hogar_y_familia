@@ -1,17 +1,9 @@
 import {
-  collection,
   doc,
   getDoc,
-  getDocs,
-  limit,
-  query,
   runTransaction,
   serverTimestamp,
-  setDoc,
-  writeBatch,
-  where,
 } from "firebase/firestore";
-import { deleteUser } from "firebase/auth";
 import { auth, db } from "./firebase";
 import {
   currentChallenge,
@@ -349,98 +341,6 @@ export async function syncPublicProfile(uid: string) {
   });
 }
 export async function deleteSparkAccount() {
-  const databaseRef = database(),
-    user = auth!.currentUser!,
-    uid = user.uid;
-  const role = await getDoc(doc(databaseRef, "roles", uid));
-  if (role.data()?.role === "owner")
-    throw new Error(
-      "El propietario debe transferir su rol desde el script de mantenimiento antes de eliminar la cuenta.",
-    );
-  const token = await user.getIdTokenResult();
-  if (Date.now() - Date.parse(token.authTime) > 5 * 60000)
-    throw Object.assign(
-      new Error(
-        "Por seguridad, vuelve a iniciar sesión antes de eliminar la cuenta.",
-      ),
-      { code: "auth/requires-recent-login" },
-    );
-  // Delete private/shared Firestore data while the account can still authenticate; this is resumable.
-  const deletionRef = doc(databaseRef, "accountDeletion", uid);
-  if (!(await getDoc(deletionRef)).exists())
-    await setDoc(deletionRef, { requestedAt: serverTimestamp() });
-  for (const path of [
-    ["families", uid, "progress"],
-    ["families", uid, "devices"],
-    ["families", uid, "inbox"],
-    ["families", uid, "levelNews"],
-  ]) {
-    for (;;) {
-      const page = await getDocs(
-        query(collection(databaseRef, path[0], ...path.slice(1)), limit(200)),
-      );
-      if (page.empty) break;
-      const batch = writeBatch(databaseRef);
-      page.docs.forEach((d) => batch.delete(d.ref));
-      await batch.commit();
-    }
-  }
-  for (const root of ["emailQueue", "mailJobs", "mailEvents"]) {
-    for (;;) {
-      const page = await getDocs(
-        query(
-          collection(databaseRef, root),
-          where("uid", "==", uid),
-          limit(100),
-        ),
-      );
-      if (page.empty) break;
-      const clean = writeBatch(databaseRef);
-      page.docs.forEach((d) => clean.delete(d.ref));
-      await clean.commit();
-    }
-  }
-  for (const field of ["recipientUid", "senderUid"]) {
-    for (;;) {
-      const page = await getDocs(
-        query(
-          collection(databaseRef, "anniversaryMessages"),
-          where(field, "==", uid),
-          limit(8),
-        ),
-      );
-      if (page.empty) break;
-      const clean = writeBatch(databaseRef);
-      for (const d of page.docs) {
-        clean.delete(d.ref);
-        if (field === "senderUid")
-          clean.delete(
-            doc(
-              databaseRef,
-              "families",
-              d.data().recipientUid,
-              "inbox",
-              `anniversary-${d.id}`,
-            ),
-          );
-      }
-      await clean.commit();
-    }
-  }
-  const batch = writeBatch(databaseRef);
-  for (const name of [
-    "community",
-    "avatars",
-    "portraits",
-    "journeys",
-    "tracking",
-    "familyControls",
-    "emailPreferences",
-    "families",
-  ])
-    batch.delete(doc(databaseRef, name, uid));
-  if (role.exists()) batch.delete(doc(databaseRef, "roles", uid));
-  await batch.commit();
-  await deleteUser(user);
-  // The deletion marker remains to prevent stale tokens from recreating data.
+  const { requestAccountDeactivation } = await import("./account-state");
+  await requestAccountDeactivation();
 }

@@ -33,3 +33,14 @@ export function getJourney(
     ),
   };
 }
+
+/** Resolve reminders against synced progress rather than an old notification's challenge. */
+export function reminderChallenge(levels: Level[], progress: ProgressMap) {
+  const level = getJourney(levels, progress).current;
+  if (!level) return null;
+  const completed = new Set(
+    progress[level.id]?.completions.map((c) => c.challengeId),
+  );
+  const challenge = level.challenges.find((c) => !completed.has(c.id));
+  return challenge ? { levelId: level.id, challengeId: challenge.id } : null;
+}

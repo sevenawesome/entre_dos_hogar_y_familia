@@ -1772,3 +1772,102 @@ test("anniversary memories are private, server-created and immutable; deletion c
   again.delete(doc(senderDb, "anniversaryMessages", id));
   await assertSucceeds(again.commit());
 });
+
+test("suspended accounts cannot read or recreate data and cannot remove their suspension", async () => {
+  await createFamily();
+  await seed("accountSuspensions/a", { state: "disabled" });
+  await assertFails(getDoc(doc(ctx("a"), "families/a")));
+  await assertFails(setDoc(doc(ctx("a"), "families/a"), family));
+  await assertFails(deleteDoc(doc(ctx("a"), "accountSuspensions/a")));
+  await assertSucceeds(getDoc(doc(ctx("a"), "accountSuspensions/a")));
+  await assertSucceeds(getDoc(doc(ctx("owner"), "accountSuspensions/a")));
+  await assertFails(getDoc(doc(ctx("b"), "accountSuspensions/a")));
+});
+test("notification attachments remain private and enforce the free size limit", async () => {
+  await createFamily();
+  const db = ctx("administrator"),
+    a = { name: "nota.txt", mime: "text/plain", base64: "SG9sYQ==", size: 4 };
+  await assertSucceeds(
+    auditedWrite(
+      db,
+      "families/a/inbox/with-file",
+      {
+        title: "Hola",
+        body: "Revisa el adjunto",
+        senderUid: "administrator",
+        createdAt: serverTimestamp(),
+        attachments: [a],
+      },
+      "message.send",
+      "a",
+    ),
+  );
+  await assertSucceeds(getDoc(doc(ctx("a"), "families/a/inbox/with-file")));
+  await assertFails(getDoc(doc(ctx("b"), "families/a/inbox/with-file")));
+  await assertFails(
+    auditedWrite(
+      db,
+      "families/a/inbox/bad-file",
+      {
+        title: "Hola",
+        body: "Error",
+        senderUid: "administrator",
+        createdAt: serverTimestamp(),
+        attachments: [{ ...a, size: 1 }],
+      },
+      "message.send",
+      "a",
+    ),
+  );
+  const large = {
+    name: "limite.txt",
+    mime: "text/plain",
+    base64: Buffer.alloc(250 * 1024, 65).toString("base64"),
+    size: 250 * 1024,
+  };
+  await assertSucceeds(
+    auditedWrite(
+      db,
+      "families/a/inbox/limit",
+      {
+        title: "Documento",
+        body: "Limite permitido",
+        senderUid: "administrator",
+        createdAt: serverTimestamp(),
+        attachments: [large],
+      },
+      "message.send",
+      "a",
+    ),
+  );
+  await assertFails(
+    auditedWrite(
+      db,
+      "families/a/inbox/over-limit",
+      {
+        title: "Documento",
+        body: "No permitido",
+        senderUid: "administrator",
+        createdAt: serverTimestamp(),
+        attachments: [large, a],
+      },
+      "message.send",
+      "a",
+    ),
+  );
+  await seed("accountSuspensions/a", { state: "disabled" });
+  await assertFails(
+    auditedWrite(
+      db,
+      "families/a/inbox/disabled",
+      {
+        title: "Hola",
+        body: "No enviar",
+        senderUid: "administrator",
+        createdAt: serverTimestamp(),
+      },
+      "message.send",
+      "a",
+    ),
+  );
+});

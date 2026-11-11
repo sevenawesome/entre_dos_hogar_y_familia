@@ -13,6 +13,9 @@ import {
 import { AdminEmailSettings } from "./AdminEmailSettings";
 import { AdminFamilyPicker } from "./AdminFamilyPicker";
 import { Button, Card, Field, Notice, colors, s } from "./ui";
+import { DeliveryPreviewModal } from "./DeliveryPreviewModal";
+import { pickMessageAttachment } from "../services/attachments";
+import type { MessageAttachment } from "../domain/attachments";
 interface Target {
   uid: string;
   email: string;
@@ -45,6 +48,20 @@ export function AdminDeliveryCenter({ email = false }: { email?: boolean }) {
       : selectedSection === "settings" && !canSettings
         ? "send"
         : selectedSection;
+  const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
+  const blockedReason = app.demo
+    ? "Demostración: los envíos reales están desactivados."
+    : email && !app.emailService.enabled
+      ? "El servicio real de correo todavía está desactivado. El propietario debe activarlo; no es un error del botón."
+      : email && app.emailService.paused
+        ? "Los correos están pausados en Ajustes de correo."
+        : email && !app.emailService.adminMessagesEnabled
+          ? "Los mensajes manuales están desactivados en Ajustes de correo."
+          : email && status.unsubscribed
+            ? "La familia solicitó la baja. No se puede enviar a este destinatario."
+            : email && !status.enabled
+              ? "Activa la recepción de correos de esta familia antes de enviar."
+              : "";
   async function run(work: () => Promise<void>) {
     setBusy(true);
     setError("");
@@ -269,61 +286,77 @@ export function AdminDeliveryCenter({ email = false }: { email?: boolean }) {
                     setConfirmed(false);
                   }}
                 />
-                {confirmed ? (
-                  <>
-                    <Notice
-                      text={`Para ${target.family.name} (${target.email}) · ${title}\n\n${body}`}
-                    />
-                    <Button
-                      title={
-                        email
-                          ? "Confirmar y poner correo en cola"
-                          : "Confirmar y enviar a su bandeja"
-                      }
-                      busy={busy}
-                      disabled={
-                        app.demo ||
-                        (email &&
-                          (!app.emailService.enabled ||
-                            app.emailService.paused ||
-                            !app.emailService.adminMessagesEnabled ||
-                            !status.enabled ||
-                            status.unsubscribed))
-                      }
-                      onPress={() =>
-                        run(async () => {
-                          await (email ? sendFamilyEmail : sendFamilyMessage)(
-                            target.uid,
-                            title,
-                            body,
-                          );
-                          setMessage(
-                            email
-                              ? "Correo en cola. La aceptación y entrega están pendientes."
-                              : "Mensaje guardado en su bandeja.",
-                          );
-                          setBody("");
-                          setConfirmed(false);
-                          if (email) await refreshUsage();
-                        })
-                      }
-                    />
+
+                <Notice text="Adjuntos gratuitos: hasta 3 fotos JPG/PNG/WebP, PDF o TXT. Máximo 250 KB en total; se guardan de forma privada en Firebase Spark." />
+                {attachments.map((a, i) => (
+                  <View key={i} style={s.row}>
+                    <Text style={[s.small, { flex: 1 }]}>
+                      {a.name} · {Math.ceil(a.size / 1024)} KB
+                    </Text>
                     <Button
                       secondary
-                      title="Volver al borrador"
+                      title="Quitar"
                       disabled={busy}
-                      onPress={() => setConfirmed(false)}
+                      onPress={() => {
+                        setAttachments(attachments.filter((_, n) => n !== i));
+                        setConfirmed(false);
+                      }}
                     />
-                  </>
-                ) : (
-                  <Button
-                    title={
-                      email
-                        ? "Revisar correo antes de enviar"
-                        : "Revisar notificación"
+                  </View>
+                ))}
+                <Button
+                  secondary
+                  title="Adjuntar archivo o foto"
+                  disabled={busy || attachments.length >= 3}
+                  onPress={() =>
+                    run(async () => {
+                      setAttachments(await pickMessageAttachment(attachments));
+                      setConfirmed(false);
+                    })
+                  }
+                />
+                {!!blockedReason && <Notice text={blockedReason} />}
+                <Button
+                  title={
+                    email
+                      ? "Revisar correo antes de enviar"
+                      : "Revisar notificación"
+                  }
+                  disabled={!title.trim() || !body.trim() || busy}
+                  onPress={() => setConfirmed(true)}
+                />
+                {confirmed && (
+                  <DeliveryPreviewModal
+                    email={email}
+                    name={target.family.name}
+                    address={target.email}
+                    title={title}
+                    body={body}
+                    attachments={attachments}
+                    reason={blockedReason}
+                    error={error}
+                    busy={busy}
+                    onClose={() => setConfirmed(false)}
+                    onConfirm={() =>
+                      run(async () => {
+                        if (blockedReason) throw Error(blockedReason);
+                        await (email ? sendFamilyEmail : sendFamilyMessage)(
+                          target.uid,
+                          title,
+                          body,
+                          attachments,
+                        );
+                        setMessage(
+                          email
+                            ? "Correo en cola. La aceptación y entrega están pendientes."
+                            : "Mensaje guardado en su bandeja.",
+                        );
+                        setBody("");
+                        setAttachments([]);
+                        setConfirmed(false);
+                        if (email) await refreshUsage();
+                      })
                     }
-                    disabled={!title.trim() || !body.trim() || busy}
-                    onPress={() => setConfirmed(true)}
                   />
                 )}
               </Card>

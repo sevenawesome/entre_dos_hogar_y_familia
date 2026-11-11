@@ -1,7 +1,7 @@
 rules_version = '2';
 service cloud.firestore {
  match /databases/{database}/documents {
-  function signed() { return request.auth != null; }
+  function signed() { return request.auth != null && !exists(/databases/$(database)/documents/accountSuspensions/$(request.auth.uid)); }
   function self(uid) { return signed() && request.auth.uid == uid; }
   function deleting(uid) { return exists(/databases/$(database)/documents/accountDeletion/$(uid)); }
   function active(uid) { return self(uid) && !deleting(uid); }
@@ -19,7 +19,8 @@ service cloud.firestore {
   function childAt(c,i) { return i>=c.size() || validChild(c[i]); }
   function validFamily() {
    let f=request.resource.data;
-   return f.keys().hasAll(['name','partner1','partner2','children','timezone','marriageDate']) && f.keys().hasOnly(['name','partner1','partner2','children','timezone','marriageDate','partner1BirthDate','partner2BirthDate','adminAuditId'])
+   return f.keys().hasAll(['name','partner1','partner2','children','timezone','marriageDate']) && f.keys().hasOnly(['name','partner1','partner2','children','timezone','marriageDate','partner1BirthDate','partner2BirthDate','adminAuditId','accountDisabled'])
+    && f.get('accountDisabled',false)==(resource!=null?resource.data.get('accountDisabled',false):false)
     && text(f.name,60) && text(f.partner1,40) && text(f.partner2,40) && text(f.timezone,100)
     && f.marriageDate is string && date(f,'marriageDate') && date(f,'partner1BirthDate') && date(f,'partner2BirthDate')
     && f.children is list && f.children.size()<=10 && ((resource!=null && f.children==resource.data.children) || (childAt(f.children, 0) && childAt(f.children, 1) && childAt(f.children, 2) && childAt(f.children, 3) && childAt(f.children, 4) && childAt(f.children, 5) && childAt(f.children, 6) && childAt(f.children, 7) && childAt(f.children, 8) && childAt(f.children, 9)));
@@ -152,8 +153,8 @@ service cloud.firestore {
      return signed() && deleting(request.auth.uid) && id.matches('anniversary-[a-f0-9]{64}') && message.senderUid==request.auth.uid && message.recipientUid==uid;
     }
     allow read: if self(uid);
-    allow create: if can('messages.send') && !deleting(uid) && exists(/databases/$(database)/documents/families/$(uid))
-      && request.resource.data.keys().hasOnly(['title','body','senderUid','createdAt','auditId'])
+    allow create: if can('messages.send') && !deleting(uid) && !exists(/databases/$(database)/documents/accountSuspensions/$(uid)) && exists(/databases/$(database)/documents/families/$(uid))
+      && request.resource.data.keys().hasOnly(['title','body','senderUid','createdAt','auditId','attachments']) && validAttachments(request.resource.data.get('attachments',[]))
       && text(request.resource.data.title,100) && text(request.resource.data.body,1200)
       && request.resource.data.senderUid==request.auth.uid && request.resource.data.createdAt==request.time
       && audited(request.resource.data,'message.send',uid);
@@ -217,8 +218,8 @@ service cloud.firestore {
   }
   match /emailQueue/{id} {
    allow read: if self(resource.data.uid) || can('families.view');
-   allow create: if can('emails.send') && !deleting(request.resource.data.uid) && exists(/databases/$(database)/documents/families/$(request.resource.data.uid))
-    && request.resource.data.keys().hasOnly(['uid','title','body','senderUid','createdAt','auditId','state']) && request.resource.data.state=='pending'
+   allow create: if can('emails.send') && !deleting(request.resource.data.uid) && !exists(/databases/$(database)/documents/accountSuspensions/$(request.resource.data.uid)) && exists(/databases/$(database)/documents/families/$(request.resource.data.uid))
+    && request.resource.data.keys().hasOnly(['uid','title','body','senderUid','createdAt','auditId','state','attachments']) && request.resource.data.state=='pending' && validAttachments(request.resource.data.get('attachments',[]))
     && request.resource.data.senderUid==request.auth.uid && request.resource.data.createdAt==request.time
     && text(request.resource.data.title,100) && text(request.resource.data.body,1200)
     && get(/databases/$(database)/documents/config/email).data.enabled && !get(/databases/$(database)/documents/config/email).data.paused && get(/databases/$(database)/documents/config/email).data.get('adminMessagesEnabled',true)
@@ -313,6 +314,16 @@ service cloud.firestore {
     && (!exists(/databases/$(database)/documents/roles/$(uid)) || get(/databases/$(database)/documents/roles/$(uid)).data.role!='owner')
     && request.resource.data.keys().hasOnly(['requestedAt']) && request.resource.data.requestedAt==request.time;
   }
+  match /accountSuspensions/{uid} {
+   allow read: if (request.auth!=null && request.auth.uid==uid) || owner();
+  }
+  function attachmentAt(items,i) {
+   return i>=items.size() || (items[i].keys().hasOnly(['name','mime','base64','size']) && text(items[i].name,100) && !items[i].name.matches('.*[/\\\\].*')
+    && items[i].mime in ['application/pdf','image/jpeg','image/png','image/webp','text/plain'] && items[i].base64 is string && items[i].base64.size()<=341336 && items[i].base64.matches('^[A-Za-z0-9+/]+={0,2}$')
+    && items[i].size is int && items[i].size>0 && items[i].size<=256000 && items[i].size>=items[i].base64.size() / 4 * 3 - 2 && items[i].size<=items[i].base64.size() / 4 * 3);
+  }
+  function attachmentSize(items,i) { return i<items.size()?items[i].size:0; }
+  function validAttachments(items) { return items is list && items.size()<=3 && attachmentAt(items,0) && attachmentAt(items,1) && attachmentAt(items,2) && attachmentSize(items,0)+attachmentSize(items,1)+attachmentSize(items,2)<=256000; }
   match /{all=**} { allow read,write: if false; }
  }
 }

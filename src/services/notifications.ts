@@ -119,7 +119,11 @@ export function registerDevice(
               body: item.body,
               sound: "default",
               data: {
-                screen: item.anniversaryKey ? "anniversary-memories" : "today",
+                screen: item.anniversaryKey
+                  ? "anniversary-memories"
+                  : item.daily
+                    ? "challenge"
+                    : "family",
               },
             },
             trigger: item.daily

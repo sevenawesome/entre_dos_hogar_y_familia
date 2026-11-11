@@ -249,6 +249,7 @@ export async function callBackend(name: string, data: unknown) {
 export function friendlyError(error: unknown): string {
   const code = (error as { code?: string }).code;
   const messages: Record<string, string> = {
+    "auth/user-disabled": "Esta cuenta está desactivada. Contacta al Departamento de Hogar y Familia para solicitar su restablecimiento.",
     "auth/invalid-credential": "Revisa el correo y la contraseña.",
     "auth/email-already-in-use":
       "Este correo ya tiene una cuenta. Inicia sesión.",

@@ -4,6 +4,8 @@ export interface AccountRow {
   email: string;
   name: string;
   protected: boolean;
+  disabled?:boolean;
+  restorable?:boolean;
 }
 export interface DeletionStatus {
   id: string;

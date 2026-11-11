@@ -3,11 +3,12 @@ import { BrandedLaunch } from "../components/BrandedLaunch";
 import { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import { Stack, router, useSegments } from "expo-router";
-import { onAuthStateChanged, onIdTokenChanged } from "firebase/auth";
+import { onAuthStateChanged, onIdTokenChanged, signOut } from "firebase/auth";
+import { doc, onSnapshot } from "firebase/firestore";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { store, actions, useApp } from "../store";
-import { auth } from "../services/firebase";
+import { auth, db } from "../services/firebase";
 import {
   subscribeCatalog,
   subscribeBranding,
@@ -27,10 +28,12 @@ import {
   refreshDevice,
   presentInbox,
   presentLevelNews,
+  disableDevice,
 } from "../services/notifications";
 import { AppState } from "react-native";
 import { syncPublicProfile } from "../services/spark";
 import { syncEmailSummary } from "../services/email";
+import { reminderChallenge } from "../domain/journey";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -57,7 +60,18 @@ function AppLayout() {
     levelNewsReady,
   } = useApp();
   const [familyLoaded, setFamilyLoaded] = useState(false);
+  const [pendingChallengeTap, setPendingChallengeTap] = useState(false);
   const segments = useSegments();
+  useEffect(() => {
+    if (!uid || demo || !db) return;
+    return onSnapshot(doc(db, "accountSuspensions", uid), (snap) => {
+      if (snap.exists() && auth?.currentUser?.uid === uid)
+        void disableDevice()
+          .catch(() => {})
+          .then(() => signOut(auth!))
+          .catch(() => {});
+    });
+  }, [uid, demo]);
   useEffect(() => subscribeBranding(), []);
   const hasFamily = !!family;
   const needsMarriageDate = !!family && !family.marriageDate;
@@ -173,6 +187,10 @@ function AppLayout() {
       if (status === "active") refreshDevice().catch(() => {});
     });
     const listener = notificationResponseListener((screen, levelId) => {
+      if (screen === "challenge" || screen === "today") {
+        setPendingChallengeTap(true);
+        return;
+      }
       if (
         screen === "level-intro" &&
         levelId &&
@@ -183,9 +201,11 @@ function AppLayout() {
         router.push(
           screen === "anniversary-memories"
             ? "/anniversary-memories"
-            : screen === "inbox"
-              ? "/inbox"
-              : "/(tabs)",
+            : screen === "family"
+              ? "/(tabs)/family"
+              : screen === "inbox"
+                ? "/inbox"
+                : "/(tabs)",
         );
     });
     return () => {
@@ -193,6 +213,33 @@ function AppLayout() {
       listener?.remove();
     };
   }, [uid, demo, hasFamily]);
+  useEffect(() => {
+    if (
+      !pendingChallengeTap ||
+      !uid ||
+      !family ||
+      !catalogReady ||
+      !progressReady ||
+      !journeyReady
+    )
+      return;
+    const timer = setTimeout(() => {
+      const params = reminderChallenge(levels, progress);
+      if (params) router.push({ pathname: "/challenge", params });
+      else router.push("/(tabs)/levels");
+      setPendingChallengeTap(false);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [
+    pendingChallengeTap,
+    uid,
+    family,
+    catalogReady,
+    progressReady,
+    journeyReady,
+    levels,
+    progress,
+  ]);
   const reminderKey = JSON.stringify({
     uid,
     family,

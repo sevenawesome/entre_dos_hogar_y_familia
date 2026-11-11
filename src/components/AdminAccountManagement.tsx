@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Text, View } from "react-native";
+import { Text, View, Modal } from "react-native";
 import {
   accountsCall,
   type AccountRow,
@@ -22,6 +22,8 @@ export function AdminAccountManagement() {
     [running, setRunning] = useState(false),
     [error, setError] = useState("");
   const owner = app.role === "owner";
+  const [view, setView] = useState<"active" | "disabled">("active"),
+    [restoreTarget, setRestoreTarget] = useState<AccountRow | null>(null);
   async function load(append = false) {
     setBusy(true);
     setError("");
@@ -45,6 +47,8 @@ export function AdminAccountManagement() {
             name: "Familia García",
             email: "garcia@ejemplo.com",
             protected: false,
+            disabled: true,
+            restorable: true,
           },
         ]);
         return;
@@ -143,11 +147,13 @@ export function AdminAccountManagement() {
     return (
       <Notice text="Solo el propietario puede eliminar cuentas y reiniciar las familias." />
     );
-  const filtered = rows.filter((r) =>
-    `${r.name} ${r.email}`
-      .toLocaleLowerCase()
-      .includes(search.trim().toLocaleLowerCase()),
-  );
+  const filtered = rows
+    .filter((r) => !!r.disabled === (view === "disabled"))
+    .filter((r) =>
+      `${r.name} ${r.email}`
+        .toLocaleLowerCase()
+        .includes(search.trim().toLocaleLowerCase()),
+    );
   return (
     <View style={{ gap: 20 }}>
       <Notice text="Solo propietario. La eliminación borra el acceso y los datos de la familia: perfil, foto familiar, fotos individuales y sus copias en la comunidad, progreso, notas, cuestionarios y mensajes. No se puede deshacer. Propietario, administradores, niveles y configuración se conservan." />
@@ -156,7 +162,24 @@ export function AdminAccountManagement() {
       )}
       {!!error && <Notice error text={error} />}
       <Card>
+        <View style={s.row}>
+          <Button
+            secondary={view !== "active"}
+            title="Activas"
+            onPress={() => setView("active")}
+          />
+          <Button
+            secondary={view !== "disabled"}
+            title="Desactivadas"
+            onPress={() => setView("disabled")}
+          />
+        </View>
         <Text style={s.sectionTitle}>Cuentas registradas</Text>
+        <Text style={s.small}>
+          Las cuentas desactivadas por la familia conservan sus datos y pueden
+          restablecerse. La eliminación total desde este panel no tiene
+          recuperación.
+        </Text>
         <Text style={s.small}>
           Incluye las cuentas que todavía no completaron su perfil familiar. El
           filtro busca entre las cuentas cargadas.
@@ -178,6 +201,24 @@ export function AdminAccountManagement() {
           >
             <Text style={s.label}>{row.name}</Text>
             <Text style={s.small}>{row.email || row.uid}</Text>
+            {row.disabled && (
+              <>
+                <Notice
+                  text={
+                    row.restorable
+                      ? "Desactivada por la familia · datos conservados"
+                      : "Desactivación en proceso o sin recuperación disponible"
+                  }
+                />
+                {row.restorable && (
+                  <Button
+                    title={`Restablecer ${row.name}`}
+                    disabled={busy || running}
+                    onPress={() => setRestoreTarget(row)}
+                  />
+                )}
+              </>
+            )}
             {row.protected ? (
               <Text style={s.small}>Cuenta administrativa protegida</Text>
             ) : (
@@ -210,6 +251,75 @@ export function AdminAccountManagement() {
           onPress={() => load()}
         />
       </Card>
+      {restoreTarget && (
+        <Modal
+          transparent
+          visible
+          animationType="fade"
+          onRequestClose={() => {
+            if (!busy) setRestoreTarget(null);
+          }}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "#06264AC9",
+              justifyContent: "center",
+              padding: 24,
+            }}
+          >
+            <Card>
+              <Text style={s.sectionTitle}>
+                ¿Restablecer {restoreTarget.name}?
+              </Text>
+              {!!error && <Notice text={error} />}
+              {!!error && <Notice text={error} />}
+              <Text style={s.body}>
+                La familia podrá volver a iniciar sesión con su cuenta y
+                conservará su progreso, fotos y recuerdos. Su participación en
+                Comunidad quedará privada hasta que decida activarla otra vez.
+              </Text>
+              <Button
+                title={
+                  app.demo
+                    ? "Simular restablecimiento"
+                    : "Sí, restablecer cuenta"
+                }
+                busy={busy}
+                onPress={async () => {
+                  setBusy(true);
+                  setError("");
+                  try {
+                    if (app.demo)
+                      setRows((old) =>
+                        old.map((r) =>
+                          r.uid === restoreTarget.uid
+                            ? { ...r, disabled: false, restorable: false }
+                            : r,
+                        ),
+                      );
+                    else {
+                      await accountsCall(`/${restoreTarget.uid}/restore`, {});
+                      await load();
+                    }
+                    setRestoreTarget(null);
+                  } catch (e) {
+                    setError(friendlyError(e));
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              />
+              <Button
+                secondary
+                title="Cancelar"
+                disabled={busy}
+                onPress={() => setRestoreTarget(null)}
+              />
+            </Card>
+          </View>
+        </Modal>
+      )}
       <Card style={{ borderColor: "#E3ADB6" }}>
         <Text style={s.sectionTitle}>Reiniciar las familias</Text>
         <Text style={s.body}>

@@ -51,6 +51,8 @@ export default function Administration() {
     [more, setMore] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const [celebrationKind, setCelebrationKind] = useState("Todas"),
+    [celebrationDays, setCelebrationDays] = useState(30);
   async function load(append = false) {
     if (app.demo && app.family) {
       const demoMonthDay = localDateISO(
@@ -129,6 +131,14 @@ export default function Administration() {
     .flatMap((r) => familyCelebrations(r.uid, r.family, now))
     .filter((e) => e.days <= 30)
     .sort((a, b) => a.days - b.days);
+  const visibleEvents = rows
+    .flatMap((r) => familyCelebrations(r.uid, r.family, now))
+    .filter(
+      (e) =>
+        e.days <= celebrationDays &&
+        (celebrationKind === "Todas" || e.kind === celebrationKind),
+    )
+    .sort((a, b) => a.days - b.days);
   if (!app.isAdmin && !app.demo)
     return (
       <Screen>
@@ -202,10 +212,31 @@ export default function Administration() {
           />
           {section === "dates" ? (
             <>
-              {!events.length && (
-                <Notice text="No hay celebraciones próximas entre las familias cargadas." />
+              <Notice text="Cumpleaños muestra las fechas de nacimiento registradas en Nosotros, incluidos los hijos. Si solo ves aniversarios, revisa que hayan agregado los cumpleaños o amplía el período." />
+              <View style={[s.row, { flexWrap: "wrap" }]}>
+                {["Todas", "Cumpleaños", "Aniversario"].map((kind) => (
+                  <Button
+                    key={kind}
+                    secondary={celebrationKind !== kind}
+                    title={kind}
+                    onPress={() => setCelebrationKind(kind)}
+                  />
+                ))}
+              </View>
+              <View style={s.row}>
+                {[30, 365].map((days) => (
+                  <Button
+                    key={days}
+                    secondary={celebrationDays !== days}
+                    title={days === 30 ? "Próximos 30 días" : "Todo el año"}
+                    onPress={() => setCelebrationDays(days)}
+                  />
+                ))}
+              </View>
+              {!visibleEvents.length && (
+                <Notice text="No hay celebraciones de este tipo en el período elegido entre las familias cargadas." />
               )}
-              {events.map((e) => (
+              {visibleEvents.map((e) => (
                 <Card
                   key={e.key}
                   style={{

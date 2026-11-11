@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import fs from "node:fs";
 import type { Level, Progress, AppSettings } from "../src/domain/types.ts";
-import { getJourney } from "../src/domain/journey.ts";
+import { getJourney, reminderChallenge } from "../src/domain/journey.ts";
 
 import { guideKey, guideSteps, helpSections } from "../src/domain/help.ts";
 const require = createRequire(import.meta.url);
@@ -249,5 +249,33 @@ describe("Guía de bienvenida e información permanente", () => {
     ])
       assert.ok(text.includes(word));
     assert.ok(helpSections.length >= 10);
+  });
+});
+
+it("reminder opens the synced pending challenge and falls back when only the questionnaire remains", () => {
+  assert.deepEqual(reminderChallenge([base], {}), {
+    levelId: base.id,
+    challengeId: base.challenges[0].id,
+  });
+  const progress = emptyProgress(base.id);
+  progress.completions = [
+    {
+      challengeId: base.challenges[0].id,
+      completedAt: "2026-11-11T12:00:00Z",
+      note: "",
+    },
+  ];
+  assert.deepEqual(reminderChallenge([base], { [base.id]: progress }), {
+    levelId: base.id,
+    challengeId: base.challenges[1].id,
+  });
+  assert.equal(
+    reminderChallenge([base], { [base.id]: { ...done(), finishedAt: null } }),
+    null,
+  );
+  assert.equal(reminderChallenge([], {}), null);
+  assert.deepEqual(reminderChallenge([next, base], { [base.id]: done() }), {
+    levelId: next.id,
+    challengeId: next.challenges[0].id,
   });
 });

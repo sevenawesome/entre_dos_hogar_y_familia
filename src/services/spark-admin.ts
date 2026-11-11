@@ -32,6 +32,10 @@ import {
 } from "../domain/admin-validation";
 import type { Family, FamilySummary, Level } from "../domain/types";
 import { bundledAnniversaries } from "../data/anniversaries";
+import {
+  validateAttachments,
+  type MessageAttachment,
+} from "../domain/attachments";
 
 async function requireAdmin(permission?: AdminPermission) {
   if (!db || !auth?.currentUser)
@@ -74,36 +78,38 @@ export async function listManagedFamilies(
     ),
   );
   const rows = await Promise.all(
-    page.docs.map(async (f) => {
-      const [s, control, role, journey] = await Promise.all([
-        getDoc(doc(database, "tracking", f.id)),
-        details
-          ? getDoc(doc(database, "familyControls", f.id))
-          : Promise.resolve(null),
-        details && hasPermission(permissionData, "roles.manage")
-          ? getDoc(doc(database, "roles", f.id))
-          : Promise.resolve(null),
-        details
-          ? getDoc(doc(database, "journeys", f.id))
-          : Promise.resolve(null),
-      ]);
-      return {
-        uid: f.id,
-        email: s.data()?.email ?? "",
-        family: f.data() as Family,
-        summary: s.exists()
-          ? ({
-              ...s.data(),
-              startedAt:
-                journey?.data()?.startedAt ??
-                (s.data().totalCompleted > 0 ? undefined : null),
-            } as FamilySummary)
-          : null,
-        remindersPaused: control?.data()?.remindersPaused === true,
-        role: role?.data()?.role ?? "member",
-        permissions: effectivePermissions(role?.data() ?? { role: "member" }),
-      } as ManagedFamily;
-    }),
+    page.docs
+      .filter((f) => f.data().accountDisabled !== true)
+      .map(async (f) => {
+        const [s, control, role, journey] = await Promise.all([
+          getDoc(doc(database, "tracking", f.id)),
+          details
+            ? getDoc(doc(database, "familyControls", f.id))
+            : Promise.resolve(null),
+          details && hasPermission(permissionData, "roles.manage")
+            ? getDoc(doc(database, "roles", f.id))
+            : Promise.resolve(null),
+          details
+            ? getDoc(doc(database, "journeys", f.id))
+            : Promise.resolve(null),
+        ]);
+        return {
+          uid: f.id,
+          email: s.data()?.email ?? "",
+          family: f.data() as Family,
+          summary: s.exists()
+            ? ({
+                ...s.data(),
+                startedAt:
+                  journey?.data()?.startedAt ??
+                  (s.data().totalCompleted > 0 ? undefined : null),
+              } as FamilySummary)
+            : null,
+          remindersPaused: control?.data()?.remindersPaused === true,
+          role: role?.data()?.role ?? "member",
+          permissions: effectivePermissions(role?.data() ?? { role: "member" }),
+        } as ManagedFamily;
+      }),
   );
   return { rows, cursor: page.docs.at(-1), hasMore: page.size === 20 };
 }
@@ -115,9 +121,11 @@ export async function sendFamilyMessage(
   uid: string,
   title: string,
   body: string,
+  attachments: MessageAttachment[] = [],
 ) {
   const { database, actor } = await requireAdmin("messages.send");
   validateMessage(title, body);
+  attachments = validateAttachments(attachments);
   const ref = doc(collection(database, "families", uid, "inbox")),
     audit = doc(collection(database, "adminAudit")),
     batch = writeBatch(database);
@@ -127,6 +135,7 @@ export async function sendFamilyMessage(
     senderUid: actor,
     createdAt: serverTimestamp(),
     auditId: audit.id,
+    ...(attachments.length ? { attachments } : {}),
   });
   batch.set(audit, auditData(actor, "message.send", uid));
   await batch.commit();
@@ -164,9 +173,11 @@ export async function sendFamilyEmail(
   uid: string,
   title: string,
   body: string,
+  attachments: MessageAttachment[] = [],
 ) {
   const { database, actor } = await requireAdmin("emails.send");
   validateMessage(title, body);
+  attachments = validateAttachments(attachments);
   const [pref, service] = await Promise.all([
     getDoc(doc(database, "emailPreferences", uid)),
     getDoc(doc(database, "config", "email")),
@@ -190,6 +201,7 @@ export async function sendFamilyEmail(
     createdAt: serverTimestamp(),
     auditId: audit.id,
     state: "pending",
+    ...(attachments.length ? { attachments } : {}),
   });
   batch.set(audit, auditData(actor, "email.send", uid));
   await batch.commit();
@@ -382,6 +394,10 @@ export async function adminRequest(
       ]);
     if (!family.exists())
       throw new Error("La cuenta todavía no registró su familia.");
+    if (family.data().accountDisabled === true)
+      throw new Error(
+        "Esta cuenta está desactivada. El propietario puede revisarla en Cuentas y reinicio → Desactivadas.",
+      );
     const s = summary.data() as FamilySummary;
     return {
       uid,

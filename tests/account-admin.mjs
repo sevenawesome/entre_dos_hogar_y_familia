@@ -8,6 +8,10 @@ import {
   deletionCycle,
   verifyFirebaseToken,
   accountsRepository,
+  suspendOwnAccount,
+  restoreAccount,
+  finishSuspension,
+  selfAccountStateRequest,
 } from "../.cache/email-worker/index.js";
 const now = new Date("2026-11-10T20:00:00Z"),
   seconds = now.getTime() / 1000;
@@ -91,6 +95,12 @@ class Memory {
       accounts: structuredClone(all.slice(at, at + size)),
       cursor: at + size < all.length ? String(at + size) : null,
     };
+  }
+  async setDisabled(uid, disabled) {
+    if (this.denyAuth) throw Error("denied");
+    this.events.push("disabled:" + uid + ":" + disabled);
+    if (!this.accounts.has(uid)) throw Error("missing");
+    Object.assign(this.accounts.get(uid), { disabled, validSince: seconds });
   }
   async deleteAuth(uid) {
     this.events.push("auth:" + uid);
@@ -668,4 +678,104 @@ test("owner cleanup removes sent and received anniversary memories and notificat
       .filter((m) => m.path === "anniversaryMessages")
       .every((m) => !m.mask.includes("body")),
   );
+});
+
+test("family self-deactivation preserves private data, hides community and disables Auth", async () => {
+  const r = setup();
+  r.seed("avatars/a", { dataUri: "private-photo" });
+  r.seed("families/a/progress/l1", { note: "private-note" });
+  r.seed("community/a", {
+    visible: true,
+    avatar: "photo",
+    people: [{ name: "child" }],
+  });
+  await suspendOwnAccount(r, "a", now);
+  assert.equal(r.accounts.get("a").disabled, true);
+  assert.equal(r.docs.get("community/a").data.visible, false);
+  assert.equal(r.docs.get("community/a").data.avatar, null);
+  assert.equal(r.docs.get("families/a").data.accountDisabled, true);
+  assert.equal(r.docs.get("avatars/a").data.dataUri, "private-photo");
+  assert.ok(r.docs.has("families/a/progress/l1"));
+  assert.equal(r.docs.get("accountSuspensions/a").data.state, "disabled");
+  await restoreAccount(r, "a", "owner", now);
+  assert.equal(r.accounts.get("a").disabled, false);
+  assert.equal(r.docs.has("accountSuspensions/a"), false);
+  assert.equal(r.docs.get("families/a").data.accountDisabled, false);
+  assert.equal(r.docs.get("community/a").data.visible, false);
+  assert.ok(r.docs.has("avatars/a"));
+});
+test("owner cannot self-deactivate; permanent deletion cannot be restored", async () => {
+  const r = setup();
+  await assert.rejects(suspendOwnAccount(r, "owner", now), /protegida/);
+  assert.equal(r.accounts.get("owner").disabled, false);
+  r.seed("accountDeletion/a", {});
+  await assert.rejects(restoreAccount(r, "a", "owner", now), /total/);
+  await assert.rejects(suspendOwnAccount(r, "a", now), /total/);
+});
+test("deactivation recovers from Auth failure without losing data; restoration waits for completion", async () => {
+  const r = setup();
+  r.denyAuth = true;
+  await assert.rejects(suspendOwnAccount(r, "a", now));
+  assert.ok(r.docs.has("families/a"));
+  assert.equal(r.docs.get("accountSuspensions/a").data.state, "disabling");
+  await assert.rejects(restoreAccount(r, "a", "owner", now), /completando/);
+  r.denyAuth = false;
+  await finishSuspension(r, "a", new Date(+now + 61000));
+  assert.equal(r.accounts.get("a").disabled, true);
+  assert.equal(r.docs.get("accountSuspensions/a").data.state, "disabled");
+});
+test("only verified owner can restore and needs a recent login", async () => {
+  const r = setup();
+  await suspendOwnAccount(r, "a", now);
+  assert.equal((await call(r, "/a/restore", {}, "admin")).status, 403);
+  assert.equal(
+    (
+      await call(r, "/a/restore", {}, "owner", async () =>
+        claims("owner", { auth_time: seconds - 301 }),
+      )
+    ).status,
+    401,
+  );
+  assert.equal((await call(r, "/a/restore", {}, "owner")).status, 200);
+  assert.equal(r.accounts.get("a").disabled, false);
+});
+test("self-deactivation ignores supplied identity and requires recent authentication", async () => {
+  const r = setup(),
+    req = new Request("https://service.test/account/deactivate", {
+      method: "POST",
+      headers: { Authorization: "Bearer a" },
+      body: JSON.stringify({ uid: "b" }),
+    });
+  assert.equal(
+    (
+      await selfAccountStateRequest(
+        req,
+        env,
+        r,
+        async () => claims("a", { auth_time: seconds - 301 }),
+        now,
+      )
+    ).status,
+    401,
+  );
+  const ok = await selfAccountStateRequest(
+    req,
+    env,
+    r,
+    async () => claims("a"),
+    now,
+  );
+  assert.equal(ok.status, 200);
+  assert.equal(r.accounts.get("a").disabled, true);
+  assert.equal(r.accounts.get("b").disabled, false);
+});
+test("permanent admin deletion cleans the suspension marker as well as private data", async () => {
+  const r = setup();
+  await suspendOwnAccount(r, "a", now);
+  const p = await queued(r);
+  const result = await stepDeletionJob(r, p.job.id, now);
+  assert.equal(result.state, "complete");
+  assert.equal(r.accounts.has("a"), false);
+  assert.equal(r.docs.has("accountSuspensions/a"), false);
+  assert.equal(r.docs.has("families/a"), false);
 });

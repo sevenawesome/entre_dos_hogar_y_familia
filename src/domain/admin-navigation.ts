@@ -6,13 +6,13 @@ export const adminSections = [
     icon: "trash-outline",
     permission: "settings.manage",
     description:
-      "Eliminación individual y limpieza de familias, solo propietario.",
+      "Restablecer cuentas desactivadas y eliminar familias, solo propietario.",
     steps: [
-      "Revisa el listado de cuentas o prepara la eliminación de todas las familias.",
-      "Comprueba los destinatarios y escribe exactamente la confirmación. Se requiere un inicio de sesión de los últimos cinco minutos.",
+      "Elige Activas o Desactivadas. Las desactivadas conservan sus datos y se pueden restablecer con confirmación.",
+      "Para borrar totalmente una cuenta o reiniciar familias, revisa la lista y escribe la confirmación. Se requiere un inicio de sesión de los últimos cinco minutos.",
       "Confirma solo cuando estés seguro. Revisa el avance y usa Reanudar si se interrumpe la limpieza.",
     ],
-    note: "Se eliminan acceso y datos de las familias. Propietario, administradores, niveles y configuración se conservan. En demostración no se borra nada.",
+    note: "Restablecer conserva los datos y deja Comunidad privada. El borrado total no se recupera. El reinicio protege propietario y administradores y conserva niveles y configuración. En demostración no se modifican cuentas reales.",
   },
   {
     id: "families",
@@ -37,7 +37,7 @@ export const adminSections = [
     description: "Cumpleaños y aniversarios para tener presentes.",
     steps: [
       "Actualiza las familias para consultar sus próximas celebraciones.",
-      "Revisa quién cumple años o celebra su matrimonio en los próximos 30 días.",
+      "Filtra Cumpleaños o Aniversario y elige los próximos 30 días o todo el año. Los cumpleaños deben estar registrados en Nosotros.",
       "Para felicitar a alguien, entra en Notificaciones o Correos y elige su familia.",
     ],
     note: "Las fechas corresponden a las familias cargadas. Usa «Cargar más» para ampliar la consulta.",
@@ -65,8 +65,8 @@ export const adminSections = [
     description: "Envía un aviso a la bandeja de una familia.",
     steps: [
       "El listado se abre automáticamente. Filtra por nombre, familia o parte del correo; puedes usar varias palabras sin tildes. Elige una familia para redactar.",
-      "Escribe un título breve y un mensaje; revisa el destinatario.",
-      "Confirma el envío. La familia lo recibirá en su bandeja al sincronizar la app.",
+      "Escribe un título breve y un mensaje. Puedes adjuntar hasta tres archivos PDF, TXT o fotos con un máximo total de 250 KB.",
+      "Abre Revisar notificación, comprueba el contenido en la ventana y confirma. La familia lo recibirá en su bandeja al sincronizar la app.",
     ],
     note: "Con la versión gratuita, este envío no garantiza un aviso inmediato si la app está cerrada. Los recordatorios diarios del teléfono son independientes.",
   },
@@ -79,7 +79,7 @@ export const adminSections = [
     description: "Mensajes por correo, remitente y control de la cuota.",
     steps: [
       "Elige una familia del listado o filtra por nombre, familia o parte del correo. Si no aparece, carga otras 20 o usa la búsqueda por correo exacto/UID. Comprueba que sus correos estén habilitados.",
-      "Redacta el asunto y el mensaje, revisa el destinatario y confirma el envío.",
+      "Redacta el asunto y el mensaje; los adjuntos admiten hasta tres archivos y 250 KB totales. Revisa en la ventana emergente y confirma. Si el botón está bloqueado, lee el motivo indicado.",
       "En configuración de correos, los administradores autorizados pueden ajustar el remitente, las plantillas y los límites.",
     ],
     note: "Se envían bienvenida, final de nivel y mensajes del administrador. Las bajas solicitadas desde un correo siempre se respetan.",

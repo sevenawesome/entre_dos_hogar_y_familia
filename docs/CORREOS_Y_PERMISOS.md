@@ -7,7 +7,7 @@ Firebase permanece en Spark. El Worker `entre-dos-correo` está publicado en `ht
 | Pestaña | Contenido | Permiso |
 | --- | --- | --- |
 | Familias | Búsqueda exacta por correo/UID, perfiles y progreso resumido; edición y pausa familiar con permiso adicional. | `families.view`, editar: `families.edit` |
-| Fechas | Cumpleaños y aniversarios en los próximos 30 días de las familias cargadas. | `families.view` |
+| Fechas | Cumpleaños y aniversarios de las familias cargadas, con filtros por tipo y período de 30 o 365 días. | `families.view` |
 | Seguimiento | Familias que llevan siete días o más sin avanzar. | `families.view` |
 | Notificaciones | Mensaje a la bandeja; aviso local al sincronizar. No usa Resend. | `messages.send` |
 | Correos | Búsqueda de destinatario, control administrativo de recepción, borrador y confirmación; consumo diario/mensual UTC. | `emails.send` |
@@ -87,3 +87,11 @@ Verificación y recuperación tienen la misma plantilla preparada mediante enlac
 **Estado actual:** `SEND_ENABLED=false` y `AUTH_EMAIL_ENABLED=false`; no se activó ningún envío real. La cuenta sigue funcionando con los correos gratuitos de Firebase. Antes de activar los correos de acceso personalizados hay que conceder a la cuenta de servicio el permiso específico `firebaseauth.users.sendEmail` mediante un rol separado. No ampliar el rol personalizado de borrado ni conceder Owner/Editor. Debe realizarse una prueba controlada de verificación/recuperación y recepción antes de activarlos para todos. Los enlaces de seguridad se generan únicamente en memoria y no pasan por la cola visible del panel. No se añade un enlace de baja a los mensajes de seguridad.
 
 Esta integración mantiene Spark y los planes gratuitos de Cloudflare/Resend dentro de sus cuotas; no hay cambio a Blaze ni contratación de un plan pago. Las reservas contemplan solo los correos enviados por esta app: otros usos de la misma cuenta de Resend también consumen su cuota.
+
+## Actualización: revisión emergente y adjuntos
+
+Notificaciones y Correos comparten una ventana emergente de revisión con destinatario, contenido y adjuntos. La bandeja familiar abre cada mensaje en otra ventana emergente. El botón de confirmar muestra la causa del bloqueo: servicio desactivado, pausa, categoría deshabilitada o baja de la familia. No se elude ese bloqueo ni se activa Resend desde una vista previa.
+
+Se pueden adjuntar hasta tres archivos PDF, TXT, JPG, PNG o WebP, con **250 KB en total**. Se almacenan como contenido pequeño en Firestore, sin Firebase Storage ni servicios de pago. Consumen almacenamiento y lecturas de Spark; hay que vigilar sus cuotas. Los adjuntos del correo se eliminan de cola y trabajo al finalizar; los mensajes de bandeja conservan sus adjuntos hasta el borrado total. Las imágenes se pueden previsualizar y los archivos abrir o guardar. Los originales no se comprimen automáticamente.
+
+**Los envíos siguen desactivados.** Activarlos podría procesar también mensajes pendientes, consumir la cuota y contactar direcciones reales. Primero se debe revisar la cola, las categorías y los destinatarios; después realizar una prueba autorizada. Los límites configurados siguen siendo 90 envíos diarios y 2.700 mensuales, dentro del plan gratuito. La entrega puede terminar en spam; encolar no acredita entrega.

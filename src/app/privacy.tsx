@@ -80,25 +80,26 @@ export default function Privacy() {
           del equipo sobre su cuenta o el programa. La administración configura
           estos envíos y sus límites. No se mandan correos diarios de retos,
           cumpleaños ni aniversarios. Cloudflare prepara el envío; Resend recibe
-          su dirección y el mensaje. No se envían notas, cuestionarios ni fotos.
-          Cada correo incluye un enlace de baja que la administración no puede
-          anular. Los correos de verificación y recuperación de Firebase siguen
-          disponibles. Se conservan colas y estados técnicos; un envío aceptado
-          no confirma entrega ni lectura.
+          su dirección y el mensaje. No se envían notas ni cuestionarios de
+          pareja. Los mensajes manuales pueden incluir los adjuntos que el
+          administrador elija. Cada correo incluye un enlace de baja que la
+          administración no puede anular. Los correos de verificación y
+          recuperación de Firebase siguen disponibles. Se conservan colas y
+          estados técnicos; un envío aceptado no confirma entrega ni lectura.
         </Text>
         <Text style={s.sectionTitle}>Eliminar la cuenta</Text>
         <Text style={s.body}>
-          En Nosotros pueden eliminar la cuenta y sus datos compartidos. El
-          propietario del programa también puede eliminar cuentas de familias
-          desde la administración, con confirmación y auditoría. Se conservan
-          registros técnicos mínimos de eliminación para impedir que sesiones
-          antiguas vuelvan a crear datos. Las cuentas administrativas quedan
-          protegidas durante un reinicio de familias. La eliminación afecta a
-          los dos teléfonos y es permanente. Se necesita conexión y una sesión
-          reciente. Mantengan la app abierta hasta terminar; si se interrumpe,
-          pueden volver a intentar la eliminación. Se conserva un identificador
-          técnico de bloqueo para impedir que una sesión antigua vuelva a crear
-          datos. El propietario debe transferir su rol primero.
+          En Nosotros pueden desactivar la cuenta familiar: se bloquea el acceso
+          de ambos y se oculta la familia. Sus datos y fotos quedan privados
+          para que el propietario pueda restablecerla desde Administración. Tras
+          la recuperación, la familia decide si vuelve a participar en
+          Comunidad. La eliminación total la realiza el propietario desde
+          Administración, con confirmación y auditoría: borra la cuenta, sus
+          fotos y datos sin recuperación. Las cuentas administrativas y la
+          propietaria quedan protegidas durante un reinicio de familias. Se
+          conservan registros técnicos mínimos para impedir que sesiones
+          antiguas vuelvan a crear datos. Ambas acciones necesitan conexión e
+          inicio de sesión reciente.
         </Text>
         <Text style={s.sectionTitle}>El bienestar va primero</Text>
         <Text style={s.body}>

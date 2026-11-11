@@ -103,6 +103,7 @@ export default function FamilyScreen() {
     setError("");
     try {
       await callBackend("deleteFamilyAccount", {});
+      await disableDevice().catch(() => {});
       if (auth) await signOut(auth);
       store.dispatch(actions.session({ uid: null }));
       router.replace("/welcome");
@@ -267,8 +268,9 @@ export default function FamilyScreen() {
       <Card>
         <Text style={s.sectionTitle}>Conectar a mi pareja</Text>
         <Text style={s.body}>
-          Instalen Amor que permanece en ambos teléfonos e inicien sesión con el mismo
-          correo y contraseña. Comparten la familia, los retos y sus recuerdos.
+          Instalen Amor que permanece en ambos teléfonos e inicien sesión con el
+          mismo correo y contraseña. Comparten la familia, los retos y sus
+          recuerdos.
         </Text>
         <Notice text="Sus notas y respuestas son compartidas: ambos podrán leerlas desde la cuenta familiar." />
       </Card>
@@ -289,20 +291,21 @@ export default function FamilyScreen() {
         <View style={{ gap: 14 }}>
           {deleting ? (
             <Card>
-              <Text style={s.label}>Eliminar toda la cuenta familiar</Text>
+              <Text style={s.label}>Desactivar nuestra cuenta familiar</Text>
               <Text style={s.body}>
-                Se eliminarán la familia, el progreso, los recuerdos y los
-                dispositivos de ambos. Esta acción no se puede deshacer.
+                Se bloqueará el acceso de ambos y la familia dejará de aparecer.
+                Sus fotos, progreso y recuerdos se conservarán en privado. El
+                propietario podrá restablecer la cuenta desde Administración.
               </Text>
               <Field
-                label="Escribe ELIMINAR para confirmar"
+                label="Escribe DESACTIVAR para confirmar"
                 value={confirmation}
                 onChangeText={setConfirmation}
                 autoCapitalize="characters"
               />
               <Button
-                title="Eliminar definitivamente"
-                disabled={confirmation !== "ELIMINAR"}
+                title="Desactivar cuenta"
+                disabled={confirmation !== "DESACTIVAR"}
                 busy={busy}
                 onPress={removeAccount}
               />
@@ -323,7 +326,7 @@ export default function FamilyScreen() {
                   { color: colors.navy, textAlign: "center", padding: 14 },
                 ]}
               >
-                Eliminar cuenta familiar y todos sus datos
+                Desactivar cuenta familiar
               </Text>
             </Pressable>
           )}
@@ -336,7 +339,8 @@ export default function FamilyScreen() {
         <BirthdaysCard family={family} now={now} portraits={portraits} />
       )}
       <Text style={[s.small, { textAlign: "center" }]}>
-        Amor que permanece · Versión 1.0.0{"\n"}Hecho para los pequeños momentos.
+        Amor que permanece · Versión 1.0.0{"\n"}Hecho para los pequeños
+        momentos.
       </Text>
       <CreatorFooter />
     </Screen>

@@ -141,4 +141,5 @@ export interface FamilyMessage {
   createdAt: unknown;
   kind?: "anniversaryGreeting";
   anniversaryDate?: string;
+  attachments?: import("./attachments").MessageAttachment[];
 }

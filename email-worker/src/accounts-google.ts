@@ -19,6 +19,7 @@ export interface AccountsRepository extends Repository {
   ): Promise<{ accounts: AuthAccount[]; cursor: string | null }>;
   accountInfo(uid: string): Promise<AuthAccount | null>;
   deleteAuth(uid: string): Promise<void>;
+  setDisabled(uid: string, disabled: boolean): Promise<void>;
   removeDocuments(
     paths: { path: string; version?: string }[],
   ): Promise<boolean>;
@@ -112,6 +113,20 @@ export async function accountsRepository(
           ? "El servicio no tiene permiso para eliminar cuentas de acceso."
           : "No se pudo eliminar el acceso. El proceso se puede reintentar.",
       );
+    },
+    async setDisabled(uid, disabled) {
+      const r = await fetcher(authBase + ":update", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          localId: uid,
+          disableUser: disabled,
+          validSince: String(Math.floor(Date.now() / 1000)),
+        }),
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!r.ok)
+        throw Error("No se pudo cambiar el estado de acceso de la cuenta.");
     },
     async removeDocuments(paths) {
       if (!paths.length) return true;

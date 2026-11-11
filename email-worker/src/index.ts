@@ -3,6 +3,15 @@ import { accountsRepository } from "./accounts-google";
 import { communityRequest } from "./community";
 import { brandedEmail } from "./email-brand";
 import { authEmailRequest } from "./auth-email";
+import { selfAccountStateRequest, suspensionCycle } from "./account-state";
+import { validateAttachments } from "../../src/domain/attachments";
+export {
+  suspendOwnAccount,
+  restoreAccount,
+  finishSuspension,
+  suspensionCycle,
+  selfAccountStateRequest,
+} from "./account-state";
 export {
   authEmailRequest,
   reserveAuthEmail,
@@ -204,6 +213,7 @@ interface Payload {
   text: string;
   html: string;
   headers: Record<string, string>;
+  attachments?: { filename: string; content: string }[];
 }
 export async function emailPayload(
   uid: string,
@@ -312,7 +322,11 @@ async function eligible(repo: Repository, job: Job, _now: Date) {
     )
   )
     return false;
-  if (await repo.get(`accountDeletion/${job.uid}`)) return false;
+  if (
+    (await repo.get(`accountDeletion/${job.uid}`)) ||
+    (await repo.get(`accountSuspensions/${job.uid}`))
+  )
+    return false;
   const account = await repo.account(job.uid);
   return (
     !!account?.verified &&
@@ -364,7 +378,11 @@ export async function deliverJob(
       role = sender ? await repo.get(`roles/${sender}`) : null;
     if (
       !hasPermission(role?.data ?? {}, "emails.send") ||
-      !!(sender && (await repo.get(`accountDeletion/${sender}`)))
+      !!(
+        sender &&
+        ((await repo.get(`accountDeletion/${sender}`)) ||
+          (await repo.get(`accountSuspensions/${sender}`)))
+      )
     ) {
       await stop(repo, job, "suppressed", now);
       return;
@@ -489,6 +507,7 @@ async function automatic(
   if (
     !family ||
     deleted ||
+    (await repo.get(`accountSuspensions/${uid}`)) ||
     pref?.data.enabled === false ||
     pref?.data.unsubscribed ||
     !["welcome", "levelCompleted"].includes(String(kind))
@@ -589,7 +608,9 @@ async function administrator(
     pref?.data.unsubscribed ||
     !hasPermission(sender?.data ?? {}, "emails.send") ||
     deleted ||
+    !!(await repo.get(`accountSuspensions/${uid}`)) ||
     !!(await repo.get(`accountDeletion/${String(q.data.senderUid)}`)) ||
+    !!(await repo.get(`accountSuspensions/${String(q.data.senderUid)}`)) ||
     !account?.verified ||
     account.disabled ||
     !account.email
@@ -615,6 +636,24 @@ async function administrator(
     },
     queueId = q.path.split("/").at(-1)!;
   const settings = settingsOf((await repo.get("config/email"))?.data);
+  let attachments;
+  try {
+    attachments = validateAttachments(q.data.attachments);
+  } catch {
+    await repo.commit([
+      {
+        path: q.path,
+        version: q.version,
+        data: {
+          uid,
+          state: "invalid_attachments",
+          createdAt: q.data.createdAt,
+          finishedAt: now,
+        },
+      },
+    ]);
+    return;
+  }
   const payload = await emailPayload(
       uid,
       account.email,
@@ -632,7 +671,17 @@ async function administrator(
         queueId,
         categories: draft.categories,
         consentVersion: pref?.data.version ?? 0,
-        payload,
+        payload: {
+          ...payload,
+          ...(attachments.length
+            ? {
+                attachments: attachments.map((a) => ({
+                  filename: a.name,
+                  content: a.base64,
+                })),
+              }
+            : {}),
+        },
         createdAt: now,
         nextAttemptAt: now,
         terminal: false,
@@ -757,7 +806,10 @@ export default {
     if (env.ADMIN_ACCOUNTS_ENABLED === "true")
       ctx.waitUntil(
         accountsRepository(env)
-          .then((repo) => deletionCycle(repo, env))
+          .then(async (repo) => {
+            await deletionCycle(repo, env);
+            await suspensionCycle(repo);
+          })
           .catch(() =>
             console.error(
               "Account cleanup needs attention. No account data logged.",
@@ -766,6 +818,27 @@ export default {
       );
   },
   async fetch(request: Request, env: Env) {
+    if (new URL(request.url).pathname === "/account/deactivate") {
+      if (request.method === "OPTIONS")
+        return new Response(null, { status: 204, headers: accountsHeaders });
+      if (!request.headers.get("Authorization"))
+        return Response.json(
+          { error: "Inicia sesión." },
+          { status: 401, headers: accountsHeaders },
+        );
+      try {
+        return await selfAccountStateRequest(
+          request,
+          env,
+          await accountsRepository(env),
+        );
+      } catch {
+        return Response.json(
+          { error: "No se pudo conectar con el servicio de cuentas." },
+          { status: 503, headers: accountsHeaders },
+        );
+      }
+    }
     if (
       ["/auth/email/verification", "/auth/email/recovery"].includes(
         new URL(request.url).pathname,
