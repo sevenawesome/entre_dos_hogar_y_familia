@@ -10,6 +10,7 @@ import {
   TextInput,
   View,
   type TextInputProps,
+  type ScrollViewInstance,
   type ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -49,7 +50,11 @@ export const serif =
 export function Screen({
   children,
   scroll = true,
-}: PropsWithChildren<{ scroll?: boolean }>) {
+  scrollRef,
+}: PropsWithChildren<{
+  scroll?: boolean;
+  scrollRef?: React.Ref<ScrollViewInstance>;
+}>) {
   return (
     <SafeAreaView style={s.safe} edges={["top", "left", "right"]}>
       <KeyboardAvoidingView
@@ -58,6 +63,7 @@ export function Screen({
       >
         {scroll ? (
           <ScrollView
+            ref={scrollRef}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={s.content}
           >

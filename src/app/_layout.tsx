@@ -160,7 +160,13 @@ function AppLayout() {
   useEffect(() => {
     if (!ready) return;
     const root = segments[0];
-    if (!uid && root !== "welcome" && root !== "privacy")
+    if (
+      !uid &&
+      root !== "welcome" &&
+      root !== "privacy" &&
+      root !== "tour" &&
+      root !== "password-recovery"
+    )
       router.replace("/welcome");
     else if (
       uid &&

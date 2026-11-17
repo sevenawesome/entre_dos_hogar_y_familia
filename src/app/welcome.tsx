@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { Text, View, Pressable, Image } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { auth, firebaseConfigured } from "../services/firebase";
-import { startDemo, store, actions } from "../store";
+import { store, actions } from "../store";
 import { requestEmailVerification } from "../services/email";
-import { requestPasswordRecovery } from "../services/account-security";
 import { friendlyError } from "../services/api";
 import { Brand } from "../components/Brand";
 import { CreatorFooter } from "../components/CreatorFooter";
@@ -22,15 +21,14 @@ import {
   serif,
 } from "../components/ui";
 export default function Welcome() {
-  const [signup, setSignup] = useState(false),
-    [email, setEmail] = useState(""),
+  const { mode } = useLocalSearchParams<{ mode?: string }>();
+  const signup = mode === "signup";
+  const [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState(""),
-    [info, setInfo] = useState("");
+    [error, setError] = useState("");
   async function submit() {
     setError("");
-    setInfo("");
     if (!email.trim() || password.length < 8) {
       setError("Escribe un correo y una contraseña de al menos 8 caracteres.");
       return;
@@ -53,26 +51,6 @@ export default function Welcome() {
           );
         }
       } else await signInWithEmailAndPassword(auth!, email.trim(), password);
-    } catch (e) {
-      setError(friendlyError(e));
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function reset() {
-    if (!email.trim()) {
-      setError("Escribe tu correo para recuperar el acceso.");
-      return;
-    }
-    setBusy(true);
-    setError("");
-    setInfo("");
-    try {
-      await requestPasswordRecovery(email);
-      setInfo(
-        "Si el correo está registrado, recibirás un enlace para recuperar el acceso.",
-      );
-      setError("");
     } catch (e) {
       setError(friendlyError(e));
     } finally {
@@ -131,7 +109,7 @@ export default function Welcome() {
               key={String(value)}
               accessibilityRole="button"
               onPress={() => {
-                setSignup(value);
+                router.setParams({ mode: value ? "signup" : "login" });
                 setError("");
               }}
               style={{
@@ -154,7 +132,7 @@ export default function Welcome() {
           ))}
         </View>
         {!firebaseConfigured && (
-          <Notice text="Prueba la experiencia en este teléfono. El acceso compartido estará disponible al conectar Firebase." />
+          <Notice text="El acceso estará disponible al conectar Firebase. Mientras tanto, descubre la app en la presentación visual." />
         )}
         <Field
           label="Correo de la pareja"
@@ -181,7 +159,6 @@ export default function Welcome() {
           </Text>
         )}
         {!!error && <Notice text={error} error />}
-        {!!info && <Notice text={info} />}
         <Button
           title={signup ? "Empezar nuestro camino" : "Entrar a nuestro espacio"}
           busy={busy}
@@ -189,7 +166,12 @@ export default function Welcome() {
           onPress={submit}
         />
         {!signup && firebaseConfigured && (
-          <Pressable accessibilityRole="button" disabled={busy} onPress={reset}>
+          <Pressable
+            accessibilityRole="button"
+            disabled={busy}
+            onPress={() => router.push("/password-recovery")}
+            style={{ minHeight: 44, justifyContent: "center" }}
+          >
             <Text style={[s.link, { textAlign: "center" }]}>
               Olvidé la contraseña
             </Text>
@@ -198,10 +180,13 @@ export default function Welcome() {
         <Button
           secondary
           title="Explorar demostración"
-          onPress={() => {
-            startDemo().catch((e) => setError(friendlyError(e)));
-          }}
+          icon="images-outline"
+          disabled={busy}
+          onPress={() => router.push("/tour")}
         />
+        <Text style={[s.small, { textAlign: "center", marginTop: -7 }]}>
+          Un recorrido en imágenes por todo lo que podrán hacer.
+        </Text>
         <Text style={[s.small, { textAlign: "center" }]}>
           Una cuenta para los dos. Inicien sesión con el mismo{"\n"}correo en
           sus teléfonos para compartir el progreso.
