@@ -9,7 +9,7 @@ npm install
 npm run web
 ```
 
-En el acceso, elige **Explorar demostración**. La familia, foto y progreso de demostración se guardan solo en ese navegador o teléfono. La comunidad y administración muestran ejemplos ficticios; no se contacta a nadie ni se conceden permisos reales.
+En el acceso, elige **Explorar demostración** para recorrer seis imágenes ilustrativas de retos, niveles, familia, comunidad, avisos y administración. Son ejemplos estáticos: este recorrido no inicia sesión ni crea familia, fotos o progreso. La recuperación de contraseña abre su propia pantalla; el cambio autenticado se abre desde Nosotros → Seguridad de su cuenta.
 
 Para Android/iOS usa `npm start` y un development build. La vista web permite revisar pantallas; no programa avisos del teléfono.
 
