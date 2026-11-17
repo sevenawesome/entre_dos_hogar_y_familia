@@ -210,5 +210,28 @@
     "grupo": "e18561f3-5dda-49c9-b958-29fd52537839",
     "iphone": "El propietario confirmó que abrió desde Expo Go",
     "referencia": "EXPO_GO_PREVIEW.json"
+  },
+  "seguimientoCorreos": {
+    "fecha": "2026-11-16",
+    "autorizadoPorPropietario": true,
+    "workerVersion": "0bcbce10-a5ca-4751-898a-c59cdb4bd5c3",
+    "SEND_ENABLED": true,
+    "AUTH_EMAIL_ENABLED": true,
+    "colaInicial": {
+      "mailEvents": 0,
+      "emailQueue": 0,
+      "mailJobs": 0
+    },
+    "limites": {
+      "diarioUTC": 90,
+      "mensualUTC": 2700
+    },
+    "rolAdicional": "projects/entre-dos-db/roles/entreDosAuthEmail",
+    "permisoUnico": "firebaseauth.users.sendEmail",
+    "recuperacionReal": "Aceptada por Resend; pendiente confirmar recepción por el propietario",
+    "contrasenasModificadas": 0,
+    "pruebasApp": 127,
+    "pruebasWorker": 56,
+    "nota": "Actualiza PUB-10; la auditoría original y sus restantes bloqueos de tiendas se conservan."
   }
 }

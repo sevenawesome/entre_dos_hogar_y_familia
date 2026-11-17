@@ -342,7 +342,9 @@ test("security links are generated in memory only; response hides account existe
     verify,
     link: async () =>
       "https://demo-entre-dos.firebaseapp.com/__/auth/action?oobCode=never-store-this",
-    fetcher: async (_url, options) => {
+    fetcher: async function (_url, options) {
+      // Cloudflare's fetch rejects calls whose receiver is a dependency object.
+      assert.equal(this, globalThis);
       payload = JSON.parse(options.body);
       return new Response('{"id":"test"}', { status: 200 });
     },

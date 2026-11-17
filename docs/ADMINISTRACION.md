@@ -20,7 +20,7 @@ Notificaciones y Correos abren automáticamente el listado de familias. El filtr
 
 Notificaciones solo guarda un mensaje en la bandeja privada. La familia lo recibe al abrir o sincronizar la app y puede mostrarse un aviso local; no garantiza push inmediato con la app cerrada. No consume correos.
 
-Correos permite buscar destinatario, gestionar administrativamente su recepción, redactar, revisar y confirmar un envío. Tiene permiso independiente y muestra reservas de cuota en UTC. Ajustes de correo requiere configurar la aplicación: remitente, respuesta, categorías, límites y dos plantillas. No hay correos diarios; solo bienvenida tras verificar, nivel conseguido y mensajes manuales. Las bajas firmadas desde los correos se respetan. El envío real sigue desactivado.
+Correos permite buscar destinatario, gestionar administrativamente su recepción, redactar, revisar y confirmar un envío. Tiene permiso independiente y muestra reservas de cuota en UTC. Ajustes de correo requiere configurar la aplicación: remitente, respuesta, categorías, límites y dos plantillas. No hay correos diarios; solo bienvenida tras verificar, nivel conseguido y mensajes manuales. Las bajas firmadas desde los correos se respetan. El envío real está activo desde el 16 de noviembre de 2026. Los mensajes en cola se procesan cada diez minutos; Ajustes de correo permite pausarlos y mantener categorías y cuotas.
 
 ## Niveles y configuración
 
@@ -46,7 +46,7 @@ El Worker verifica la firma RSA del token Firebase, emisor, proyecto, vencimient
 
 La limpieza confirmada bloquea nuevas escrituras de esa familia, elimina el acceso Auth y limpia progreso/notas/cuestionarios, dispositivos, bandeja, colas/eventos de correo, perfiles privados, fotos y comunidad. No lee el contenido íntimo al borrar: solicita solo nombres de documentos. Conserva niveles, catálogo, configuración, auditorías y marcas mínimas para impedir que sesiones antiguas recreen datos. Los permisos se vuelven a comprobar durante la operación, incluida una promoción posterior a la vista previa.
 
-El procesamiento es paginado y reanudable desde el módulo; el cron también avanza trabajos confirmados cada diez minutos. Si Auth rechaza la eliminación, no borra los documentos de la familia y deja el proceso para reintento. `ADMIN_ACCOUNTS_ENABLED=true` habilita este servicio independientemente de `SEND_ENABLED=false`: no activa el correo. Se mantiene Firebase Spark, sin Functions ni Storage.
+El procesamiento es paginado y reanudable desde el módulo; el cron también avanza trabajos confirmados cada diez minutos. Si Auth rechaza la eliminación, no borra los documentos de la familia y deja el proceso para reintento. `ADMIN_ACCOUNTS_ENABLED=true` habilita este servicio independientemente de `SEND_ENABLED`: el servicio de cuentas no controla la activación del correo. Se mantiene Firebase Spark, sin Functions ni Storage.
 
 
 ### Felicitaciones de aniversario

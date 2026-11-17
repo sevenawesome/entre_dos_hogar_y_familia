@@ -1,6 +1,6 @@
 # Administración, correos y permisos
 
-Firebase permanece en Spark. El Worker `entre-dos-correo` está publicado en `https://entre-dos-correo.sevenawesome-srl.workers.dev` con **SEND_ENABLED=false**. Resend tiene verificado `correo.sevenawesome.com` y los tres secretos ya están cargados únicamente en Cloudflare. No se han enviado correos personalizados reales de prueba ni se han cambiado roles reales durante esta reorganización.
+Firebase permanece en Spark. El 16 de noviembre de 2026, por solicitud del propietario, se activaron **SEND_ENABLED=true** y **AUTH_EMAIL_ENABLED=true** en el Worker `entre-dos-correo`, publicado en `https://entre-dos-correo.sevenawesome-srl.workers.dev`. La cola de eventos, mensajes manuales y trabajos estaba vacía. Resend tiene verificado `correo.sevenawesome.com`; los tres secretos permanecen únicamente en Cloudflare. La prueba de recuperación dirigida al propietario fue aceptada por Resend; falta confirmar recepción en su buzón.
 
 ## Una administración con ocho secciones
 
@@ -21,7 +21,7 @@ Para crear un administrador: Admin → Administradores → buscar correo o UID d
 
 ## Política de correo para cuidar la cuota
 
-- Firebase envía verificación al crear la cuenta y recuperación cuando se solicita. No consumen Resend y tienen sus propias cuotas de Authentication.
+- Verificación y recuperación usan Resend con el diseño de la app. Si el servicio está apagado, pausado, sin cuota o falla, la app recurre al correo integrado gratuito de Firebase. Los correos personalizados comparten la cuota de Resend con los demás envíos.
 - **Bienvenida personalizada:** evento único al registrar la familia; espera a que Auth confirme la dirección. Un registro por sí solo no comienza los retos. La bienvenida invita a comenzar de inmediato.
 - **Nivel conseguido:** evento único al terminar todos los retos y el cuestionario. No se envía al completar solo el último reto.
 - **Correo manual:** únicamente desde Admin → Correos, con destinatario encontrado, asunto/cuerpo, revisión y confirmación. No crea una notificación en la bandeja.
@@ -29,7 +29,7 @@ Para crear un administrador: Admin → Administradores → buscar correo o UID d
 
 Nosotros conserva la verificación, recuperación y cambio de contraseña, pero ya no tiene interruptores de recepción de correo. El administrador controla `emailPreferences/{uid}.enabled`; la ausencia del documento permite los avisos transaccionales descritos al registrarse. Una baja firmada desde el correo establece `unsubscribed=true`; las reglas impiden anularla desde la app, incluso al administrador. Las preferencias antiguas desactivadas se respetan hasta una decisión administrativa; las categorías y horarios diarios antiguos ya no se procesan.
 
-Cada correo lleva enlace de baja: GET muestra confirmación sin cambiar nada; POST firmado desactiva futuros envíos, aunque no existiera un documento de recepción. No afecta a los correos de acceso de Firebase. Se usan avisos sobre la cuenta y el programa, sin campañas publicitarias.
+Cada correo opcional lleva enlace de baja: GET muestra confirmación sin cambiar nada; POST firmado desactiva futuros envíos, aunque no existiera un documento de recepción. No afecta a los correos de acceso de Firebase. Se usan avisos sobre la cuenta y el programa, sin campañas publicitarias.
 
 ## Eventos, cuotas e idempotencia
 
@@ -41,12 +41,12 @@ Los presupuestos UTC se reservan atómicamente y no se devuelven automáticament
 
 El Worker solo lee nombre familiar, título del nivel y `finishedAt` para preparar eventos. No lee notas, respuestas ni fotos. El contenido del trabajo se elimina al finalizar; eliminar la cuenta limpia recepción, eventos, cola y trabajos propios. El endpoint público solo expone salud y baja firmada, sin una API abierta para enviar correos. Nunca se guardan claves privadas en Firebase ni Expo.
 
-## Qué falta para activarlo
+## Configuración del servicio activo
 
 1. Completado por el usuario: cuentas gratuitas en [Resend](https://resend.com/) y [Cloudflare](https://dash.cloudflare.com/), y autorización de Wrangler.
 2. Completado: `correo.sevenawesome.com` verificado en Resend, con DNS en GoDaddy. Remitente configurado: `avisos@correo.sevenawesome.com`. **No se puede verificar gmail.com**: el Gmail indicado sirve para recibir respuestas, soporte y registrar las cuentas.
 3. Cuenta de servicio `entre-dos-correo@entre-dos-db.iam.gserviceaccount.com`, con `roles/datastore.user` (Usuario de Cloud Datastore) y `roles/firebaseauth.viewer` (Visualizador de Firebase Authentication). Para Cuentas y reinicio se agregó el rol personalizado `projects/entre-dos-db/roles/entreDosDeleteAccounts`, cuyo único permiso es `firebaseauth.users.delete`. No usar Owner/Editor ni Firebase Authentication Admin. Su clave se mantiene fuera del repositorio y de este chat. El correo solo consulta nombre familiar, metadatos de cierre del nivel, título del nivel, estado de correo, roles y cola. La limpieza administrativa elimina documentos privados por nombre, sin leer sus notas, respuestas ni imágenes. Consulta [Administración](ADMINISTRACION.md).
-4. Completado: `email-worker/wrangler.jsonc` fija la cuenta Cloudflare autorizada, proyecto, `PUBLIC_BASE_URL` y `FROM_EMAIL` reales. `SEND_ENABLED` continúa en `false` durante la configuración. El dominio de ese remitente limita las direcciones que se pueden elegir luego desde Admin.
+4. Completado: `email-worker/wrangler.jsonc` fija la cuenta Cloudflare autorizada, proyecto, `PUBLIC_BASE_URL` y `FROM_EMAIL` reales. `SEND_ENABLED` y `AUTH_EMAIL_ENABLED` están en `true`. El dominio del remitente limita las direcciones que se pueden elegir desde Admin.
 5. Completado: los tres secretos están cargados **en Cloudflare**, no en `.env` de Expo ni en Firebase. Para cargar o renovar la clave de envío en otra instalación:
 
 ```powershell
@@ -70,13 +70,13 @@ npx firebase-tools@latest deploy --only firestore --project entre-dos-db
 npx --yes wrangler@4.158.0 deploy --config email-worker/wrangler.jsonc
 ```
 
-7. `/health` ya responde `configured: true, sending: false`. El correo propietario ya figura verificado en Auth y las tres consultas de eventos/trabajos/cola están comprobadas, con el índice nuevo listo. Para otras familias, usar **Nosotros → Su correo de contacto → Enviar enlace de verificación**, abrir el enlace recibido y volver a **Ya confirmé mi correo**. Después configurar los textos y remitente desde Admin. Cambiar `SEND_ENABLED` a `true` y desplegar cuando se decida comenzar el envío; es un interruptor del servidor que la app no puede eludir. El primer ciclo publica el estado del servicio en Firebase. Probar primero con la familia propietaria confirmando recepción y baja antes de invitar a otras familias.
+7. `/health` responde `configured: true, sending: true`. El estado `config/email.enabled` ya se sincronizó con el servicio activo y se registró la activación en auditoría. El cron conserva su intervalo de diez minutos. El propietario ya tiene su correo verificado; otras familias pueden usar Nosotros → Su correo de contacto → Enviar enlace de verificación y, tras abrirlo, Ya confirmé mi correo.
 
 La cuenta de Firebase y sus verificaciones/recuperaciones funcionan sin estos pasos adicionales. No hacen falta contraseñas de Gmail para esta integración.
 
 ## Validación
 
-`npm run check` comprueba tipos, lint y dominio; `npm run test:email` usa transporte simulado y reservas concurrentes; `npm run test:firebase` requiere los emuladores de Auth y Firestore. La comprobación local no envía correo real. Antes de activar el servidor falta autorizar una prueba controlada de recepción/baja. El despliegue conserva `SEND_ENABLED=false`.
+`npm run check` comprueba tipos, lint y dominio; `npm run test:email` usa transporte simulado y reservas concurrentes; `npm run test:firebase` requiere emuladores de Auth y Firestore. En la activación pasaron las 127 pruebas de la app y las 56 del Worker. Se reprodujo y corrigió en workerd el error de receiver de fetch: el transporte de acceso ahora conserva globalThis. La prueba real de recuperación fue aceptada por Resend. La recepción en el buzón, el cambio de contraseña elegido por el usuario y la baja requieren validación del propietario; no se cambió ninguna contraseña durante la prueba.
 
 ## Diseño unificado y correos de acceso
 
@@ -84,7 +84,7 @@ Todos los correos nuevos de Resend comparten una plantilla con el logo oficial, 
 
 Verificación y recuperación tienen la misma plantilla preparada mediante enlaces seguros de Firebase. El servicio personalizado comparte las reservas conservadoras de 90/día y 2700/mes con el resto del correo, tiene límites por dirección/IP con claves opacas y no persiste enlaces de recuperación ni direcciones/IP en esos contadores. Si está desactivado, pausado, sin cuota o sin conexión, la app usa la verificación/recuperación integrada de Firebase. Esos correos nativos mantienen el diseño limitado del proveedor.
 
-**Estado actual:** `SEND_ENABLED=false` y `AUTH_EMAIL_ENABLED=false`; no se activó ningún envío real. La cuenta sigue funcionando con los correos gratuitos de Firebase. Antes de activar los correos de acceso personalizados hay que conceder a la cuenta de servicio el permiso específico `firebaseauth.users.sendEmail` mediante un rol separado. No ampliar el rol personalizado de borrado ni conceder Owner/Editor. Debe realizarse una prueba controlada de verificación/recuperación y recepción antes de activarlos para todos. Los enlaces de seguridad se generan únicamente en memoria y no pasan por la cola visible del panel. No se añade un enlace de baja a los mensajes de seguridad.
+**Estado actual:** `SEND_ENABLED=true` y `AUTH_EMAIL_ENABLED=true`. La cuenta de servicio recibió el rol separado `projects/entre-dos-db/roles/entreDosAuthEmail`, con únicamente `firebaseauth.users.sendEmail`. No se ampliaron los roles de borrado/estado ni se concedió Owner/Editor. Los enlaces de seguridad se generan en memoria y no pasan por la cola del panel. No se añade enlace de baja a los mensajes de seguridad.
 
 Esta integración mantiene Spark y los planes gratuitos de Cloudflare/Resend dentro de sus cuotas; no hay cambio a Blaze ni contratación de un plan pago. Las reservas contemplan solo los correos enviados por esta app: otros usos de la misma cuenta de Resend también consumen su cuota.
 
@@ -94,4 +94,4 @@ Notificaciones y Correos comparten una ventana emergente de revisión con destin
 
 Se pueden adjuntar hasta tres archivos PDF, TXT, JPG, PNG o WebP, con **250 KB en total**. Se almacenan como contenido pequeño en Firestore, sin Firebase Storage ni servicios de pago. Consumen almacenamiento y lecturas de Spark; hay que vigilar sus cuotas. Los adjuntos del correo se eliminan de cola y trabajo al finalizar; los mensajes de bandeja conservan sus adjuntos hasta el borrado total. Las imágenes se pueden previsualizar y los archivos abrir o guardar. Los originales no se comprimen automáticamente.
 
-**Los envíos siguen desactivados.** Activarlos podría procesar también mensajes pendientes, consumir la cuota y contactar direcciones reales. Primero se debe revisar la cola, las categorías y los destinatarios; después realizar una prueba autorizada. Los límites configurados siguen siendo 90 envíos diarios y 2.700 mensuales, dentro del plan gratuito. La entrega puede terminar en spam; encolar no acredita entrega.
+**Los envíos están activos.** Se revisó la cola vacía antes de habilitarlos. Se conservan 90 reservas diarias y 2.700 mensuales en UTC, pausa y categorías configurables desde Admin → Correos → Ajustes de correo. Verificación/recuperación tienen además un minuto entre solicitudes y hasta cinco por dirección al día. Los intentos fallidos también pueden consumir reservas. Los mensajes manuales y automáticos se procesan de uno en uno por ciclo de diez minutos. La entrega puede terminar en Spam; accepted significa aceptado por Resend, no entregado ni leído.

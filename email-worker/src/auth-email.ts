@@ -104,8 +104,12 @@ export async function generateAuthLink(
   );
   const result = await response.json();
   if (result.error?.message === "EMAIL_NOT_FOUND") return null;
-  if (!response.ok || typeof result.oobLink !== "string")
+  if (!response.ok || typeof result.oobLink !== "string") {
+    console.error("Auth email action link unavailable", {
+      status: response.status,
+    });
     throw Error("Action link unavailable");
+  }
   const link = new URL(result.oobLink);
   if (
     link.protocol !== "https:" ||
@@ -140,6 +144,7 @@ export async function authEmailRequest(
   const kind = new URL(request.url).pathname.endsWith("/verification")
     ? "verification"
     : "recovery";
+  let stage = "identity";
   try {
     let email: string;
     if (kind === "verification") {
@@ -169,6 +174,7 @@ export async function authEmailRequest(
       !/^([^\s<>@]+)@([^\s<>@]+)\.[^\s<>@]+$/.test(email)
     )
       return accepted();
+    stage = "settings";
     const settings = validateEmailSettings(
       migrateEmailBrand({
         ...defaultEmailSettings,
@@ -184,6 +190,7 @@ export async function authEmailRequest(
       address.split("@")[1].toLowerCase() !== original[2].toLowerCase()
     )
       return fallback();
+    stage = "quota";
     const rate = await reserveAuthEmail(
       repo,
       await hash(email.toLowerCase(), env.UNSUBSCRIBE_SECRET),
@@ -196,8 +203,10 @@ export async function authEmailRequest(
     );
     if (rate === "quota") return fallback();
     if (rate === "limited") return accepted(); // Same response for unknown and existing accounts.
+    stage = "action-link";
     const link = await deps.link(env, email, kind, deps.fetcher);
     if (!link) return accepted();
+    stage = "branding";
     const byline = validateBranding({
       ...defaultBranding,
       ...(await repo.get("config/branding"))?.data,
@@ -216,36 +225,47 @@ export async function authEmailRequest(
             "Recibimos una solicitud para cambiar la contraseña de su cuenta familiar.",
             "Elijan una contraseña nueva en el enlace seguro. Si no solicitaron este cambio, pueden ignorar este mensaje.",
           ];
-    const sent = await deps.fetcher("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-        "Idempotency-Key": `auth-${crypto.randomUUID()}`,
-      },
-      body: JSON.stringify({
-        from: `${settings.fromName} <${address}>`,
-        reply_to: settings.replyTo,
-        to: [email],
-        subject: title,
-        text: `Amor que permanece\n${byline}\n\n${lines.join("\n\n")}\n\n${link}`,
-        html: brandedEmail({
-          title,
-          lines,
-          byline,
-          baseUrl: env.PUBLIC_BASE_URL,
-          action: {
-            title:
-              kind === "verification"
-                ? "Verificar nuestro correo"
-                : "Cambiar contraseña",
-            url: link,
-          },
+    stage = "provider";
+    // Workers' native fetch requires the global receiver, even when injected.
+    const sent = await deps.fetcher.call(
+      globalThis,
+      "https://api.resend.com/emails",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+          "Idempotency-Key": `auth-${crypto.randomUUID()}`,
+        },
+        body: JSON.stringify({
+          from: `${settings.fromName} <${address}>`,
+          reply_to: settings.replyTo,
+          to: [email],
+          subject: title,
+          text: `Amor que permanece\n${byline}\n\n${lines.join("\n\n")}\n\n${link}`,
+          html: brandedEmail({
+            title,
+            lines,
+            byline,
+            baseUrl: env.PUBLIC_BASE_URL,
+            action: {
+              title:
+                kind === "verification"
+                  ? "Verificar nuestro correo"
+                  : "Cambiar contraseña",
+              url: link,
+            },
+          }),
         }),
-      }),
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!sent.ok) return fallback();
+        signal: AbortSignal.timeout(10000),
+      },
+    );
+    if (!sent.ok) {
+      console.error("Auth email provider rejected request", {
+        status: sent.status,
+      });
+      return fallback();
+    }
     return accepted();
   } catch (e) {
     if (e instanceof MemberError)
@@ -253,6 +273,10 @@ export async function authEmailRequest(
         { error: e.message },
         { status: e.status, headers: accountsHeaders },
       );
+    console.error("Auth email unavailable; using Firebase fallback", {
+      stage,
+      kind,
+    });
     return fallback(); // Firebase remains the free recovery path if the custom service is unavailable.
   }
 }

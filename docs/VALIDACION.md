@@ -1,5 +1,7 @@
 # Validación de Amor que permanece · Firebase Spark
 
+Actualización del 16 de noviembre de 2026: correos activados con autorización del propietario, cola inicialmente vacía, 127 pruebas de app y 56 del Worker correctas. Se corrigió y reprodujo en workerd el receiver requerido por fetch; Resend aceptó la prueba real de recuperación. La confirmación del buzón y cambio de contraseña corresponde al propietario. El historial siguiente refleja los estados previos a esta activación. Detalles actuales en [CORREOS_Y_PERMISOS.md](CORREOS_Y_PERMISOS.md).
+
 Verificado el 10 de noviembre de 2026. Las pruebas automatizadas usan proyectos demo locales y transporte de correo simulado; la comprobación remota es de lectura. La comprobación remota confirmó Auth y las tres consultas indexadas de eventos/trabajos/cola, con el nuevo índice listo. El correo propietario ya figura verificado. El despliegue mantiene el envío de correo real apagado. No se modificaron roles reales ni se enviaron mensajes a familias.
 
 ## Comprobaciones actuales

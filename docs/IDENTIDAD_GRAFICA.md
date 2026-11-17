@@ -18,7 +18,7 @@ Los recursos finales se pueden regenerar desde los originales aprobados con `pow
 
 Azul marino `#06264A`, azul océano `#1D6075`, turquesa `#5AAEBB`, crema `#FBF7EE`, champagne `#F7ECD2`, oro `#C79527`, oro de texto `#A77819`. Los tokens y gradientes están en `src/components/ui.tsx`. Botones y títulos usan azul; progreso y detalles usan oro; fondos suaves combinan crema y mar. Los avisos de error conservan un tono de alerta distinguible.
 
-Se actualizó el nombre visible en acceso, ayuda, permisos de fotos, recordatorios y correos. La lectura de configuraciones antiguas sustituye solo el nombre anterior en los campos del remitente y plantillas; conserva versiones, límites, pausas, direcciones y textos personalizados. El proyecto Firebase, ID de EAS, paquete/bundle, rutas, claves de almacenamiento e IDs de niveles siguen compatibles para conservar las cuentas y los datos existentes. Los envíos de correo permanecen apagados.
+Se actualizó el nombre visible en acceso, ayuda, permisos de fotos, recordatorios y correos. La lectura de configuraciones antiguas sustituye solo el nombre anterior en los campos del remitente y plantillas; conserva versiones, límites, pausas, direcciones y textos personalizados. El proyecto Firebase, ID de EAS, paquete/bundle, rutas, claves de almacenamiento e IDs de niveles siguen compatibles para conservar las cuentas y los datos existentes. Los correos personalizados se activaron el 16 de noviembre de 2026, conservando esta identidad gráfica.
 
 ## Generación de imágenes
 
