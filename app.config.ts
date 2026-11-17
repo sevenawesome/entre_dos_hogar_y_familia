@@ -19,8 +19,16 @@ if (process.env.EAS_BUILD_PROFILE === "production") {
 }
 const config: ExpoConfig = {
   name: "Amor que permanece",
-  slug: "entre-dos",
+  slug: "entre-dos-by-departamento-de-hogar-y-familia",
+  owner: "sevenawesomes-team",
   version: "1.0.0",
+  // The SDK runtime is reserved for the Expo Go preview. Store builds and
+  // their updates use a native fingerprint so incompatible updates stay apart.
+  runtimeVersion:
+    process.env.EXPO_UPDATE_TARGET === "expo-go"
+      ? { policy: "sdkVersion" }
+      : { policy: "fingerprint" },
+  updates: { url: `https://u.expo.dev/${projectId}` },
   scheme: "entredos",
   orientation: "portrait",
   userInterfaceStyle: "light",
