@@ -9,7 +9,7 @@ npm install
 npm run web
 ```
 
-En el acceso, elige **Explorar demostración** para recorrer seis imágenes ilustrativas de retos, niveles, familia, comunidad, avisos y administración. Son ejemplos estáticos: este recorrido no inicia sesión ni crea familia, fotos o progreso. La recuperación de contraseña abre su propia pantalla; el cambio autenticado se abre desde Nosotros → Seguridad de su cuenta.
+En el acceso, elige **Explorar demostración** para recorrer siete imágenes ilustrativas de retos, niveles, familia, comunidad, avisos y administración. Son ejemplos estáticos: este recorrido no inicia sesión ni crea familia, fotos o progreso. La recuperación de contraseña abre su propia pantalla; el cambio autenticado se abre desde Nosotros → Seguridad de su cuenta.
 
 Para Android/iOS usa `npm start` y un development build. La vista web permite revisar pantallas; no programa avisos del teléfono.
 
@@ -132,7 +132,7 @@ Las fuentes/tradiciones del catálogo están en [docs/FUENTES_BODAS.md](docs/FUE
 
 `functions/src` conserva la arquitectura anterior como referencia y para pruebas de regresión; **no está conectada al cliente ni incluida en el despliegue actual**. Sus requisitos de Blaze/Expo Push no corresponden a la versión Spark.
 
-Correos incluidos en Firebase Spark: [150 recuperaciones y 1.000 verificaciones al día](https://firebase.google.com/docs/auth/limits), sujetos a las protecciones del proveedor. El Worker para bienvenida, niveles conseguidos y mensajes manuales está publicado y conectado con sus tres secretos. No envía correos diarios. El envío está activo desde el 16 de noviembre de 2026: bienvenida, nivel conseguido, mensajes manuales y verificación/recuperación personalizadas. La prueba real de recuperación fue aceptada por Resend; la recepción/baja sigue pendiente de validación del propietario. Los límites configurados son 90 reservas diarias y 2.700 mensuales; no hay correos diarios. Ajustes: Admin → Correos. Firebase continúa como respaldo para los correos de acceso. La solicitud de recuperación conserva una respuesta genérica para no revelar si existe la cuenta.
+Correos incluidos en Firebase Spark: [150 recuperaciones y 1.000 verificaciones al día](https://firebase.google.com/docs/auth/limits), sujetos a las protecciones del proveedor. El Worker para bienvenida, niveles conseguidos y mensajes manuales está publicado y conectado con sus tres secretos. No envía correos diarios. El envío está activo desde el 16 de noviembre de 2026: bienvenida, nivel conseguido, mensajes manuales y verificación/recuperación personalizadas. La prueba real de recuperación fue aceptada por Resend; el propietario confirmó la recepción con el diseño correcto; la baja queda pendiente de validación. Los límites configurados son 90 reservas diarias y 2.700 mensuales; no hay correos diarios. Ajustes: Admin → Correos. Firebase continúa como respaldo para los correos de acceso. La solicitud de recuperación conserva una respuesta genérica para no revelar si existe la cuenta.
 
 El [centro de configuración, permisos y activación del correo](docs/CORREOS_Y_PERMISOS.md) reúne ajustes, remitente/respuestas, plantillas, cuotas y accesos por administrador. Firebase continúa en Spark; la cuenta propietaria tiene acceso completo y los permisos se aplican en reglas, cliente y servicio de correo. Los secretos quedan fuera de Firebase/Expo.
 
@@ -141,3 +141,6 @@ Admin organiza ocho herramientas con siete permisos y una novena, **Cuentas y re
 Notificaciones y correo son canales independientes. Nosotros conserva seguridad/verificación y avisos del teléfono, sin controles de recepción de correo. La bienvenida y el cierre de nivel crean eventos únicos en transacciones de Firestore; el servidor verifica Auth y respeta cuotas y bajas. Ver [Administración](docs/ADMINISTRACION.md) y [Correo y permisos](docs/CORREOS_Y_PERMISOS.md).
 
 La [identidad gráfica Amor que permanece](docs/IDENTIDAD_GRAFICA.md) reúne los recursos originales, escena de apertura, iconos por plataforma, paleta y pasos para comprobar el splash nativo.
+
+
+Actualización del 17 de noviembre: el recorrido público muestra **siete ilustraciones con fotos ficticias**, incluyendo cumpleaños de cada integrante, edad actual/próxima y ejemplos de fechas y progreso. Nosotros se divide en Familia, Avisos y Cuenta, con cierre de sesión destacado. Admin → Notificaciones y Admin → Correos permiten **Una familia** o **Todas las familias**, con revisión, confirmación y preparación reanudable sin duplicados. Los correos respetan verificación, bajas y cuotas; los avisos colectivos aparecen al sincronizar. Ver [Administración](docs/ADMINISTRACION.md).

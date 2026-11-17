@@ -707,3 +707,31 @@ test("recoverable suspensions suppress recipient mail and previously queued admi
     assert.equal(repo.docs.get("emailQueue/blocked").data.state, "suppressed");
   }
 });
+
+test("collective mail can wait for quota up to 30 days while individual mail keeps its two-day expiry", async () => {
+  for (const [id, age, expected] of [
+    ["broadcast-email-admin-abcdefghijklmnopqrst-a", 3, 1],
+    ["manual", 3, 0],
+    ["broadcast-email-admin-abcdefghijklmnopqrst-a", 31, 0],
+    ["broadcast-email-other-abcdefghijklmnopqrst-a", 3, 0],
+  ]) {
+    const repo = setup(),
+      t = transport();
+    repo.docs.delete("mailEvents/welcome-a");
+    repo.seed("roles/admin", { role: "admin" });
+    repo.seed("emailQueue/" + id, {
+      uid: "a",
+      senderUid: "admin",
+      title: "Comunidad",
+      body: "Un mensaje colectivo",
+      createdAt: new Date(now.getTime() - age * 86400000),
+      state: "pending",
+    });
+    await runCycle(repo, env, now, t.fetcher);
+    assert.equal(t.sent.length, expected);
+    assert.equal(
+      repo.docs.get("emailQueue/" + id).data.state,
+      expected ? "accepted" : "suppressed",
+    );
+  }
+});

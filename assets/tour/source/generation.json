@@ -1,0 +1,8 @@
+{
+  "asset": "family-demo.png",
+  "mode": "built-in image_gen",
+  "intent": "generate",
+  "date": "2026-11-17",
+  "description": "Familia completamente ficticia para las siete vistas ilustrativas. No corresponde a usuarios reales.",
+  "prompt": "Use case: photorealistic-natural. Asset type: fictional family photograph for the illustrated demo of the Spanish mobile app Amor que permanece. Create a warm, high quality, realistic horizontal lifestyle family portrait of four entirely fictional Latin American people: father and mother in their thirties, an eight-year-old daughter and a six-year-old son. All four smiling naturally, dressed in modest cream, muted blue and soft rose casual clothes, in a sunlit tropical garden. Waist-up group portrait, faces well separated and all clearly visible in the upper half, softly blurred greenery and golden daylight. The daughter stands on the left, father left-center, mother right-center, son on the right, all close together with affectionate relaxed poses. Balanced composition that works both as a wide family header and as circular face details in an app demo. Natural skin texture, welcoming mood, credible photography. No real or identifiable public people, no logos, no text, no watermark."
+}

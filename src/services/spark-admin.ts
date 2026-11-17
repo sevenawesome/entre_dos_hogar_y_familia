@@ -36,6 +36,75 @@ import {
   validateAttachments,
   type MessageAttachment,
 } from "../domain/attachments";
+import {
+  commitDeliveryOnce,
+  prepareBroadcastRecipients,
+  type BroadcastDraft,
+  type DeliveryChannel,
+} from "../domain/broadcast";
+
+export async function collectiveAudience(
+  channel: DeliveryChannel,
+  stopped = () => false,
+) {
+  const rows: ManagedFamily[] = [];
+  let cursor: QueryDocumentSnapshot | undefined;
+  for (;;) {
+    if (stopped()) throw Error("Se detuvo la carga de destinatarios.");
+    const page = await listManagedFamilies(cursor, false);
+    rows.push(...page.rows);
+    if (!page.hasMore || !page.cursor) break;
+    cursor = page.cursor;
+  }
+  return prepareBroadcastRecipients(rows, channel, familyEmailStatus);
+}
+export async function deliverCollectiveRecipient(
+  draft: BroadcastDraft,
+  uid: string,
+) {
+  const { database, actor } = await requireAdmin(
+    draft.channel === "email" ? "emails.send" : "messages.send",
+  );
+  if (
+    actor !== draft.actor ||
+    !auth?.currentUser ||
+    !draft.recipients.some((r) => r.uid === uid)
+  )
+    throw Error(
+      "La sesión cambió. Abre el envío con la cuenta que lo preparó.",
+    );
+  if (draft.channel === "email") {
+    const [pref, service] = await Promise.all([
+      familyEmailStatus(uid),
+      getDoc(doc(database, "config", "email")),
+    ]);
+    if (!pref.enabled || pref.unsubscribed)
+      throw Error("Esta familia ya no permite correos.");
+    if (
+      !service.data()?.enabled ||
+      service.data()?.paused ||
+      service.data()?.adminMessagesEnabled === false
+    )
+      throw Error("El envío de correos está pausado o desactivado.");
+  }
+  return commitDeliveryOnce(
+    {
+      projectId: database.app.options.projectId!,
+      actor,
+      uid,
+      operationId: draft.id,
+      channel: draft.channel,
+      title: draft.title,
+      body: draft.body,
+      attachments: draft.attachments,
+    },
+    await auth.currentUser.getIdToken(),
+  );
+}
+export function newBroadcastId() {
+  if (!db) throw Error("Conecta Firebase para preparar el envío.");
+  return doc(collection(db, "emailQueue")).id;
+}
 
 async function requireAdmin(permission?: AdminPermission) {
   if (!db || !auth?.currentUser)

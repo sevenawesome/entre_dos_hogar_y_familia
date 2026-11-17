@@ -603,7 +603,14 @@ async function administrator(
     deleted = await repo.get(`accountDeletion/${uid}`),
     account = await repo.account(uid);
   if (
-    now.getTime() - when(q.data.createdAt) > 2 * DAY ||
+    now.getTime() - when(q.data.createdAt) >
+      (q.path
+        .split("/")
+        .at(-1)
+        ?.startsWith(`broadcast-email-${String(q.data.senderUid)}-`)
+        ? 30
+        : 2) *
+        DAY ||
     pref?.data.enabled === false ||
     pref?.data.unsubscribed ||
     !hasPermission(sender?.data ?? {}, "emails.send") ||

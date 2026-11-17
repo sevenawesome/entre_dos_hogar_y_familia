@@ -12,6 +12,7 @@ import {
 } from "../services/spark-admin";
 import { AdminEmailSettings } from "./AdminEmailSettings";
 import { AdminFamilyPicker } from "./AdminFamilyPicker";
+import { AdminBroadcastCenter } from "./AdminBroadcastCenter";
 import { Button, Card, Field, Notice, colors, s } from "./ui";
 import { DeliveryPreviewModal } from "./DeliveryPreviewModal";
 import { pickMessageAttachment } from "../services/attachments";
@@ -49,6 +50,7 @@ export function AdminDeliveryCenter({ email = false }: { email?: boolean }) {
         ? "send"
         : selectedSection;
   const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
+  const [audience, setAudience] = useState<"one" | "all">("one");
   const blockedReason = app.demo
     ? "Demostración: los envíos reales están desactivados."
     : email && !app.emailService.enabled
@@ -152,7 +154,44 @@ export function AdminDeliveryCenter({ email = false }: { email?: boolean }) {
       )}
       {!!error && <Notice error text={error} />}
       {!!message && <Notice text={message} />}
-      {email && section === "settings" && canSettings ? (
+      {section === "send" && canSend && (
+        <View style={[s.row, { flexWrap: "wrap" }]}>
+          {(
+            [
+              ["one", "Una familia"],
+              ["all", "Todas las familias"],
+            ] as const
+          ).map(([value, label]) => (
+            <Pressable
+              key={value}
+              accessibilityRole="button"
+              accessibilityState={{ selected: audience === value }}
+              disabled={busy}
+              onPress={() => {
+                setAudience(value);
+                setConfirmed(false);
+              }}
+              style={{
+                padding: 14,
+                borderRadius: 14,
+                backgroundColor: audience === value ? colors.navy : colors.mist,
+              }}
+            >
+              <Text
+                style={{
+                  fontWeight: "600",
+                  color: audience === value ? colors.white : colors.ink,
+                }}
+              >
+                {label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+      {section === "send" && canSend && audience === "all" ? (
+        <AdminBroadcastCenter key={`${app.uid}-${email}`} email={email} />
+      ) : email && section === "settings" && canSettings ? (
         <AdminEmailSettings />
       ) : (
         canSend && (

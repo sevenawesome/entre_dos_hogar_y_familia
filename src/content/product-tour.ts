@@ -24,6 +24,14 @@ export const productTour = [
       "Consulten los años actuales, el próximo aniversario y el significado de sus bodas; reciban recordatorios de sus celebraciones.",
   },
   {
+    title: "Los cumpleaños también son de familia",
+    image: require("../../assets/tour/birthdays.png"),
+    description:
+      "Reconozcan con su foto a quien cumple años: mamá, papá, hijos e hijas. Vean cuántos años tiene ahora, cuántos cumplirá y cuánto falta.",
+    detail:
+      "La barra de proximidad y los recordatorios los ayudan a preparar un detalle. Cada integrante tiene su propia fecha y su opción de compartir en Comunidad.",
+  },
+  {
     title: "Un amor que también se comparte",
     image: require("../../assets/tour/community.png"),
     description:
@@ -45,6 +53,6 @@ export const productTour = [
     description:
       "Los administradores autorizados tienen su propio espacio para acompañar familias, revisar fechas y progreso, enviar mensajes y configurar la app.",
     detail:
-      "El propietario asigna permisos y gestiona las cuentas. El equipo puede preparar niveles, revisarlos y publicarlos para toda la comunidad.",
+      "El propietario asigna permisos y gestiona las cuentas. El equipo puede enviar notificaciones o correos a una familia o a todas, y preparar nuevos niveles para la comunidad.",
   },
 ] as const;

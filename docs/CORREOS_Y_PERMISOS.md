@@ -1,6 +1,6 @@
 # Administración, correos y permisos
 
-Firebase permanece en Spark. El 16 de noviembre de 2026, por solicitud del propietario, se activaron **SEND_ENABLED=true** y **AUTH_EMAIL_ENABLED=true** en el Worker `entre-dos-correo`, publicado en `https://entre-dos-correo.sevenawesome-srl.workers.dev`. La cola de eventos, mensajes manuales y trabajos estaba vacía. Resend tiene verificado `correo.sevenawesome.com`; los tres secretos permanecen únicamente en Cloudflare. La prueba de recuperación dirigida al propietario fue aceptada por Resend; falta confirmar recepción en su buzón.
+Firebase permanece en Spark. El 16 de noviembre de 2026, por solicitud del propietario, se activaron **SEND_ENABLED=true** y **AUTH_EMAIL_ENABLED=true** en el Worker `entre-dos-correo`, publicado en `https://entre-dos-correo.sevenawesome-srl.workers.dev`. La cola de eventos, mensajes manuales y trabajos estaba vacía. Resend tiene verificado `correo.sevenawesome.com`; los tres secretos permanecen únicamente en Cloudflare. La prueba de recuperación dirigida al propietario fue aceptada por Resend; el propietario confirmó que recibió el correo con el diseño correcto.
 
 ## Una administración con ocho secciones
 
@@ -95,3 +95,18 @@ Notificaciones y Correos comparten una ventana emergente de revisión con destin
 Se pueden adjuntar hasta tres archivos PDF, TXT, JPG, PNG o WebP, con **250 KB en total**. Se almacenan como contenido pequeño en Firestore, sin Firebase Storage ni servicios de pago. Consumen almacenamiento y lecturas de Spark; hay que vigilar sus cuotas. Los adjuntos del correo se eliminan de cola y trabajo al finalizar; los mensajes de bandeja conservan sus adjuntos hasta el borrado total. Las imágenes se pueden previsualizar y los archivos abrir o guardar. Los originales no se comprimen automáticamente.
 
 **Los envíos están activos.** Se revisó la cola vacía antes de habilitarlos. Se conservan 90 reservas diarias y 2.700 mensuales en UTC, pausa y categorías configurables desde Admin → Correos → Ajustes de correo. Verificación/recuperación tienen además un minuto entre solicitudes y hasta cinco por dirección al día. Los intentos fallidos también pueden consumir reservas. Los mensajes manuales y automáticos se procesan de uno en uno por ciclo de diez minutos. La entrega puede terminar en Spam; accepted significa aceptado por Resend, no entregado ni leído.
+
+
+## Envío individual o a todas las familias · 17 de noviembre de 2026
+
+En **Notificaciones** y **Correos → Enviar correo** se elige **Una familia** o **Todas las familias**. La opción individual conserva el listado y la búsqueda por palabras. La colectiva carga todas las páginas de familias activas, muestra el total y una muestra de destinatarios, permite hasta tres adjuntos (250 KB en total) y exige revisar el contenido y confirmar en un diálogo antes de preparar las copias. Se aplican por separado los permisos de cada canal.
+
+Los correos colectivos excluyen direcciones sin verificar, recepción desactivada y bajas firmadas. El Worker vuelve a comprobar la cuenta, los permisos y las preferencias antes de enviar; conserva el límite configurado de 90 reservas al día y 2.700 al mes. Cada destinatario tiene su propio correo, sin revelar los demás. Las copias colectivas pueden esperar hasta 30 días por cuota; las individuales conservan el vencimiento de dos días.
+
+La preparación se realiza desde la app y se guarda en este teléfono con contenido y destinatarios fijos. Puede pausarse o continuar tras una interrupción. Una clave por envío y familia, con auditoría atómica y creación exclusiva, evita duplicados incluso cuando se pierde la respuesta del servidor. Cerrar el borrador local no retira los mensajes ya preparados. Mantén la app abierta mientras prepara las copias; una vez encoladas, el servidor procesa los correos sin depender del teléfono.
+
+Las notificaciones colectivas se guardan en la bandeja de cada familia y presentan el aviso local al sincronizar o abrir la app. Esta solución Spark no ofrece push remoto inmediato con la app cerrada. No usa Resend ni requiere Firebase Blaze.
+
+## Nosotros organizado
+
+**Familia** reúne foto familiar, matrimonio, integrantes, cumpleaños con edad actual/próxima y fotos individuales. **Avisos** reúne horario y recordatorios del teléfono. **Cuenta** reúne verificación del correo, acceso y seguridad, conexión de la pareja y privacidad. **Cerrar sesión** está destacado en la cabecera y tiene confirmación; pausa los recordatorios de ese dispositivo y conserva los datos. Cambiar contraseña y recuperar acceso son filas separadas que abren sus propias pantallas.

@@ -1,0 +1,42 @@
+import { before, after, test } from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { initializeTestEnvironment, assertFails } from "@firebase/rules-unit-testing";
+import { initializeApp, deleteApp } from "firebase/app";
+import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
+const { commitDeliveryOnce, deliveryCommit } = createRequire(import.meta.url)("../functions/lib/src/domain/broadcast.js");
+const projectId="demo-entre-dos";
+let rules, app, user, token;
+const localFetch=(url,options)=>fetch(String(url).replace('https://firestore.googleapis.com','http://127.0.0.1:8080'),options);
+async function seed(path,data){await rules.withSecurityRulesDisabled(ctx=>setDoc(doc(ctx.firestore(),path),data));}
+before(async()=>{
+ rules=await initializeTestEnvironment({projectId,firestore:{host:'127.0.0.1',port:8080,rules:await readFile('firestore.rules','utf8')}});
+ await rules.clearFirestore();
+ app=initializeApp({projectId,apiKey:'fake-api-key',authDomain:'localhost'},'broadcast-transport');
+ const auth=getAuth(app);connectAuthEmulator(auth,'http://127.0.0.1:9099',{disableWarnings:true});
+ ({user}=await createUserWithEmailAndPassword(auth,`broadcast-${Date.now()}@example.com`,'Local-emulator-only-123!'));
+ token=await user.getIdToken();
+ await seed('families/recipient',{name:'Familia local'});
+ await seed('roles/'+user.uid,{role:'admin',permissions:['families.view','messages.send']});
+ await seed('config/email',{enabled:true,paused:false,adminMessagesEnabled:true});
+});
+after(async()=>{await deleteApp(app);await rules.cleanup();});
+test('collective REST transport obeys Firebase user rules and retries atomically without granting inbox reads',async()=>{
+ const input={projectId,actor:user.uid,uid:'recipient',operationId:'abcdefghijklmnopqrst',channel:'notification',title:'Mensaje local',body:'Solo emulador',attachments:[]};
+ assert.equal(await commitDeliveryOnce(input,token,localFetch),'created');
+ assert.equal(await commitDeliveryOnce(input,token,localFetch),'existing');
+ const target=deliveryCommit(input).writes[0].update.name.split('/documents/')[1];
+ await assertFails(getDoc(doc(rules.authenticatedContext(user.uid).firestore(),target)));
+ await rules.withSecurityRulesDisabled(async ctx=>assert.equal((await getDocs(collection(ctx.firestore(),'adminAudit'))).size,1));
+ await assert.rejects(commitDeliveryOnce({...input,channel:'email'},token,localFetch));
+ await seed('roles/'+user.uid,{role:'admin',permissions:['families.view','emails.send']});
+ assert.equal(await commitDeliveryOnce({...input,channel:'email'},token,localFetch),'created');
+ assert.equal(await commitDeliveryOnce({...input,channel:'email'},token,localFetch),'existing');
+ await seed('emailPreferences/recipient',{enabled:true,unsubscribed:true});
+ await assert.rejects(commitDeliveryOnce({...input,channel:'email',operationId:'ABCDEFGHIJKLMNOPQRST'},token,localFetch));
+ await seed('accountSuspensions/recipient',{state:'suspended'});
+ await seed('roles/'+user.uid,{role:'admin',permissions:['families.view','messages.send']});
+ await assert.rejects(commitDeliveryOnce({...input,operationId:'ABCDEFGHIJKLMNOPQRST'},token,localFetch));
+});

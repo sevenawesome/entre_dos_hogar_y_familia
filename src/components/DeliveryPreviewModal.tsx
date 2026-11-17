@@ -15,6 +15,8 @@ export function DeliveryPreviewModal({
   busy,
   onClose,
   onConfirm,
+  confirmationLabel,
+  recipientSummary,
 }: {
   email?: boolean;
   name: string;
@@ -27,6 +29,8 @@ export function DeliveryPreviewModal({
   busy?: boolean;
   onClose: () => void;
   onConfirm?: () => void;
+  confirmationLabel?: string;
+  recipientSummary?: string;
 }) {
   const app = useApp();
   return (
@@ -82,6 +86,7 @@ export function DeliveryPreviewModal({
               {address ? ` · ${address}` : ""}
             </Text>
             <Text style={s.sectionTitle}>{title}</Text>
+            {!!recipientSummary && <Notice text={recipientSummary} />}
             <Text style={s.body}>{body}</Text>
             <MessageAttachments items={attachments} />
             {!!error && <Notice error text={error} />}
@@ -90,9 +95,10 @@ export function DeliveryPreviewModal({
                 {!!reason && <Notice text={reason} />}
                 <Button
                   title={
-                    email
+                    confirmationLabel ??
+                    (email
                       ? "Confirmar y poner correo en cola"
-                      : "Confirmar y enviar a su bandeja"
+                      : "Confirmar y enviar a su bandeja")
                   }
                   disabled={!!reason}
                   busy={busy}
