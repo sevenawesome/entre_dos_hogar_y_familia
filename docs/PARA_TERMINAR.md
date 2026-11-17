@@ -15,9 +15,17 @@ La cuenta del propietario ya está registrada con su familia y tiene `roles/UID.
 
 ## Expo y teléfonos
 
-El ID recibido es `f9af2154-9d1b-49d6-bae8-588d83ce3ad7`. La sesión de Expo CLI ya está iniciada y el propietario abrió la app en Expo Go para iPhone. Falta confirmar propietario/slug del proyecto existente en Expo Build. El identificador `com.sevenawesome.entredos` es provisional y debe confirmarse antes de publicar.
+El ID recibido es `f9af2154-9d1b-49d6-bae8-588d83ce3ad7`. La sesión de Expo CLI ya está iniciada y el propietario abrió la app en Expo Go para iPhone. Propietario/slug confirmados y alineados: @sevenawesomes-team/entre-dos-by-departamento-de-hogar-y-familia. El identificador `com.sevenawesome.entredos` es provisional y debe confirmarse antes de publicar.
 
 Necesitamos Android e iPhone para probar notificaciones locales, selector/compresión de fotos, sincronización, permisos y eliminación. Las notificaciones locales no requieren credenciales de envío remoto FCM/APNs.
+
+## Prueba publicada sin servidor local
+
+El 16 de noviembre se publicó la rama `expo-go-preview` para iOS y Android, con runtime `exposdk:58.0.0`. El propietario confirmó que abrió en su iPhone desde Expo Go. No requiere Metro ni la computadora encendida; sí Internet. El QR está en [expo-go-preview.png](expo-go-preview.png) y el enlace, identificadores y comando para futuras actualizaciones están en [EXPO_GO_PREVIEW.json](EXPO_GO_PREVIEW.json).
+
+El entorno Expo `preview` ya contiene siete variables públicas de Firebase/EAS y `EXPO_UPDATE_TARGET=expo-go`. No se copiaron claves privadas ni secretos de correo. Para builds propios se utiliza fingerprint; el perfil de build `preview` fuerza `EXPO_UPDATE_TARGET=native`. El entorno `production` sigue pendiente. No se publicaron builds en tiendas ni se activaron envíos de correo.
+
+Expo Go requiere SDK compatible y una cuenta que sea propietaria o miembro de la organización dueña del proyecto. Para probadores externos, añadirlos con el acceso mínimo necesario o utilizar posteriormente TestFlight/Google Play. La comprobación en Expo Go no sustituye las pruebas de un binario propio.
 
 ## Límites acordados de la versión gratuita
 

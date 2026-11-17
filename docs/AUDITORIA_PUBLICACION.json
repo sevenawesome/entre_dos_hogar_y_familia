@@ -200,5 +200,15 @@
     "Responsable legal y nombre que figurara en las tiendas",
     "Pais/paises y correo de privacidad/soporte",
     "Decision sobre correos personalizados en la primera version"
-  ]
+  ],
+  "seguimientoExpoPreview": {
+    "fecha": "2026-11-16",
+    "slugAlineado": true,
+    "variablesPreview": 8,
+    "variablesProduction": "Sin cambios; pendiente de configurar para tiendas",
+    "version": "exposdk:58.0.0",
+    "grupo": "e18561f3-5dda-49c9-b958-29fd52537839",
+    "iphone": "El propietario confirmó que abrió desde Expo Go",
+    "referencia": "EXPO_GO_PREVIEW.json"
+  }
 }

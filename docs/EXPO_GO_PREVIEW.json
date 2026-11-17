@@ -1,0 +1,68 @@
+{
+  "projectId": "f9af2154-9d1b-49d6-bae8-588d83ce3ad7",
+  "group": "e18561f3-5dda-49c9-b958-29fd52537839",
+  "branch": "expo-go-preview",
+  "runtimeVersion": "exposdk:58.0.0",
+  "createdAt": "2026-11-17T00:42:18.045Z",
+  "gitCommitHash": "b31f8fb530cc807d17f22629cc27a7352fa75312",
+  "launchUrl": "exp://u.expo.dev/f9af2154-9d1b-49d6-bae8-588d83ce3ad7/group/e18561f3-5dda-49c9-b958-29fd52537839",
+  "qrService": "https://qr.expo.dev/eas-update?projectId=f9af2154-9d1b-49d6-bae8-588d83ce3ad7&groupId=e18561f3-5dda-49c9-b958-29fd52537839",
+  "dashboard": "https://expo.dev/accounts/sevenawesomes-team/projects/entre-dos-by-departamento-de-hogar-y-familia/updates/e18561f3-5dda-49c9-b958-29fd52537839",
+  "updates": [
+    {
+      "id": "01a1e6f4-623d-7ac8-8a24-b2fcc0a0cee3",
+      "createdAt": "2026-11-17T00:42:18.045Z",
+      "group": "e18561f3-5dda-49c9-b958-29fd52537839",
+      "branch": "expo-go-preview",
+      "message": "Amor que permanece: prueba sin servidor local",
+      "runtimeVersion": "exposdk:58.0.0",
+      "platform": "android",
+      "manifestPermalink": "https://u.expo.dev/update/01a1e6f4-623d-7ac8-8a24-b2fcc0a0cee3",
+      "isRollBackToEmbedded": false,
+      "gitCommitHash": "b31f8fb530cc807d17f22629cc27a7352fa75312"
+    },
+    {
+      "id": "01a1e6f4-623d-7d86-9aef-a8c2ff0b93aa",
+      "createdAt": "2026-11-17T00:42:18.045Z",
+      "group": "e18561f3-5dda-49c9-b958-29fd52537839",
+      "branch": "expo-go-preview",
+      "message": "Amor que permanece: prueba sin servidor local",
+      "runtimeVersion": "exposdk:58.0.0",
+      "platform": "ios",
+      "manifestPermalink": "https://u.expo.dev/update/01a1e6f4-623d-7d86-9aef-a8c2ff0b93aa",
+      "isRollBackToEmbedded": false,
+      "gitCommitHash": "b31f8fb530cc807d17f22629cc27a7352fa75312"
+    }
+  ],
+  "checks": [
+    {
+      "platform": "android",
+      "manifest": 200,
+      "bundle": 200,
+      "bytes": 4316404,
+      "assets": 30
+    },
+    {
+      "platform": "ios",
+      "manifest": 200,
+      "bundle": 200,
+      "bytes": 4324284,
+      "assets": 27
+    }
+  ],
+  "confirmacionIphone": "El propietario confirmó que abrió correctamente desde Expo Go.",
+  "republicar": {
+    "PowerShell": [
+      "$env:EXPO_UPDATE_TARGET='expo-go'",
+      "npx eas-cli@latest update --branch expo-go-preview --environment preview --platform all --message 'Descripción de los cambios'"
+    ],
+    "entorno": "preview contiene la configuración pública de Firebase y EXPO_UPDATE_TARGET=expo-go; no contiene secretos del servidor."
+  },
+  "limites": [
+    "No requiere Metro ni la computadora encendida; necesita Internet para descargar y sincronizar.",
+    "Expo Go debe ser compatible con SDK 58 y la cuenta debe pertenecer al equipo propietario.",
+    "Para compartir con otras personas mediante Expo Go, necesitan una cuenta Expo con acceso al proyecto/equipo. No equivale a distribución pública en tiendas.",
+    "No se activaron correos reales ni se crearon compilaciones de pago.",
+    "Los builds nativos usan fingerprint; el perfil de build preview sobrescribe EXPO_UPDATE_TARGET=native para no usar el runtime de Expo Go."
+  ]
+}

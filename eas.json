@@ -4,6 +4,8 @@
     "development": { "developmentClient": true, "distribution": "internal" },
     "preview": {
       "distribution": "internal",
+      "environment": "preview",
+      "env": { "EXPO_UPDATE_TARGET": "native" },
       "android": { "buildType": "apk" }
     },
     "production": { "autoIncrement": true }
