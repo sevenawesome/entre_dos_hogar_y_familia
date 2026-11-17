@@ -1,38 +1,38 @@
 {
   "projectId": "f9af2154-9d1b-49d6-bae8-588d83ce3ad7",
-  "group": "c1c785d1-3122-4d04-8668-e3d235884d30",
+  "group": "07c2857e-ae3f-464f-8adb-bff02e99fa77",
   "branchId": "01a1e6f4-31b1-73c3-9fbb-8f8b9a2d40af",
   "branch": "expo-go-preview",
   "runtimeVersion": "exposdk:58.0.0",
-  "createdAt": "2026-11-17T11:44:06.406Z",
-  "gitCommitHash": "494b57c978185a6de289f0372dcc9121f2651274",
+  "createdAt": "2026-11-17T12:41:12.171Z",
+  "gitCommitHash": "3dc74f7331e4ea145920479eb0101acf45fa9ed0",
   "launchUrl": "exp://u.expo.dev/f9af2154-9d1b-49d6-bae8-588d83ce3ad7/branch/01a1e6f4-31b1-73c3-9fbb-8f8b9a2d40af",
   "qrService": "https://qr.expo.dev/eas-update?projectId=f9af2154-9d1b-49d6-bae8-588d83ce3ad7&branchId=01a1e6f4-31b1-73c3-9fbb-8f8b9a2d40af",
-  "dashboard": "https://expo.dev/accounts/sevenawesomes-team/projects/entre-dos-by-departamento-de-hogar-y-familia/updates/c1c785d1-3122-4d04-8668-e3d235884d30",
+  "dashboard": "https://expo.dev/accounts/sevenawesomes-team/projects/entre-dos-by-departamento-de-hogar-y-familia/updates/07c2857e-ae3f-464f-8adb-bff02e99fa77",
   "updates": [
     {
-      "id": "01a1e952-4906-7a6b-8651-b1fd86157a1e",
-      "createdAt": "2026-11-17T11:44:06.406Z",
-      "group": "c1c785d1-3122-4d04-8668-e3d235884d30",
+      "id": "01a1e986-8eeb-7e90-9b00-452311cdcd4b",
+      "createdAt": "2026-11-17T12:41:12.171Z",
+      "group": "07c2857e-ae3f-464f-8adb-bff02e99fa77",
       "branch": "expo-go-preview",
-      "message": "Demostración visual y pantallas de contraseña independientes",
+      "message": "Fotos, Nosotros y envíos colectivos",
       "runtimeVersion": "exposdk:58.0.0",
       "platform": "android",
-      "manifestPermalink": "https://u.expo.dev/update/01a1e952-4906-7a6b-8651-b1fd86157a1e",
+      "manifestPermalink": "https://u.expo.dev/update/01a1e986-8eeb-7e90-9b00-452311cdcd4b",
       "isRollBackToEmbedded": false,
-      "gitCommitHash": "494b57c978185a6de289f0372dcc9121f2651274"
+      "gitCommitHash": "3dc74f7331e4ea145920479eb0101acf45fa9ed0"
     },
     {
-      "id": "01a1e952-4906-7216-a1f8-ce02399a64c5",
-      "createdAt": "2026-11-17T11:44:06.406Z",
-      "group": "c1c785d1-3122-4d04-8668-e3d235884d30",
+      "id": "01a1e986-8eeb-7bf5-a4e6-0eb8fc3549e9",
+      "createdAt": "2026-11-17T12:41:12.171Z",
+      "group": "07c2857e-ae3f-464f-8adb-bff02e99fa77",
       "branch": "expo-go-preview",
-      "message": "Demostración visual y pantallas de contraseña independientes",
+      "message": "Fotos, Nosotros y envíos colectivos",
       "runtimeVersion": "exposdk:58.0.0",
       "platform": "ios",
-      "manifestPermalink": "https://u.expo.dev/update/01a1e952-4906-7216-a1f8-ce02399a64c5",
+      "manifestPermalink": "https://u.expo.dev/update/01a1e986-8eeb-7bf5-a4e6-0eb8fc3549e9",
       "isRollBackToEmbedded": false,
-      "gitCommitHash": "494b57c978185a6de289f0372dcc9121f2651274"
+      "gitCommitHash": "3dc74f7331e4ea145920479eb0101acf45fa9ed0"
     }
   ],
   "checks": [
@@ -40,26 +40,26 @@
       "platform": "android",
       "manifest": 200,
       "bundle": 200,
-      "bytes": 4327536,
-      "assets": 36,
-      "galleryAssetsVerified": 6
+      "bytes": 4355740,
+      "assets": 37,
+      "galleryAssetsVerified": 7
     },
     {
       "platform": "ios",
       "manifest": 200,
       "bundle": 200,
-      "bytes": 4335436,
-      "assets": 33,
-      "galleryAssetsVerified": 6
+      "bytes": 4363552,
+      "assets": 34,
+      "galleryAssetsVerified": 7
     }
   ],
   "qrBranchVerification": {
     "status": 200,
     "latestIosUpdateSelected": true
   },
-  "previousGroup": "e18561f3-5dda-49c9-b958-29fd52537839",
-  "releaseLabel": "2026-11-17 · Demostración visual y acceso",
-  "confirmacionIphone": "Pendiente de confirmar esta actualización en teléfono; el propietario abrió la versión anterior correctamente.",
+  "previousGroup": "c1c785d1-3122-4d04-8668-e3d235884d30",
+  "releaseLabel": "2026-11-17 · Fotos, Nosotros y envíos colectivos",
+  "confirmacionIphone": "Pendiente de confirmar esta actualización en teléfono; se verificaron los paquetes y las siete imágenes para ambas plataformas.",
   "republicar": {
     "PowerShell": [
       "$env:EXPO_UPDATE_TARGET='expo-go'",
@@ -71,28 +71,37 @@
     "No requiere Metro ni la computadora encendida; necesita Internet para descargar y sincronizar.",
     "Expo Go debe ser compatible con SDK 58 y la cuenta debe pertenecer al equipo propietario.",
     "El QR apunta a la rama expo-go-preview y carga su actualización compatible más reciente. El enlace dashboard identifica esta publicación concreta.",
-    "El correo sigue activo por la autorización del 16 de noviembre. Esta publicación no modifica el servidor ni envía correos de prueba.",
+    "El correo sigue activo por la autorización previa. El servidor incorpora el vencimiento de 30 días para correos colectivos. No se enviaron mensajes reales durante la validación.",
     "Los builds nativos usan fingerprint; el perfil de build preview sobrescribe EXPO_UPDATE_TARGET=native."
   ],
   "changes": [
-    "Explorar demostración abre seis imágenes estáticas con ejemplos ficticios, navegación anterior/siguiente y regreso al acceso o registro; no inicia una sesión demo ni escribe familia/progreso.",
-    "La recuperación de contraseña usa la pantalla pública password-recovery con validación local del correo y confirmación genérica de solicitud.",
-    "Cambiar contraseña desde Nosotros abre password-change y mantiene reautenticación, validación y protección de sesión.",
-    "El recorrido vuelve al inicio al pasar de imagen y sus seis PNG pesan 192325 bytes en total."
+    "Siete imágenes ilustrativas con fotos ficticias y más datos; incluye cumpleaños individuales con edad actual/próxima, fechas y progreso. La galería pública no inicia sesión ni guarda datos.",
+    "Nosotros organizado en Familia, Avisos y Cuenta; Cerrar sesión destacado con confirmación; acceso y seguridad separado de datos familiares.",
+    "Admin → Notificaciones y Admin → Correos ofrecen Una familia o Todas las familias. Vista previa y confirmación, adjuntos y preparación reanudable con auditoría sin duplicados.",
+    "Los correos colectivos respetan verificación, bajas, permisos y cuotas; vencen a los 30 días. Las notificaciones colectivas aparecen al sincronizar."
   ],
   "validation": {
     "typecheck": "passed",
     "lint": "passed",
-    "domainTests": 127,
+    "domainTests": 132,
+    "emailWorkerTests": 57,
+    "firebaseEmulatorTests": 60,
     "mobileWeb": {
       "viewport": "390x844",
-      "slides": 6,
-      "signupReturn": "passed",
-      "passwordRecoveryRoute": "passed",
-      "emptyEmailValidation": "passed; no email sent",
-      "anonymousPasswordChange": "redirected to login"
+      "fixture": "Isolated; no Firebase credentials; fictional family only",
+      "slides": 7,
+      "birthdayPhotosAndAges": "passed",
+      "familyAccountSections": "passed",
+      "logoutConfirmationCancel": "passed",
+      "individualCollectiveSelectors": "passed in notifications and email"
     },
-    "nativeAssets": "Six gallery files verified byte-for-byte on iOS and Android",
+    "nativeAssets": "Seven gallery files verified byte-for-byte on iOS and Android",
     "physicalDevice": "Pending owner confirmation"
+  },
+  "emailWorker": {
+    "version": "64316a55-f078-48a0-9e60-e726cde0f62a",
+    "configured": true,
+    "sending": true,
+    "realMessagesSentDuringValidation": false
   }
 }
