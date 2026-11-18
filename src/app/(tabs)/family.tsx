@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { displayMarriageDate } from "../../domain/anniversary";
 import { Brand } from "../../components/Brand";
 import { LogoutControl } from "../../components/LogoutControl";
+import { SectionTabs } from "../../components/SectionTabs";
 import { PhotoViewer } from "../../components/PhotoViewer";
 import { CreatorFooter } from "../../components/CreatorFooter";
 import { BirthdaysCard } from "../../components/BirthdaysCard";
@@ -130,60 +131,38 @@ export default function FamilyScreen() {
         <LogoutControl disabled={busy || editing} />
       </View>
       {!editing && (
-        <View style={[s.row, { gap: 7 }]}>
-          {(
-            [
-              ["family", "people-outline", "Familia"],
-              ["reminders", "notifications-outline", "Avisos"],
-              ["account", "shield-checkmark-outline", "Cuenta"],
-            ] as const
-          ).map(([key, icon, label]) => (
-            <Pressable
-              key={key}
-              accessibilityRole="button"
-              accessibilityState={{ selected: section === key }}
-              disabled={busy}
-              onPress={() => {
-                setSection(key);
-                setError("");
-                setMessage("");
-              }}
-              style={{
-                flex: 1,
-                minHeight: 66,
-                padding: 12,
-                gap: 6,
-                borderRadius: 16,
-                alignItems: "center",
-                backgroundColor: section === key ? colors.navy : colors.mist,
-              }}
-            >
-              <Ionicons
-                name={icon}
-                size={23}
-                color={section === key ? colors.white : colors.ocean}
-              />
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: "700",
-                  color: section === key ? colors.white : colors.ink,
-                }}
-              >
-                {label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
-      {!editing && (
-        <Text style={s.body}>
-          {section === "family"
-            ? "Sus fotos, integrantes, cumpleaños y aniversario, en un mismo lugar."
-            : section === "reminders"
-              ? "Elijan cómo y a qué hora recibir avisos en este teléfono."
-              : "Su correo, contraseña, privacidad y gestión de la cuenta compartida."}
-        </Text>
+        <SectionTabs
+          selected={section}
+          disabled={busy}
+          options={[
+            {
+              id: "family",
+              title: "Familia",
+              icon: "people-outline",
+              description:
+                "Sus fotos, integrantes, cumpleaños y aniversario, en un mismo lugar.",
+            },
+            {
+              id: "reminders",
+              title: "Avisos",
+              icon: "notifications-outline",
+              description:
+                "Elijan cómo y a qué hora recibir avisos en este teléfono.",
+            },
+            {
+              id: "account",
+              title: "Cuenta",
+              icon: "shield-checkmark-outline",
+              description:
+                "Su correo, contraseña, privacidad y gestión de la cuenta compartida.",
+            },
+          ]}
+          onSelect={(key) => {
+            setSection(key);
+            setError("");
+            setMessage("");
+          }}
+        />
       )}
       {!!error && <Notice error text={error} />}
       {!!message && <Notice text={message} />}

@@ -20,7 +20,7 @@ export const guideSteps = [
   {
     icon: "notifications-outline",
     title: "Háganle espacio a su momento",
-    body: "En Nosotros, cada teléfono puede activar sus recordatorios y elegir un horario. El reto muestra cuántos minutos faltan para habilitarlo y les avisaremos cuando se cumpla la espera, con los avisos activados. Si un reto queda pendiente, volveremos a recordarlo. También recibirán saludos para su aniversario y los cumpleaños que registren.",
+    body: "En Nosotros → Avisos, cada teléfono puede activar sus recordatorios y elegir un horario. El reto muestra cuántos minutos faltan para habilitarlo y les avisaremos cuando se cumpla la espera, con los avisos activados. Si un reto queda pendiente, volveremos a recordarlo. También recibirán saludos para su aniversario y los cumpleaños que registren.",
   },
   {
     icon: "book-outline",
@@ -29,6 +29,10 @@ export const guideSteps = [
   },
 ] as const;
 export const helpSections = [
+  {
+    title: "Ir directo a lo que necesitan",
+    body: "Hoy tiene un menú visible al inicio: Reto de hoy, Mi progreso, Aniversario, Cumpleaños, Mensajes y Novedades. Toquen una opción para ir directamente a ese punto de la pantalla, sin buscarlo bajando. El botón «Menú de Hoy» los devuelve arriba. Las demás pestañas tienen apartados visibles: elijan uno para ver solo su contenido.",
+  },
   {
     title: "Felicitaciones que se vuelven recuerdos",
     body: "El día del aniversario, las familias participantes con correo verificado pueden pulsar «Felicitar por su aniversario» en Comunidad. Solo se permite una felicitación por familia remitente y aniversario, aunque usen dos teléfonos. La pareja la recibe en privado y puede releerla en Recuerdos → Recuerdos de nuestros aniversarios. Los mensajes se conservan por año, incluso después de la celebración. Con avisos habilitados, el teléfono notifica cuando recibe el mensaje al abrir o sincronizar la app; no se garantiza un aviso inmediato con la app cerrada. Al eliminar una cuenta se eliminan también sus felicitaciones enviadas y recibidas.",
@@ -47,7 +51,7 @@ export const helpSections = [
   },
   {
     title: "Qué encontrarán en cada pestaña",
-    body: "Hoy muestra el nivel actual y el reto pendiente. Nuestro camino reúne los niveles y lo que falta para desbloquearlos. Desde Información pueden entrar a Recuerdos para ver retos, notas y reflexiones. Comunidad muestra solo familias que eligieron compartir su perfil. Nosotros permite editar la familia y configurar avisos. Información contiene esta ayuda.",
+    body: "Hoy reúne su reto, fechas, progreso, mensajes y novedades, con accesos directos al inicio. Camino se divide en Mi nivel, Niveles y Logros; solo Mi nivel muestra la lista de retos. Comunidad tiene Familias, Celebrar y Compartir. Nosotros reúne Familia, Avisos y Cuenta. Información se divide en Guía, Mensajes y Ayuda; desde Mensajes pueden abrir su bandeja y Recuerdos. La administración mantiene sus herramientas y permisos separados.",
   },
   {
     title: "Completar un reto y guardar el progreso",
@@ -79,7 +83,7 @@ export const helpSections = [
   },
   {
     title: "Recuperar o cambiar la contraseña",
-    body: "Si olvidaron la contraseña, escriban su correo en la pantalla de acceso y pulsen «Olvidé la contraseña». Recibirán un enlace para elegir otra; revisen también spam. Con la sesión iniciada, vayan a Nosotros → Seguridad de su cuenta → Cambiar contraseña: necesitarán la actual y confirmar la nueva. También pueden solicitar recuperación por correo desde ahí. El cambio afecta a la cuenta compartida: usen la nueva contraseña en ambos teléfonos cuando deban iniciar sesión de nuevo. La familia y el progreso se conservan.",
+    body: "Si olvidaron la contraseña, pulsen «Olvidé la contraseña» en el acceso y escriban su correo en la pantalla de recuperación. Recibirán un enlace para elegir otra; revisen también spam. Con la sesión iniciada, vayan a Nosotros → Cuenta → Acceso y seguridad → Cambiar contraseña: necesitarán la actual y confirmar la nueva. También pueden solicitar recuperación por correo desde ahí. El cambio afecta a la cuenta compartida: usen la nueva contraseña en ambos teléfonos cuando deban iniciar sesión de nuevo. La familia y el progreso se conservan.",
   },
   {
     title: "Correos de su cuenta",
@@ -99,6 +103,6 @@ export const helpSections = [
   },
   {
     title: "Qué permite la demostración",
-    body: "La demostración guarda los datos únicamente en este dispositivo o navegador. La comunidad y la administración usan ejemplos ficticios y no permiten envíos ni cambios remotos. Permite conocer la experiencia y el avance diario, pero no comparte datos entre teléfonos ni envía notificaciones reales.",
+    body: "«Explorar demostración», en el acceso, muestra siete imágenes ilustrativas con familias ficticias. Pueden conocer retos, niveles, aniversarios, cumpleaños, comunidad, avisos y administración sin crear una cuenta. Es un recorrido visual: no inicia sesión, no guarda progreso ni envía mensajes. Para usar estas funciones, creen su cuenta familiar.",
   },
 ];

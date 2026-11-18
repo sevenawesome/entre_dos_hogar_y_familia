@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Text, View, type ScrollViewInstance } from "react-native";
 import {
   collection,
   getDocs,
@@ -14,10 +14,12 @@ import { db } from "../../services/firebase";
 import { useApp } from "../../store";
 import type { CommunityProfile } from "../../domain/types";
 import { getAnniversary, localDateISO } from "../../domain/anniversary";
-import { AnniversaryGreeting } from "../../components/AnniversaryGreeting";
+import { CommunityCelebrations } from "../../components/CommunityCelebrations";
+import { ProfileSharing } from "../../components/ProfileSharing";
+import { FamilyPortraits } from "../../components/FamilyPortraits";
+import { SectionTabs } from "../../components/SectionTabs";
 import { useNow } from "../../components/useNow";
 import { PhotoViewer } from "../../components/PhotoViewer";
-import { upcomingCommunityBirthdays } from "../../domain/people";
 import {
   Screen,
   Heading,
@@ -68,8 +70,16 @@ const demoProfiles: CommunityProfile[] = [
   },
 ];
 export default function Community() {
-  const { uid, demo, communityProfile, anniversaryCatalog } = useApp(),
+  const { uid, demo, family, communityProfile, anniversaryCatalog } = useApp(),
     now = useNow();
+  const [section, setSection] = useState<"families" | "celebrate" | "sharing">(
+    "families",
+  );
+  const scroll = useRef<ScrollViewInstance>(null);
+  function selectSection(key: typeof section) {
+    setSection(key);
+    scroll.current?.scrollTo({ y: 0, animated: false });
+  }
   const [profiles, setProfiles] = useState<CommunityProfile[]>([]),
     [cursor, setCursor] = useState<QueryDocumentSnapshot>(),
     [more, setMore] = useState(false),
@@ -111,22 +121,49 @@ export default function Community() {
     void Promise.resolve().then(() => load()); // Fetch a page without synchronous state changes inside the effect.
   }, [uid, demo, communityProfile]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
-    <Screen>
-      <Heading
-        eyebrow="CRECER ACOMPAÑADOS"
-        title="Nuestra comunidad"
-        subtitle="Cada familia tiene su ritmo. Aquí celebramos los pequeños pasos y las historias que siguen creciendo."
+    <Screen scrollRef={scroll}>
+      <Heading eyebrow="CRECER ACOMPAÑADOS" title="Nuestra comunidad" />
+      <SectionTabs
+        selected={section}
+        options={[
+          {
+            id: "families",
+            title: "Familias",
+            icon: "people-outline",
+            description:
+              "Conozcan las historias y avances que otras familias eligieron compartir.",
+          },
+          {
+            id: "celebrate",
+            title: "Celebrar",
+            icon: "gift-outline",
+            description:
+              "Cumpleaños, aniversarios próximos y felicitaciones que se convierten en recuerdos.",
+          },
+          {
+            id: "sharing",
+            title: "Compartir",
+            icon: "eye-outline",
+            description:
+              "Elijan su foto, nombre público y las fechas o avances que desean compartir. Participar es voluntario.",
+          },
+        ]}
+        onSelect={selectSection}
       />
       {demo && (
         <Notice text="Comunidad de ejemplo · familias ficticias. Nada se publica desde la demostración." />
       )}
-      <Button
-        secondary
-        title="Elegir qué compartimos"
-        onPress={() => router.push("/(tabs)/family")}
-      />
+      {section === "sharing" && family && (
+        <>
+          <ProfileSharing />
+          <FamilyPortraits />
+        </>
+      )}
       {!!error && <Notice error text={error} />}
-      {!busy && !profiles.length && (
+      {section === "celebrate" && (
+        <CommunityCelebrations profiles={profiles} now={now} />
+      )}
+      {section === "families" && !busy && !profiles.length && (
         <Card>
           <Text style={s.sectionTitle}>
             Las primeras historias están por llegar
@@ -137,166 +174,148 @@ export default function Community() {
           </Text>
         </Card>
       )}
-      {profiles.map((profile) => {
-        const anniversary = profile.shareAnniversary
-          ? getAnniversary(profile.marriageDate, profile.timezone, now)
-          : null;
-        const current = anniversaryCatalog.milestones.find(
-            (m) => m.year === anniversary?.currentYears,
-          ),
-          next = anniversaryCatalog.milestones.find(
-            (m) =>
-              m.year ===
-              (anniversary?.isToday
-                ? anniversary.years + 1
-                : anniversary?.years),
-          );
-        return (
-          <Card
-            key={profile.uid}
-            style={{
-              borderColor:
-                anniversary && anniversary.daysRemaining <= 30
-                  ? "#D5B279"
-                  : colors.line,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", gap: 14, alignItems: "center" }}
+      {section === "families" &&
+        profiles.map((profile) => {
+          const anniversary = profile.shareAnniversary
+            ? getAnniversary(profile.marriageDate, profile.timezone, now)
+            : null;
+          const current = anniversaryCatalog.milestones.find(
+              (m) => m.year === anniversary?.currentYears,
+            ),
+            next = anniversaryCatalog.milestones.find(
+              (m) =>
+                m.year ===
+                (anniversary?.isToday
+                  ? anniversary.years + 1
+                  : anniversary?.years),
+            );
+          return (
+            <Card
+              key={profile.uid}
+              style={{
+                borderColor:
+                  anniversary && anniversary.daysRemaining <= 30
+                    ? "#D5B279"
+                    : colors.line,
+              }}
             >
-              <PhotoViewer
-                uri={profile.avatar}
-                name={profile.alias}
-                size={72}
-              />
-              <View style={{ flex: 1, gap: 5 }}>
-                <Text style={s.sectionTitle}>{profile.alias}</Text>
-                <Text style={s.small}>
-                  {profile.uid === uid
-                    ? "Su familia · lo que están compartiendo"
-                    : "Una historia de nuestra comunidad"}
-                </Text>
-                {!!profile.avatar && (
-                  <Text style={s.small}>Toca la foto para ampliarla</Text>
-                )}
-              </View>
-            </View>
-            {anniversary ? (
               <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 17 }}
+                style={{ flexDirection: "row", gap: 14, alignItems: "center" }}
               >
-                <Ring value={anniversary.progress} size={88} />
-                <View style={{ flex: 1, gap: 5 }}>
-                  <Text style={s.label}>
-                    {anniversary.isToday
-                      ? "¡Hoy celebran su aniversario!"
-                      : `${anniversary.daysRemaining} días para celebrar`}
-                  </Text>
-                  <Text style={s.body}>
-                    {anniversary.currentYears} años de casados
-                    {current ? ` · Bodas de ${current.material}` : ""}
-                  </Text>
-                  <Text style={s.small}>
-                    Próximamente{" "}
-                    {anniversary.isToday
-                      ? anniversary.years + 1
-                      : anniversary.years}{" "}
-                    años
-                    {next ? ` · Bodas de ${next.material}` : ""}
-                  </Text>
-                  <Button
-                    secondary
-                    title="Significado de sus bodas"
-                    onPress={() =>
-                      router.push({
-                        pathname: "/anniversary",
-                        params: {
-                          year: String(
-                            anniversary.currentYears || anniversary.years,
-                          ),
-                        },
-                      })
-                    }
-                  />
-                </View>
-              </View>
-            ) : (
-              <Text style={s.small}>
-                Su aniversario queda en su espacio privado.
-              </Text>
-            )}
-            {anniversary?.isToday &&
-              anniversary.years > 0 &&
-              profile.uid !== uid && (
-                <AnniversaryGreeting
-                  key={anniversary.nextDate}
-                  profile={profile}
+                <PhotoViewer
+                  uri={profile.avatar}
+                  name={profile.alias}
+                  size={72}
                 />
-              )}
-            {profile.shareProgress && (
-              <View
-                style={{
-                  padding: 12,
-                  borderRadius: 12,
-                  backgroundColor: colors.sage,
-                }}
-              >
-                <Text style={s.label}>
-                  ♡ {profile.completedCount} momentos compartidos ·{" "}
-                  {profile.finishedCount} niveles conseguidos
-                </Text>
-              </View>
-            )}
-            {upcomingCommunityBirthdays(
-              profile.people ?? [],
-              profile.timezone,
-              now,
-            ).map((person) => (
-              <View
-                key={person.key}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 14,
-                  backgroundColor: colors.champagne,
-                  padding: 14,
-                  borderRadius: 16,
-                }}
-              >
-                <PhotoViewer uri={person.avatar} name={person.name} size={64} />
-                <View style={{ flex: 1, gap: 4 }}>
-                  <Text style={s.label}>{person.name}</Text>
-                  <Text style={s.body}>
-                    {person.isToday
-                      ? "🎂 ¡Hoy cumple años!"
-                      : person.daysRemaining === 1
-                        ? "🎂 Mañana cumple años"
-                        : `🎂 Cumple años en ${person.daysRemaining} días`}
+                <View style={{ flex: 1, gap: 5 }}>
+                  <Text style={s.sectionTitle}>{profile.alias}</Text>
+                  <Text style={s.small}>
+                    {profile.uid === uid
+                      ? "Su familia · lo que están compartiendo"
+                      : "Una historia de nuestra comunidad"}
                   </Text>
+                  {!!profile.avatar && (
+                    <Text style={s.small}>Toca la foto para ampliarla</Text>
+                  )}
                 </View>
               </View>
-            ))}
-          </Card>
-        );
-      })}
-      {more && (
-        <Button
-          secondary
-          title="Ver más familias"
-          busy={busy}
-          onPress={() => load(true)}
-        />
+              {anniversary ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 17,
+                  }}
+                >
+                  <Ring value={anniversary.progress} size={88} />
+                  <View style={{ flex: 1, gap: 5 }}>
+                    <Text style={s.label}>
+                      {anniversary.isToday
+                        ? "¡Hoy celebran su aniversario!"
+                        : `${anniversary.daysRemaining} días para celebrar`}
+                    </Text>
+                    <Text style={s.body}>
+                      {anniversary.currentYears} años de casados
+                      {current ? ` · Bodas de ${current.material}` : ""}
+                    </Text>
+                    <Text style={s.small}>
+                      Próximamente{" "}
+                      {anniversary.isToday
+                        ? anniversary.years + 1
+                        : anniversary.years}{" "}
+                      años
+                      {next ? ` · Bodas de ${next.material}` : ""}
+                    </Text>
+                    <Button
+                      secondary
+                      title="Significado de sus bodas"
+                      onPress={() =>
+                        router.push({
+                          pathname: "/anniversary",
+                          params: {
+                            year: String(
+                              anniversary.currentYears || anniversary.years,
+                            ),
+                          },
+                        })
+                      }
+                    />
+                  </View>
+                </View>
+              ) : (
+                <Text style={s.small}>
+                  Su aniversario queda en su espacio privado.
+                </Text>
+              )}
+              {anniversary?.isToday &&
+                anniversary.years > 0 &&
+                profile.uid !== uid && (
+                  <Button
+                    tone="love"
+                    title="Celebrar con esta familia"
+                    onPress={() => selectSection("celebrate")}
+                  />
+                )}
+              {profile.shareProgress && (
+                <View
+                  style={{
+                    padding: 12,
+                    borderRadius: 12,
+                    backgroundColor: colors.sage,
+                  }}
+                >
+                  <Text style={s.label}>
+                    ♡ {profile.completedCount} momentos compartidos ·{" "}
+                    {profile.finishedCount} niveles conseguidos
+                  </Text>
+                </View>
+              )}
+            </Card>
+          );
+        })}
+      {section !== "sharing" && (
+        <>
+          {busy && <Notice text="Cargando familias…" />}
+          {more && (
+            <Button
+              secondary
+              title="Ver más familias"
+              busy={busy}
+              onPress={() => load(true)}
+            />
+          )}
+          <Button
+            secondary
+            title="Actualizar comunidad"
+            busy={busy}
+            onPress={() => load()}
+          />
+          <Text style={s.small}>
+            Solo se muestran perfiles que eligieron participar. Los datos se
+            actualizan cuando cada familia sincroniza la app.
+          </Text>
+        </>
       )}
-      <Button
-        secondary
-        title="Actualizar comunidad"
-        busy={busy}
-        onPress={() => load()}
-      />
-      <Text style={s.small}>
-        Solo se muestran perfiles que eligieron participar. Los datos se
-        actualizan cuando cada familia sincroniza la app.
-      </Text>
     </Screen>
   );
 }

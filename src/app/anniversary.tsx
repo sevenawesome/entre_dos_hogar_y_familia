@@ -4,10 +4,14 @@ import { openURL } from "expo-linking";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useState } from "react";
 import { useApp } from "../store";
+import { SectionTabs } from "../components/SectionTabs";
 import { milestoneFor, milestoneTitle } from "../data/anniversaries";
 import { Screen, Heading, Card, Notice, colors, s } from "../components/ui";
 export default function AnniversaryDetails() {
-  const { year } = useLocalSearchParams<{ year?: string }>();
+  const { year, section: requestedSection } = useLocalSearchParams<{
+    year?: string;
+    section?: string;
+  }>();
   const { anniversaryCatalog: catalog } = useApp();
   const [error, setError] = useState(false);
   const requested = Number(year);
@@ -17,8 +21,16 @@ export default function AnniversaryDetails() {
       : null;
   const milestone =
     selectedYear === null ? null : milestoneFor(catalog, selectedYear);
+  const section =
+    requestedSection === "catalog" ||
+    requestedSection === "sources" ||
+    requestedSection === "meaning"
+      ? requestedSection
+      : milestone
+        ? "meaning"
+        : "catalog";
   return (
-    <Screen key={year ?? "catalog"}>
+    <Screen key={`${year ?? "catalog"}-${section}`}>
       <Pressable
         accessibilityLabel="Volver"
         onPress={() => router.back()}
@@ -42,7 +54,34 @@ export default function AnniversaryDetails() {
             : `${catalog.milestones.length} categorías para descubrir juntos.`
         }
       />
-      {milestone && (
+      <SectionTabs
+        selected={section}
+        options={[
+          {
+            id: "meaning",
+            title: "Significado",
+            icon: "heart-outline",
+            description: milestone
+              ? `Lo que pueden representar sus ${milestone.year} años y una propuesta para celebrarlos.`
+              : "Elijan un año en Bodas para descubrir su significado.",
+          },
+          {
+            id: "catalog",
+            title: "Bodas",
+            icon: "sparkles-outline",
+            description:
+              "Exploren las categorías por año y descubran su próxima etapa.",
+          },
+          {
+            id: "sources",
+            title: "Fuentes",
+            icon: "book-outline",
+            description: "La tradición de este catálogo y sus referencias.",
+          },
+        ]}
+        onSelect={(key) => router.setParams({ section: key })}
+      />
+      {section === "meaning" && milestone && (
         <>
           <Card style={{ backgroundColor: colors.mist }}>
             <Ionicons name="sparkles-outline" size={30} color={colors.ocean} />
@@ -62,54 +101,74 @@ export default function AnniversaryDetails() {
           </Card>
         </>
       )}
-      <Notice text={catalog.note} />
-      <Text style={s.sectionTitle}>Explorar las bodas por año</Text>
-      <View style={{ gap: 9 }}>
-        {catalog.milestones.map((item) => (
-          <Pressable
-            accessibilityRole="button"
-            key={item.year}
-            onPress={() => router.setParams({ year: String(item.year) })}
-            style={[
-              s.row,
-              {
-                borderWidth: 1,
-                borderColor:
-                  selectedYear === item.year ? colors.ocean : colors.line,
-                padding: 15,
-                borderRadius: 14,
-                backgroundColor:
-                  selectedYear === item.year ? colors.mist : colors.white,
-              },
-            ]}
-          >
-            <Text style={[s.label, { width: 45 }]}>{item.year}</Text>
-            <Text style={[s.body, { flex: 1, color: colors.ink }]}>
-              {milestoneTitle(item.material, item.year)}
-            </Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.ocean} />
-          </Pressable>
-        ))}
-      </View>
-      <Text style={s.sectionTitle}>Fuentes del catálogo</Text>
-      <Text style={s.small}>
-        Nombres tradicionales contrastados con estas referencias. Las
-        reflexiones y propuestas están redactadas para Amor que permanece.
-      </Text>
-      {catalog.sources.map((source) => (
-        <Pressable
-          accessibilityRole="link"
-          key={source.url}
-          onPress={() => {
-            if (/^https:\/\//.test(source.url))
-              openURL(source.url).catch(() => setError(true));
-          }}
-        >
-          <Text style={s.link}>{source.title} ↗</Text>
-        </Pressable>
-      ))}
-      {error && (
-        <Notice text="No pudimos abrir el enlace. Revisa tu conexión e inténtalo de nuevo." />
+      {section === "meaning" && !milestone && (
+        <Notice text="Entra en Bodas y elige el año que quieras conocer." />
+      )}
+      {section === "catalog" && (
+        <>
+          <Text style={s.sectionTitle}>Explorar las bodas por año</Text>
+          <View style={{ gap: 9 }}>
+            {catalog.milestones.map((item) => (
+              <Pressable
+                accessibilityRole="button"
+                key={item.year}
+                onPress={() =>
+                  router.setParams({
+                    year: String(item.year),
+                    section: "meaning",
+                  })
+                }
+                style={[
+                  s.row,
+                  {
+                    borderWidth: 1,
+                    borderColor:
+                      selectedYear === item.year ? colors.ocean : colors.line,
+                    padding: 15,
+                    borderRadius: 14,
+                    backgroundColor:
+                      selectedYear === item.year ? colors.mist : colors.white,
+                  },
+                ]}
+              >
+                <Text style={[s.label, { width: 45 }]}>{item.year}</Text>
+                <Text style={[s.body, { flex: 1, color: colors.ink }]}>
+                  {milestoneTitle(item.material, item.year)}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.ocean}
+                />
+              </Pressable>
+            ))}
+          </View>
+        </>
+      )}
+      {section === "sources" && (
+        <>
+          <Notice text={catalog.note} />
+          <Text style={s.sectionTitle}>Fuentes del catálogo</Text>
+          <Text style={s.small}>
+            Nombres tradicionales contrastados con estas referencias. Las
+            reflexiones y propuestas están redactadas para Amor que permanece.
+          </Text>
+          {catalog.sources.map((source) => (
+            <Pressable
+              accessibilityRole="link"
+              key={source.url}
+              onPress={() => {
+                if (/^https:\/\//.test(source.url))
+                  openURL(source.url).catch(() => setError(true));
+              }}
+            >
+              <Text style={s.link}>{source.title} ↗</Text>
+            </Pressable>
+          ))}
+          {error && (
+            <Notice text="No pudimos abrir el enlace. Revisa tu conexión e inténtalo de nuevo." />
+          )}
+        </>
       )}
     </Screen>
   );

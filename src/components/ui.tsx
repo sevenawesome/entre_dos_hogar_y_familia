@@ -11,6 +11,7 @@ import {
   View,
   type TextInputProps,
   type ScrollViewInstance,
+  type ScrollViewProps,
   type ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -51,9 +52,11 @@ export function Screen({
   children,
   scroll = true,
   scrollRef,
+  onScroll,
 }: PropsWithChildren<{
   scroll?: boolean;
   scrollRef?: React.Ref<ScrollViewInstance>;
+  onScroll?: ScrollViewProps["onScroll"];
 }>) {
   return (
     <SafeAreaView style={s.safe} edges={["top", "left", "right"]}>
@@ -64,6 +67,8 @@ export function Screen({
         {scroll ? (
           <ScrollView
             ref={scrollRef}
+            onScroll={onScroll}
+            scrollEventThrottle={onScroll ? 100 : undefined}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={s.content}
           >

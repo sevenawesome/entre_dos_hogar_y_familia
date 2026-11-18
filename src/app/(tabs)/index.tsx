@@ -1,5 +1,11 @@
-import { View, Text, Pressable, useWindowDimensions } from "react-native";
-import { useState } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  useWindowDimensions,
+  type ScrollViewInstance,
+} from "react-native";
+import { useRef, useState } from "react";
 import { router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -14,6 +20,11 @@ import { JourneyBanner } from "../../components/JourneyBanner";
 import { NewLevelAnnouncement } from "../../components/NewLevelAnnouncement";
 import { StartJourneyCard } from "../../components/StartJourneyCard";
 import { EmailVerificationCard } from "../../components/EmailVerificationCard";
+import {
+  HomeShortcuts,
+  type HomeSection,
+} from "../../components/HomeShortcuts";
+import { unreadLevelNews } from "../../domain/level-news";
 import {
   journeyStarted,
   journeyAvailableAt,
@@ -51,10 +62,25 @@ export default function Today() {
     journey: started,
     journeyReady,
     emailVerified,
+    inbox,
+    levelNewsRead,
+    levelNewsReady,
   } = useApp();
   const now = useNow();
   const { width } = useWindowDimensions();
   const [headerWidth, setHeaderWidth] = useState<number>();
+  const scroll = useRef<ScrollViewInstance>(null);
+  const anchors = useRef<Partial<Record<HomeSection, number>>>({});
+  const [showMenu, setShowMenu] = useState(false);
+  const news =
+    catalogReady && levelNewsReady
+      ? unreadLevelNews(levels, levelNewsRead)
+      : [];
+  function jump(section: HomeSection) {
+    const y = anchors.current[section];
+    if (y !== undefined)
+      scroll.current?.scrollTo({ y: Math.max(0, y - 16), animated: true });
+  }
   // The supplied 1200px logo has 70px of transparent space on its left.
   // Match that visible inset on the photo's right, within the shared 24px page padding.
   const logoLeftInsetRatio = 70 / 1200;
@@ -93,242 +119,379 @@ export default function Today() {
     month: "long",
   }).format(now);
   return (
-    <Screen>
-      <View style={{ gap: 4 }}>
-        <View
-          onLayout={(event) => setHeaderWidth(event.nativeEvent.layout.width)}
-          style={[
-            s.row,
-            {
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: 16,
-              paddingRight: logoWidth * logoLeftInsetRatio,
-            },
-          ]}
-        >
-          <Brand compact frameSize={logoWidth} />
-          <Pressable
-            accessibilityLabel="Ver nuestro perfil"
-            onPress={() => router.push("/(tabs)/family")}
-            style={{
-              width: headerSize,
-              height: headerSize,
-              flexShrink: 0,
-              padding: 3,
-              borderWidth: 1,
-              borderColor: colors.sun,
-              backgroundColor: colors.sage,
-              borderRadius: headerSize / 2,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Avatar
-              uri={avatar}
-              name={family?.name ?? "Familia"}
-              size={headerSize - 8}
-            />
-          </Pressable>
-        </View>
-      </View>
-      {demo && (
-        <Notice text="Demostración · el progreso se guarda solo en este teléfono." />
-      )}
-      <View style={{ gap: 10, marginTop: 8 }}>
-        <Text style={[s.eyebrow, { color: colors.muted, letterSpacing: 1.2 }]}>
-          {date}
-        </Text>
-        <Text accessibilityRole="header" style={[s.title, { fontSize: 35 }]}>
-          Hola, {family?.partner1}
-          {"\n"}y {family?.partner2}{" "}
-          <Text style={{ color: colors.love }}>♡</Text>
-        </Text>
-        <Text style={s.body}>Hoy también es un buen día para elegirse.</Text>
-      </View>
-      {!!settings.announcement && <Notice text={settings.announcement} />}
-      {needsStart && level && <StartJourneyCard level={level} />}
-      {!emailVerified && <EmailVerificationCard />}
-      {(!settings.notificationsEnabled || controls.remindersPaused) && (
-        <Notice text="Los recordatorios están pausados por la administración. Pueden seguir completando sus retos." />
-      )}
-      <JourneyBanner />
-      <NewLevelAnnouncement />
-      {level && !needsStart && journeyReady && (
-        <View style={{ gap: 15 }}>
+    <View style={{ flex: 1 }}>
+      <Screen
+        scrollRef={scroll}
+        onScroll={(event) =>
+          setShowMenu(event.nativeEvent.contentOffset.y > 350)
+        }
+      >
+        <View style={{ gap: 4 }}>
           <View
-            style={[s.row, { justifyContent: "space-between", marginTop: 6 }]}
+            onLayout={(event) => setHeaderWidth(event.nativeEvent.layout.width)}
+            style={[
+              s.row,
+              {
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                gap: 16,
+                paddingRight: logoWidth * logoLeftInsetRatio,
+              },
+            ]}
           >
-            <Text style={[s.eyebrow, { color: colors.love }]}>
-              SU MOMENTO DE HOY
-            </Text>
-            <Text style={s.small}>
-              NIVEL {level.order} · {p?.completions.length ?? 0}/
-              {level.challenges.length}
-            </Text>
-          </View>
-          <LinearGradient
-            colors={gradients.sand}
-            style={{
-              borderRadius: 27,
-              padding: 25,
-              gap: 18,
-              overflow: "hidden",
-            }}
-          >
-            <View
+            <Brand compact frameSize={logoWidth} />
+            <Pressable
+              accessibilityLabel="Ver nuestro perfil"
+              onPress={() => router.push("/(tabs)/family")}
               style={{
-                position: "absolute",
-                right: -32,
-                top: -26,
-                width: 168,
-                height: 168,
+                width: headerSize,
+                height: headerSize,
+                flexShrink: 0,
+                padding: 3,
                 borderWidth: 1,
-                borderColor: "#C7952740",
-                borderRadius: 100,
-              }}
-            />
-            <View
-              style={{
-                position: "absolute",
-                right: -10,
-                top: -5,
-                width: 124,
-                height: 124,
-                borderWidth: 1,
-                borderColor: "#C7952740",
-                borderRadius: 100,
-              }}
-            />
-            <View
-              style={{
-                backgroundColor: "#FFFFFF88",
-                borderRadius: 17,
-                height: 51,
-                width: 51,
+                borderColor: colors.sun,
+                backgroundColor: colors.sage,
+                borderRadius: headerSize / 2,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons
-                name={challenge ? "sparkles-outline" : "ribbon-outline"}
-                size={25}
-                color={colors.love}
+              <Avatar
+                uri={avatar}
+                name={family?.name ?? "Familia"}
+                size={headerSize - 8}
               />
-            </View>
-            <Text style={[s.eyebrow, { color: colors.love }]}>
-              {challenge
-                ? `RETO ${String(challenge.order).padStart(2, "0")} · ${challenge.stage}`
-                : `${level.challenges.length} MOMENTOS, UNA HISTORIA`}
-            </Text>
-            <Text
-              style={{
-                fontFamily: serif,
-                fontSize: 32,
-                lineHeight: 37,
-                color: colors.ink,
-                maxWidth: 290,
-              }}
-            >
-              {challenge ? challenge.title : "Miren cuánto han crecido."}
-            </Text>
-            <Text style={[s.body, { color: "#375469" }]}>
-              {challenge
-                ? waiting
-                  ? `Ya completaron su reto anterior. El siguiente se abre el ${nextText}.`
-                  : challenge.description
-                : "Cierren este capítulo con una reflexión juntos para conseguir el nivel."}
-            </Text>
-            {challenge && (
-              <View style={s.row}>
-                <Ionicons name="time-outline" color={colors.navy} size={16} />
-                <Text style={[s.small, { color: "#506878" }]}>
-                  {challenge.minutes} min sugeridos · Solo ustedes dos
+            </Pressable>
+          </View>
+        </View>
+        <HomeShortcuts
+          onSelect={jump}
+          messages={inbox.length}
+          news={news.length}
+        />
+        {demo && (
+          <Notice text="Demostración · el progreso se guarda solo en este teléfono." />
+        )}
+        <View style={{ gap: 10, marginTop: 8 }}>
+          <Text
+            style={[s.eyebrow, { color: colors.muted, letterSpacing: 1.2 }]}
+          >
+            {date}
+          </Text>
+          <Text accessibilityRole="header" style={[s.title, { fontSize: 35 }]}>
+            Hola, {family?.partner1}
+            {"\n"}y {family?.partner2}{" "}
+            <Text style={{ color: colors.love }}>♡</Text>
+          </Text>
+          <Text style={s.body}>Hoy también es un buen día para elegirse.</Text>
+        </View>
+        <View
+          onLayout={(event) => {
+            anchors.current.challenge = event.nativeEvent.layout.y;
+          }}
+          style={{ gap: 24 }}
+        >
+          {needsStart && level && <StartJourneyCard level={level} />}
+          {!emailVerified && <EmailVerificationCard />}
+          {(!settings.notificationsEnabled || controls.remindersPaused) && (
+            <Notice text="Los recordatorios están pausados por la administración. Pueden seguir completando sus retos." />
+          )}
+          <JourneyBanner />
+          {level && !needsStart && journeyReady && (
+            <View style={{ gap: 15 }}>
+              <View
+                style={[
+                  s.row,
+                  { justifyContent: "space-between", marginTop: 6 },
+                ]}
+              >
+                <Text style={[s.eyebrow, { color: colors.love }]}>
+                  SU MOMENTO DE HOY
+                </Text>
+                <Text style={s.small}>
+                  NIVEL {level.order} · {p?.completions.length ?? 0}/
+                  {level.challenges.length}
                 </Text>
               </View>
+              <LinearGradient
+                colors={gradients.sand}
+                style={{
+                  borderRadius: 27,
+                  padding: 25,
+                  gap: 18,
+                  overflow: "hidden",
+                }}
+              >
+                <View
+                  style={{
+                    position: "absolute",
+                    right: -32,
+                    top: -26,
+                    width: 168,
+                    height: 168,
+                    borderWidth: 1,
+                    borderColor: "#C7952740",
+                    borderRadius: 100,
+                  }}
+                />
+                <View
+                  style={{
+                    position: "absolute",
+                    right: -10,
+                    top: -5,
+                    width: 124,
+                    height: 124,
+                    borderWidth: 1,
+                    borderColor: "#C7952740",
+                    borderRadius: 100,
+                  }}
+                />
+                <View
+                  style={{
+                    backgroundColor: "#FFFFFF88",
+                    borderRadius: 17,
+                    height: 51,
+                    width: 51,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ionicons
+                    name={challenge ? "sparkles-outline" : "ribbon-outline"}
+                    size={25}
+                    color={colors.love}
+                  />
+                </View>
+                <Text style={[s.eyebrow, { color: colors.love }]}>
+                  {challenge
+                    ? `RETO ${String(challenge.order).padStart(2, "0")} · ${challenge.stage}`
+                    : `${level.challenges.length} MOMENTOS, UNA HISTORIA`}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: serif,
+                    fontSize: 32,
+                    lineHeight: 37,
+                    color: colors.ink,
+                    maxWidth: 290,
+                  }}
+                >
+                  {challenge ? challenge.title : "Miren cuánto han crecido."}
+                </Text>
+                <Text style={[s.body, { color: "#375469" }]}>
+                  {challenge
+                    ? waiting
+                      ? `Ya completaron su reto anterior. El siguiente se abre el ${nextText}.`
+                      : challenge.description
+                    : "Cierren este capítulo con una reflexión juntos para conseguir el nivel."}
+                </Text>
+                {challenge && (
+                  <View style={s.row}>
+                    <Ionicons
+                      name="time-outline"
+                      color={colors.navy}
+                      size={16}
+                    />
+                    <Text style={[s.small, { color: "#506878" }]}>
+                      {challenge.minutes} min sugeridos · Solo ustedes dos
+                    </Text>
+                  </View>
+                )}
+                <Button
+                  tone="love"
+                  title={
+                    challenge
+                      ? waiting
+                        ? "Conocer el próximo reto"
+                        : "Hagamos este reto"
+                      : "Nuestra reflexión final"
+                  }
+                  onPress={() =>
+                    router.push({
+                      pathname: challenge ? "/challenge" : "/questionnaire",
+                      params: {
+                        levelId: level.id,
+                        ...(challenge ? { challengeId: challenge.id } : {}),
+                      },
+                    })
+                  }
+                />
+              </LinearGradient>
+            </View>
+          )}
+        </View>
+        <View
+          onLayout={(event) => {
+            anchors.current.anniversary = event.nativeEvent.layout.y;
+          }}
+          style={{ gap: 12 }}
+        >
+          <Text accessibilityRole="header" style={s.eyebrow}>
+            NUESTRO ANIVERSARIO
+          </Text>
+          {family && <AnniversaryCard family={family} now={now} />}
+        </View>
+        <View
+          onLayout={(event) => {
+            anchors.current.birthdays = event.nativeEvent.layout.y;
+          }}
+          style={{ gap: 12 }}
+        >
+          {family && (
+            <BirthdaysCard family={family} now={now} portraits={portraits} />
+          )}
+        </View>
+        <View
+          onLayout={(event) => {
+            anchors.current.progress = event.nativeEvent.layout.y;
+          }}
+        >
+          <SectionTitle right="Cada paso cuenta">Así vamos juntos</SectionTitle>
+          <Card>
+            <View style={s.row}>
+              <Ring
+                value={
+                  level
+                    ? percentage(level, p)
+                    : journey.state === "completed"
+                      ? 100
+                      : 0
+                }
+                label="DEL NIVEL"
+              />
+              <View style={{ flex: 1, gap: 7 }}>
+                <Text
+                  style={{ fontFamily: serif, fontSize: 23, color: colors.ink }}
+                >
+                  {level?.title ?? "Un amor que crece"}
+                </Text>
+                <Text style={s.body}>
+                  {total}{" "}
+                  {total === 1 ? "reto compartido" : "retos compartidos"}
+                </Text>
+                <Text style={[s.small, { color: colors.navy }]}>
+                  {finished}{" "}
+                  {finished === 1 ? "nivel conseguido" : "niveles conseguidos"}
+                </Text>
+              </View>
+            </View>
+            <View style={s.divider} />
+            <Pressable
+              onPress={() => router.push("/(tabs)/levels")}
+              style={[
+                s.row,
+                { justifyContent: "space-between", minHeight: 32 },
+              ]}
+            >
+              <Text style={s.label}>Explorar nuestro camino</Text>
+              <Ionicons name="arrow-forward" size={18} color={colors.navy} />
+            </Pressable>
+          </Card>
+        </View>
+        <View
+          onLayout={(event) => {
+            anchors.current.messages = event.nativeEvent.layout.y;
+          }}
+          style={{ gap: 12 }}
+        >
+          <Text accessibilityRole="header" style={s.eyebrow}>
+            MENSAJES PARA USTEDES
+          </Text>
+          <Card style={{ backgroundColor: colors.mist }}>
+            <Ionicons name="mail-outline" size={28} color={colors.ocean} />
+            <Text style={s.sectionTitle}>
+              {inbox.length
+                ? `${inbox.length} ${inbox.length === 1 ? "mensaje en su bandeja" : "mensajes en su bandeja"}`
+                : "Un espacio para acompañarlos"}
+            </Text>
+            <Text style={s.body}>
+              Los mensajes del equipo y las felicitaciones de aniversario se
+              quedan guardados para ustedes.
+            </Text>
+            {!!inbox[0] && (
+              <Text style={s.label} numberOfLines={2}>
+                {inbox[0].title}
+              </Text>
             )}
             <Button
-              tone="love"
-              title={
-                challenge
-                  ? waiting
-                    ? "Conocer el próximo reto"
-                    : "Hagamos este reto"
-                  : "Nuestra reflexión final"
-              }
-              onPress={() =>
-                router.push({
-                  pathname: challenge ? "/challenge" : "/questionnaire",
-                  params: {
-                    levelId: level.id,
-                    ...(challenge ? { challengeId: challenge.id } : {}),
-                  },
-                })
-              }
+              secondary
+              title="Abrir nuestros mensajes"
+              onPress={() => router.push("/inbox")}
             />
-          </LinearGradient>
+          </Card>
         </View>
-      )}
-      {family && <AnniversaryCard family={family} now={now} />}
-      {family && (
-        <BirthdaysCard family={family} now={now} portraits={portraits} />
-      )}
-      <View>
-        <SectionTitle right="Cada paso cuenta">Así vamos juntos</SectionTitle>
-        <Card>
-          <View style={s.row}>
-            <Ring
-              value={
-                level
-                  ? percentage(level, p)
-                  : journey.state === "completed"
-                    ? 100
-                    : 0
-              }
-              label="DEL NIVEL"
-            />
-            <View style={{ flex: 1, gap: 7 }}>
-              <Text
-                style={{ fontFamily: serif, fontSize: 23, color: colors.ink }}
-              >
-                {level?.title ?? "Un amor que crece"}
-              </Text>
-              <Text style={s.body}>
-                {total} {total === 1 ? "reto compartido" : "retos compartidos"}
-              </Text>
-              <Text style={[s.small, { color: colors.navy }]}>
-                {finished}{" "}
-                {finished === 1 ? "nivel conseguido" : "niveles conseguidos"}
-              </Text>
-            </View>
-          </View>
-          <View style={s.divider} />
-          <Pressable
-            onPress={() => router.push("/(tabs)/levels")}
-            style={[s.row, { justifyContent: "space-between", minHeight: 32 }]}
-          >
-            <Text style={s.label}>Explorar nuestro camino</Text>
-            <Ionicons name="arrow-forward" size={18} color={colors.navy} />
-          </Pressable>
-        </Card>
-      </View>
-      <View style={{ alignItems: "center", gap: 8, paddingVertical: 8 }}>
-        <Ionicons name="leaf-outline" size={22} color="#89977E" />
-        <Text
-          style={[
-            s.body,
-            {
-              fontFamily: serif,
-              fontStyle: "italic",
-              textAlign: "center",
-              color: "#7A8374",
-            },
-          ]}
+        <View
+          onLayout={(event) => {
+            anchors.current.news = event.nativeEvent.layout.y;
+          }}
+          style={{ gap: 12 }}
         >
-          “Los pequeños gestos también{"\n"}construyen grandes historias.”
-        </Text>
-      </View>
-      <CreatorFooter />
-    </Screen>
+          <Text accessibilityRole="header" style={s.eyebrow}>
+            NOVEDADES PARA SU CAMINO
+          </Text>
+          {!!settings.announcement && <Notice text={settings.announcement} />}
+          <NewLevelAnnouncement />
+          {!news.length && (
+            <Card>
+              <Text style={s.sectionTitle}>Su historia sigue creciendo</Text>
+              <Text style={s.body}>
+                Aquí aparecerán los nuevos niveles y anuncios del equipo.
+                Siempre pueden consultar los capítulos publicados en Camino.
+              </Text>
+              <Button
+                secondary
+                title="Explorar los niveles"
+                onPress={() => router.push("/(tabs)/levels")}
+              />
+            </Card>
+          )}
+        </View>
+        <View style={{ alignItems: "center", gap: 8, paddingVertical: 8 }}>
+          <Ionicons name="leaf-outline" size={22} color="#89977E" />
+          <Text
+            style={[
+              s.body,
+              {
+                fontFamily: serif,
+                fontStyle: "italic",
+                textAlign: "center",
+                color: "#7A8374",
+              },
+            ]}
+          >
+            “Los pequeños gestos también{"\n"}construyen grandes historias.”
+          </Text>
+        </View>
+        <CreatorFooter />
+        <View style={{ height: 44 }} />
+      </Screen>
+      {showMenu && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Volver al menú de Hoy"
+          onPress={() => scroll.current?.scrollTo({ y: 0, animated: true })}
+          style={({ pressed }) => ({
+            position: "absolute",
+            right: 24,
+            bottom: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+            minHeight: 48,
+            paddingHorizontal: 17,
+            borderRadius: 24,
+            backgroundColor: colors.navy,
+            borderWidth: 1,
+            borderColor: colors.white,
+            opacity: pressed ? 0.8 : 1,
+          })}
+        >
+          <Ionicons name="arrow-up" color={colors.white} size={19} />
+          <Text style={{ color: colors.white, fontWeight: "700" }}>
+            Menú de Hoy
+          </Text>
+        </Pressable>
+      )}
+    </View>
   );
 }

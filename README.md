@@ -144,3 +144,6 @@ La [identidad gráfica Amor que permanece](docs/IDENTIDAD_GRAFICA.md) reúne los
 
 
 Actualización del 17 de noviembre: el recorrido público muestra **siete ilustraciones con fotos ficticias**, incluyendo cumpleaños de cada integrante, edad actual/próxima y ejemplos de fechas y progreso. Nosotros se divide en Familia, Avisos y Cuenta, con cierre de sesión destacado. Admin → Notificaciones y Admin → Correos permiten **Una familia** o **Todas las familias**, con revisión, confirmación y preparación reanudable sin duplicados. Los correos respetan verificación, bajas y cuotas; los avisos colectivos aparecen al sincronizar. Ver [Administración](docs/ADMINISTRACION.md).
+
+
+Organización del 18 de noviembre: **Hoy** tiene seis accesos directos visibles (reto, progreso, aniversario, cumpleaños, mensajes y novedades), un aviso destacado de niveles nuevos y regreso al menú. **Camino** separa Mi nivel, Niveles y Logros; **Comunidad**, Familias, Celebrar y Compartir; **Información**, Guía, Mensajes y Ayuda. Recuerdos, bandeja y catálogo de bodas usan los mismos apartados visuales. La administración conserva su espacio y permisos. No se cambian datos, reglas ni cuotas.

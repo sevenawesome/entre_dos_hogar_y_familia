@@ -1,9 +1,11 @@
-import { View, Text, Pressable } from "react-native";
+import { useRef, useState } from "react";
+import { View, Text, Pressable, type ScrollViewInstance } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
 import { useApp } from "../../store";
 import { getJourney } from "../../domain/journey";
 import { JourneyBanner } from "../../components/JourneyBanner";
+import { SectionTabs } from "../../components/SectionTabs";
 import {
   currentChallenge,
   isUnlocked,
@@ -21,16 +23,77 @@ import {
 } from "../../components/ui";
 export default function Levels() {
   const { levels, progress, catalogReady, progressReady } = useApp();
+  const [section, setSection] = useState<
+    "current" | "catalog" | "achievements"
+  >("current");
+  const [reviewLevelId, setReviewLevelId] = useState<string | null>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
   const journey = getJourney(levels, progress, catalogReady && progressReady);
+  const reviewLevel = levels.find(
+    (item) => item.id === reviewLevelId && isUnlocked(item, progress),
+  );
+  const currentId = reviewLevel?.id ?? journey.current?.id;
+  const displayed = levels.filter((item) =>
+    section === "catalog"
+      ? true
+      : section === "achievements"
+        ? !!progress[item.id]?.finishedAt
+        : item.id === currentId,
+  );
+  function showRetos(id: string) {
+    setReviewLevelId(id);
+    setSection("current");
+    scroll.current?.scrollTo({ y: 0, animated: false });
+  }
   return (
-    <Screen>
-      <Heading
-        eyebrow="PASO A PASO, JUNTOS"
-        title="Nuestro camino"
-        subtitle="No se trata de ir rápido. Se trata de seguir eligiéndose."
+    <Screen scrollRef={scroll}>
+      <Heading eyebrow="PASO A PASO, JUNTOS" title="Nuestro camino" />
+      <SectionTabs
+        selected={section}
+        options={[
+          {
+            id: "current",
+            title: "Mi nivel",
+            icon: "heart-outline",
+            description:
+              "Su nivel actual y sus retos, paso a paso. No se trata de ir rápido: se trata de seguir eligiéndose.",
+          },
+          {
+            id: "catalog",
+            title: "Niveles",
+            icon: "trail-sign-outline",
+            description:
+              "Descubran todos los capítulos publicados y lo que falta para desbloquearlos. Los nuevos niveles aparecen aquí sin instalar otra versión.",
+            count: levels.length,
+          },
+          {
+            id: "achievements",
+            title: "Logros",
+            icon: "ribbon-outline",
+            description:
+              "Los niveles que consiguieron y las reflexiones que forman parte de su historia.",
+            count: journey.completed.length,
+          },
+        ]}
+        onSelect={(key) => {
+          setSection(key);
+          setReviewLevelId(null);
+          scroll.current?.scrollTo({ y: 0, animated: false });
+        }}
       />
-      {journey.state !== "active" && <JourneyBanner />}
-      {levels.map((level) => {
+      {section === "current" && !journey.current && !reviewLevel && (
+        <JourneyBanner />
+      )}
+      {section === "current" &&
+        reviewLevel &&
+        reviewLevel.id !== journey.current?.id && (
+          <Button
+            secondary
+            title="Volver a nuestro nivel actual"
+            onPress={() => setReviewLevelId(null)}
+          />
+        )}
+      {displayed.map((level) => {
         const isCurrent = journey.current?.id === level.id;
         const unlocked = isUnlocked(level, progress),
           p = progress[level.id],
@@ -140,7 +203,18 @@ export default function Levels() {
                 />
               )}
             </Card>
-            {unlocked && (
+            {section !== "current" && unlocked && (
+              <Button
+                secondary
+                title={
+                  finished
+                    ? "Ver los retos que compartimos"
+                    : "Ver los retos de este nivel"
+                }
+                onPress={() => showRetos(level.id)}
+              />
+            )}
+            {section === "current" && unlocked && (
               <View style={{ paddingHorizontal: 6 }}>
                 {level.challenges.map((challenge) => {
                   const done = p?.completions.some(
@@ -228,15 +302,34 @@ export default function Levels() {
           </View>
         );
       })}
-      {!levels.length && <Notice text="Todavía no hay niveles publicados." />}
-      <Card style={{ backgroundColor: colors.sage }}>
-        <Ionicons name="leaf-outline" size={27} color="#6A7B60" />
-        <Text style={s.sectionTitle}>La historia continúa</Text>
-        <Text style={s.body}>
-          Cuando llegue un nuevo nivel, lo encontrarán en este camino. Cada
-          logro abre la puerta al siguiente.
-        </Text>
-      </Card>
+      {!catalogReady && <Notice text="Sincronizando los niveles publicados…" />}
+      {catalogReady && !levels.length && (
+        <Notice text="Todavía no hay niveles publicados." />
+      )}
+      {section === "achievements" && !journey.completed.length && (
+        <Card>
+          <Ionicons name="ribbon-outline" size={36} color={colors.gold} />
+          <Text style={s.sectionTitle}>El primer logro los espera</Text>
+          <Text style={s.body}>
+            Completen los retos y la reflexión final de su nivel. Aquí quedará
+            guardado cuando lo consigan.
+          </Text>
+          <Button
+            title="Ver nuestro nivel"
+            onPress={() => setSection("current")}
+          />
+        </Card>
+      )}
+      {section !== "current" && (
+        <Card style={{ backgroundColor: colors.sage }}>
+          <Ionicons name="leaf-outline" size={27} color="#6A7B60" />
+          <Text style={s.sectionTitle}>La historia continúa</Text>
+          <Text style={s.body}>
+            Cuando llegue un nuevo nivel, lo encontrarán en este camino. Cada
+            logro abre la puerta al siguiente.
+          </Text>
+        </Card>
+      )}
     </Screen>
   );
 }
