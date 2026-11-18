@@ -1,38 +1,38 @@
 {
   "projectId": "f9af2154-9d1b-49d6-bae8-588d83ce3ad7",
-  "group": "07c2857e-ae3f-464f-8adb-bff02e99fa77",
+  "group": "6ddb9dd1-1ba2-4e2d-a556-310d14de1aa1",
   "branchId": "01a1e6f4-31b1-73c3-9fbb-8f8b9a2d40af",
   "branch": "expo-go-preview",
   "runtimeVersion": "exposdk:58.0.0",
-  "createdAt": "2026-11-17T12:41:12.171Z",
-  "gitCommitHash": "3dc74f7331e4ea145920479eb0101acf45fa9ed0",
+  "createdAt": "2026-11-18T12:43:41.488Z",
+  "gitCommitHash": "7ac986056fdf0ccde9e0d533ad15fb670b97fbc8",
   "launchUrl": "exp://u.expo.dev/f9af2154-9d1b-49d6-bae8-588d83ce3ad7/branch/01a1e6f4-31b1-73c3-9fbb-8f8b9a2d40af",
   "qrService": "https://qr.expo.dev/eas-update?projectId=f9af2154-9d1b-49d6-bae8-588d83ce3ad7&branchId=01a1e6f4-31b1-73c3-9fbb-8f8b9a2d40af",
-  "dashboard": "https://expo.dev/accounts/sevenawesomes-team/projects/entre-dos-by-departamento-de-hogar-y-familia/updates/07c2857e-ae3f-464f-8adb-bff02e99fa77",
+  "dashboard": "https://expo.dev/accounts/sevenawesomes-team/projects/entre-dos-by-departamento-de-hogar-y-familia/updates/6ddb9dd1-1ba2-4e2d-a556-310d14de1aa1",
   "updates": [
     {
-      "id": "01a1e986-8eeb-7e90-9b00-452311cdcd4b",
-      "createdAt": "2026-11-17T12:41:12.171Z",
-      "group": "07c2857e-ae3f-464f-8adb-bff02e99fa77",
+      "id": "01a1eeaf-3230-7060-a97a-0106c8461bb0",
+      "createdAt": "2026-11-18T12:43:41.488Z",
+      "group": "6ddb9dd1-1ba2-4e2d-a556-310d14de1aa1",
       "branch": "expo-go-preview",
-      "message": "Fotos, Nosotros y envíos colectivos",
+      "message": "Pantallas por apartados y accesos directos en Hoy",
       "runtimeVersion": "exposdk:58.0.0",
       "platform": "android",
-      "manifestPermalink": "https://u.expo.dev/update/01a1e986-8eeb-7e90-9b00-452311cdcd4b",
+      "manifestPermalink": "https://u.expo.dev/update/01a1eeaf-3230-7060-a97a-0106c8461bb0",
       "isRollBackToEmbedded": false,
-      "gitCommitHash": "3dc74f7331e4ea145920479eb0101acf45fa9ed0"
+      "gitCommitHash": "7ac986056fdf0ccde9e0d533ad15fb670b97fbc8"
     },
     {
-      "id": "01a1e986-8eeb-7bf5-a4e6-0eb8fc3549e9",
-      "createdAt": "2026-11-17T12:41:12.171Z",
-      "group": "07c2857e-ae3f-464f-8adb-bff02e99fa77",
+      "id": "01a1eeaf-3230-7d67-b54c-f920c3a7c082",
+      "createdAt": "2026-11-18T12:43:41.488Z",
+      "group": "6ddb9dd1-1ba2-4e2d-a556-310d14de1aa1",
       "branch": "expo-go-preview",
-      "message": "Fotos, Nosotros y envíos colectivos",
+      "message": "Pantallas por apartados y accesos directos en Hoy",
       "runtimeVersion": "exposdk:58.0.0",
       "platform": "ios",
-      "manifestPermalink": "https://u.expo.dev/update/01a1e986-8eeb-7bf5-a4e6-0eb8fc3549e9",
+      "manifestPermalink": "https://u.expo.dev/update/01a1eeaf-3230-7d67-b54c-f920c3a7c082",
       "isRollBackToEmbedded": false,
-      "gitCommitHash": "3dc74f7331e4ea145920479eb0101acf45fa9ed0"
+      "gitCommitHash": "7ac986056fdf0ccde9e0d533ad15fb670b97fbc8"
     }
   ],
   "checks": [
@@ -40,7 +40,7 @@
       "platform": "android",
       "manifest": 200,
       "bundle": 200,
-      "bytes": 4355740,
+      "bytes": 4375596,
       "assets": 37,
       "galleryAssetsVerified": 7
     },
@@ -48,7 +48,7 @@
       "platform": "ios",
       "manifest": 200,
       "bundle": 200,
-      "bytes": 4363552,
+      "bytes": 4383340,
       "assets": 34,
       "galleryAssetsVerified": 7
     }
@@ -57,9 +57,9 @@
     "status": 200,
     "latestIosUpdateSelected": true
   },
-  "previousGroup": "c1c785d1-3122-4d04-8668-e3d235884d30",
-  "releaseLabel": "2026-11-17 · Fotos, Nosotros y envíos colectivos",
-  "confirmacionIphone": "Pendiente de confirmar esta actualización en teléfono; se verificaron los paquetes y las siete imágenes para ambas plataformas.",
+  "previousGroup": "07c2857e-ae3f-464f-8adb-bff02e99fa77",
+  "releaseLabel": "2026-11-18 · Pantallas por apartados y accesos directos en Hoy",
+  "confirmacionIphone": "Pendiente de confirmar esta actualización en teléfono; ambos paquetes y las siete imágenes se verificaron por descarga.",
   "republicar": {
     "PowerShell": [
       "$env:EXPO_UPDATE_TARGET='expo-go'",
@@ -71,32 +71,38 @@
     "No requiere Metro ni la computadora encendida; necesita Internet para descargar y sincronizar.",
     "Expo Go debe ser compatible con SDK 58 y la cuenta debe pertenecer al equipo propietario.",
     "El QR apunta a la rama expo-go-preview y carga su actualización compatible más reciente. El enlace dashboard identifica esta publicación concreta.",
-    "El correo sigue activo por la autorización previa. El servidor incorpora el vencimiento de 30 días para correos colectivos. No se enviaron mensajes reales durante la validación.",
+    "El correo sigue activo por la autorización previa. Esta actualización organiza la interfaz; no cambia el servidor, las cuotas ni los permisos. No se enviaron mensajes reales durante la validación.",
     "Los builds nativos usan fingerprint; el perfil de build preview sobrescribe EXPO_UPDATE_TARGET=native."
   ],
   "changes": [
-    "Siete imágenes ilustrativas con fotos ficticias y más datos; incluye cumpleaños individuales con edad actual/próxima, fechas y progreso. La galería pública no inicia sesión ni guarda datos.",
-    "Nosotros organizado en Familia, Avisos y Cuenta; Cerrar sesión destacado con confirmación; acceso y seguridad separado de datos familiares.",
-    "Admin → Notificaciones y Admin → Correos ofrecen Una familia o Todas las familias. Vista previa y confirmación, adjuntos y preparación reanudable con auditoría sin duplicados.",
-    "Los correos colectivos respetan verificación, bajas, permisos y cuotas; vencen a los 30 días. Las notificaciones colectivas aparecen al sincronizar."
+    "Hoy conserva el contenido en una sola pantalla y añade seis accesos directos visibles al inicio, indicadores de mensajes/niveles nuevos y regreso al menú.",
+    "Camino: Mi nivel, Niveles y Logros; listas de retos separadas del catálogo y los niveles conseguidos. Compatible con nuevos niveles desde Firebase.",
+    "Comunidad: Familias, Celebrar y Compartir; filtros de cumpleaños/aniversarios, privacidad y fotos individuales.",
+    "Información: Guía, Mensajes y Ayuda; Recuerdos: Retos, Logros y Aniversarios; Bandeja: Todos, Equipo y Comunidad; Bodas: Significado, Bodas y Fuentes.",
+    "Guía actualizada y regreso desde bandeja/recuerdos al apartado Mensajes. Administración conserva su diseño independiente y permisos."
   ],
   "validation": {
     "typecheck": "passed",
     "lint": "passed",
     "domainTests": 132,
-    "emailWorkerTests": 57,
-    "firebaseEmulatorTests": 60,
     "mobileWeb": {
-      "viewport": "390x844",
-      "fixture": "Isolated; no Firebase credentials; fictional family only",
-      "slides": 7,
-      "birthdayPhotosAndAges": "passed",
-      "familyAccountSections": "passed",
-      "logoutConfirmationCancel": "passed",
-      "individualCollectiveSelectors": "passed in notifications and email"
+      "viewports": [
+        "320x640",
+        "390x844"
+      ],
+      "fixture": "Isolated; no Firebase configuration; fictional data; real route groups and tabs",
+      "homeShortcuts": "All six destinations and return-to-menu checked",
+      "futureLevels": "Completed, current and locked chapter; catalog hides challenge lists; completed challenges remain accessible",
+      "community": "Families/sharing separated; birthdays and anniversaries filter; no public ages or birth years",
+      "information": "Guide/messages/support separated; return from inbox preserves Messages",
+      "memories": "Challenges/achievements/anniversaries separated",
+      "inbox": "Team/community filters checked",
+      "anniversary": "Year selection opens Meaning; catalog and sources separated"
     },
-    "nativeAssets": "Seven gallery files verified byte-for-byte on iOS and Android",
-    "physicalDevice": "Pending owner confirmation"
+    "nativeAssets": "Seven unchanged gallery files verified byte-for-byte on iOS and Android",
+    "physicalDevice": "Pending owner confirmation",
+    "realMessagesSent": false,
+    "backend": "No server, rules, permissions or quota changes in this release"
   },
   "emailWorker": {
     "version": "64316a55-f078-48a0-9e60-e726cde0f62a",
