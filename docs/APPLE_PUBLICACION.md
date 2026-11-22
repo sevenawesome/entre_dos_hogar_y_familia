@@ -12,6 +12,30 @@ Preparación iniciada el 20 de noviembre de 2026. El titular confirmó que Apple
 
 La firma permite preparar la prueba en TestFlight; no resuelve los pendientes de App Review enumerados más abajo.
 
+## Alternativa de acceso desde la web
+
+El siguiente intento interactivo avanzó hasta el inicio de sesión de Apple y aumentó el número remoto de compilación a 2. Terminó con `Authentication with Apple Developer Portal failed! read ECONNRESET`, después de un error de conexión al recuperar la clave de servicio de Apple. Este mensaje no confirma una contraseña incorrecta. No se inició la compilación remota.
+
+El titular pidió utilizar la web. Iniciar sesión en el navegador no transfiere automáticamente esa sesión a EAS CLI. La alternativa admitida es crear una clave de equipo de App Store Connect desde Usuarios y acceso → Integraciones → App Store Connect API → Claves de equipo, con acceso Admin para gestionar la firma. Si aparece Solicitar acceso, debe completarlo el titular y esperar la habilitación de Apple.
+
+Descargar el archivo .p8 una sola vez y conservarlo localmente fuera del repositorio. No enviarlo por chat. Para preparar EAS se necesitan su ruta local, Key ID, Issuer ID y el Team ID y tipo de membresía reales. Una clave individual sin Issuer ID no permite gestionar certificados ni perfiles de firma. Los identificadores todavía no se han confirmado; no deben inventarse.
+
+EAS admite estas variables en el proceso que ejecuta el build: `EXPO_ASC_API_KEY_PATH`, `EXPO_ASC_KEY_ID`, `EXPO_ASC_ISSUER_ID`, `EXPO_APPLE_TEAM_ID` y `EXPO_APPLE_TEAM_TYPE`. No guardar la clave privada ni contraseñas en eas.json, EXPO_PUBLIC_* o documentación. El archivo credentials.json y la carpeta .apple-credentials están excluidos de Git por precaución si se utiliza el flujo de credenciales locales.
+
+Referencia: https://docs.expo.dev/build/building-on-ci/#optional-provide-an-asc-api-token-for-your-apple-team
+
+## Firma manual: solicitud preparada
+
+El titular logró entrar al portal Apple Developer en Chrome. Se generó una clave RSA de 2048 bits y una solicitud SHA-256 local. La firma de la solicitud fue verificada con OpenSSL. La clave privada queda en `.apple-credentials/apple-distribution.key`, excluida de Git; debe conservarse para combinarla con el certificado que emita Apple. La solicitud pública `Amor-que-permanece-Apple.certSigningRequest` también se copió a Descargas para seleccionarla en el portal.
+
+Siguiente paso del titular: Certificates → + → Apple Distribution → Continue → elegir la solicitud → Continue → Download. Falta descargar el certificado emitido por Apple, comprobar que coincide con la clave local, registrar el identificador de la app y crear su perfil App Store Connect. La generación del CSR no creó certificados remotos ni produjo un IPA.
+
+### Certificado descargado y comprobado
+
+Se localizó `distribution.cer` en Descargas. Su clave pública coincide con la clave privada local y el tipo es Apple Distribution. El certificado está emitido a Salim Bencosme, Team ID `6DRBD9Z2VS`, país del certificado DO, y vence el 22 de noviembre de 2027 a las 19:00:56 UTC. Se creó y verificó el paquete PKCS#12 en `.apple-credentials/distribution.p12`; su contraseña aleatoria se guarda exclusivamente en el archivo local ignorado `.apple-credentials/distribution-password.txt`. No se imprimieron la clave ni la contraseña ni se subieron a Git.
+
+Pendiente: registrar un App ID explícito con Bundle ID `com.sevenawesome.entredos`, descripción Amor que permanece, y habilitar Push Notifications para que el perfil sea compatible con el entitlement APNs que agrega actualmente expo-notifications. No se configura un servicio de push ni se requieren claves APNs para los avisos locales existentes. Después crear un perfil App Store Connect para ese App ID y el certificado recién descargado. No activar credentialsSource=local ni iniciar otro build hasta comprobar el perfil descargado y su correspondencia con la app/certificado.
+
 ## Producción en Expo
 
 Proyecto: @sevenawesomes-team/entre-dos-by-departamento-de-hogar-y-familia. Bundle ID: com.sevenawesome.entredos. Nombre visible: Amor que permanece. El perfil production usa distribution=store, environment=production, channel=production y EXPO_UPDATE_TARGET=native, conservando fingerprint y autoIncrement. Los ocho valores copiados a Expo production son exclusivamente identificadores públicos de Firebase/EAS y el selector native. Los secretos de Resend/Google permanecen en Cloudflare.
