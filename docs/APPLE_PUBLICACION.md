@@ -1,8 +1,8 @@
 # Primera publicación de iOS
 
-Preparación iniciada el 20 de noviembre de 2026. El titular confirmó que Apple Developer está activo y que puede entrar a App Store Connect. No se ha presentado una versión pública ni generado todavía una compilación de iOS.
+Preparación iniciada el 20 de noviembre de 2026. El titular confirmó que Apple Developer está activo y ya entró a App Store Connect desde Chrome. Se inició la compilación iOS en Expo con firma manual; no se ha presentado una versión pública. El resultado y los intentos figuran más abajo.
 
-## Estado comprobado el 22 de noviembre de 2026
+## Comprobaciones iniciales del 22 de noviembre de 2026
 
 - Expo reconoce al propietario del proyecto y la consulta de compilaciones iOS devuelve una lista vacía.
 - El intento de compilación de producción cargó las ocho variables remotas y creó el canal y la rama production. También inicializó el número de compilación remoto en 1.
@@ -41,6 +41,18 @@ Pendiente: registrar un App ID explícito con Bundle ID `com.sevenawesome.entred
 El titular registró el App ID y descargó `AmorQuePermanece_AppStore.mobileprovision`. Se verificó la firma CMS del archivo y se comprobó el Team ID `6DRBD9Z2VS`, el identificador `6DRBD9Z2VS.com.sevenawesome.entredos`, la coincidencia del certificado de distribución, la caducidad, el entitlement APNs de producción y que no sea un perfil de desarrollo, ad hoc o empresarial. UUID del perfil: `dfcd7e16-43aa-4d73-9e45-1523839ead1e`.
 
 Se copió a `.apple-credentials/appstore.mobileprovision` y se creó credentials.json local, ambos excluidos de Git. El perfil production de iOS ahora usa credentialsSource=local; Android conserva su configuración. El próximo build puede utilizar estos archivos sin iniciar sesión en Apple desde EAS CLI. Esto aún no configura el acceso para subir el resultado a App Store Connect ni crea su ficha pública.
+
+### Primer intento remoto y ajuste del paquete de firma
+
+Expo aceptó la compilación `20ae67e4-87f1-4028-852e-a624479b567a`, versión 1.0.0 (3), del commit `26ea34093bdb2cc8e327e3477b7ae419b7dbcb2a`. Terminó con error en Prepare credentials: macOS no pudo verificar el MAC del PKCS#12 y no importó la identidad. No llegó a producir el IPA.
+
+Se reexportó el mismo certificado y clave privada a `.apple-credentials/distribution-apple.p12`, usando MAC SHA-1 y PBE-SHA1-3DES para compatibilidad con el importador PKCS#12 de macOS. Se comprobaron nuevamente la huella del certificado y la clave pública derivada de la clave privada del paquete. La contraseña se conservó localmente; credentials.json apunta al nuevo archivo. El paquete original se conserva. Se lanzó un nuevo intento 1.0.0 (4); su resultado todavía debe comprobarse. Este ajuste solo afecta al contenedor de firma, no al cifrado ni a la funcionalidad de la app.
+
+El segundo intento, ID `b98a56c2-2e1d-4fb4-b422-399b830c6bf9`, terminó correctamente el 22 de noviembre de 2026 a las 19:36:52 UTC. Prepare credentials terminó correctamente después de reexportar el paquete. También pasaron Expo Doctor, prebuild, CocoaPods, configuración de Expo Update, empaquetado JavaScript, compilación y firma de Xcode y subida de artefactos a Expo.
+
+Se descargó e inspeccionó el IPA 1.0.0 (4): Bundle ID `com.sevenawesome.entredos`, nombre visible Amor que permanece, iOS mínimo 16.4 y soporte iPhone/iPad. Coincide el perfil embebido con el perfil local. Expo Update está habilitado con el endpoint del proyecto, canal production y runtime `684d35857bf35e13671ea2a0bebf8b2fb9409db4`, leído del recurso EXUpdates.bundle/fingerprint. Se verificaron los textos de permisos de cámara/galería y la ausencia de archivos privados de firma en el ZIP. SHA-256 del IPA: `f8036d072e57566b77d27c3c7622068f7513147f74285a20551e26194d1f1c98`. Esto comprueba el artefacto, no sustituye instalarlo en un teléfono ni valida la ficha pública. Resumen en IOS_BUILD.json.
+
+El titular creó la ficha de App Store Connect con Apple ID `6838059210`; la captura muestra español de México como idioma de la ficha. El ascAppId ya se añadió a submit.production.ios. Solicitó acceso a App Store Connect API y Apple lo aprobó, según su captura. Sigue pendiente generar/descargar la clave de equipo con rol App Manager y obtener su Key ID e Issuer ID para autenticar la subida desde Windows; no requiere Admin para este fin, porque ya se dispone de firma local. No se ha subido el IPA a Apple ni se ha enviado a App Review.
 
 ## Producción en Expo
 

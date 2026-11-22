@@ -253,8 +253,8 @@
       "expoDoctorCorrectas": 20,
       "expoDoctorTotal": 20
     },
-    "compilacionesIOS": 0,
-    "intentoBuild": "Detenido antes de subir el proyecto: Credentials are not set up. Run this command again in interactive mode.",
+    "compilacionesIOS": 2,
+    "intentoBuild": "First remote build failed importing modern PKCS12; repackaged with macOS-compatible algorithms and second build finished successfully.",
     "subidoAApple": false,
     "pendientesAppReview": [
       "PUB-01: borrado definitivo desde la app",
@@ -263,6 +263,17 @@
       "PUB-06: prueba física de un binario firmado",
       "PUB-07: ficha, capturas y cuenta de revisión"
     ],
-    "nota": "Actualiza el estado de PUB-04, PUB-05 y los parches compatibles de PUB-08. Mantiene la auditoría histórica y los bloqueos públicos no resueltos. No se borraron familias, cambiaron roles ni enviaron correos de prueba."
+    "nota": "Actualiza el estado de PUB-04, PUB-05 y los parches compatibles de PUB-08. Mantiene la auditoría histórica y los bloqueos públicos no resueltos. No se borraron familias, cambiaron roles ni enviaron correos de prueba.",
+    "compilacionesIOSCorrectas": 1,
+    "firmaLocalVerificada": true,
+    "appStoreConnectAppId": "6838059210",
+    "ultimoBuild": {
+      "id": "b98a56c2-2e1d-4fb4-b422-399b830c6bf9",
+      "status": "FINISHED",
+      "version": "1.0.0",
+      "buildNumber": "4",
+      "referencia": "IOS_BUILD.json"
+    },
+    "accesoApiApple": "Approved; team API key pending generation/download"
   }
 }

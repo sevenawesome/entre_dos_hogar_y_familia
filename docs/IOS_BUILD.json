@@ -1,0 +1,26 @@
+{
+  "buildId": "b98a56c2-2e1d-4fb4-b422-399b830c6bf9",
+  "status": "FINISHED",
+  "version": "1.0.0",
+  "buildNumber": "4",
+  "bundleIdentifier": "com.sevenawesome.entredos",
+  "displayName": "Amor que permanece",
+  "minimumOSVersion": "16.4",
+  "deviceFamilies": [
+    1,
+    2
+  ],
+  "runtimeVersion": "684d35857bf35e13671ea2a0bebf8b2fb9409db4",
+  "updateChannel": "production",
+  "embeddedProfileMatched": true,
+  "sizeBytes": 25159465,
+  "sha256": "f8036d072e57566b77d27c3c7622068f7513147f74285a20551e26194d1f1c98",
+  "appStoreConnectAppId": "6838059210",
+  "uploadedToApple": false,
+  "buildUrl": "https://expo.dev/accounts/sevenawesomes-team/projects/entre-dos-by-departamento-de-hogar-y-familia/builds/b98a56c2-2e1d-4fb4-b422-399b830c6bf9",
+  "sourceCommit": "26ea34093bdb2cc8e327e3477b7ae419b7dbcb2a",
+  "completedAt": "2026-11-22T19:36:52Z",
+  "physicalDeviceTested": false,
+  "appReviewSubmitted": false,
+  "pending": "App Store Connect team API key and submission to TestFlight"
+}
