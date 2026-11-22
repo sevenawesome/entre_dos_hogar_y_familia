@@ -23,6 +23,9 @@
       "environment": "production",
       "channel": "production",
       "distribution": "store",
+      "ios": {
+        "credentialsSource": "local"
+      },
       "env": {
         "EXPO_UPDATE_TARGET": "native"
       }

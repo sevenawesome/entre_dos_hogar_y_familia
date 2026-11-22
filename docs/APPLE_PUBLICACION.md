@@ -36,6 +36,12 @@ Se localizó `distribution.cer` en Descargas. Su clave pública coincide con la 
 
 Pendiente: registrar un App ID explícito con Bundle ID `com.sevenawesome.entredos`, descripción Amor que permanece, y habilitar Push Notifications para que el perfil sea compatible con el entitlement APNs que agrega actualmente expo-notifications. No se configura un servicio de push ni se requieren claves APNs para los avisos locales existentes. Después crear un perfil App Store Connect para ese App ID y el certificado recién descargado. No activar credentialsSource=local ni iniciar otro build hasta comprobar el perfil descargado y su correspondencia con la app/certificado.
 
+### Perfil App Store Connect verificado
+
+El titular registró el App ID y descargó `AmorQuePermanece_AppStore.mobileprovision`. Se verificó la firma CMS del archivo y se comprobó el Team ID `6DRBD9Z2VS`, el identificador `6DRBD9Z2VS.com.sevenawesome.entredos`, la coincidencia del certificado de distribución, la caducidad, el entitlement APNs de producción y que no sea un perfil de desarrollo, ad hoc o empresarial. UUID del perfil: `dfcd7e16-43aa-4d73-9e45-1523839ead1e`.
+
+Se copió a `.apple-credentials/appstore.mobileprovision` y se creó credentials.json local, ambos excluidos de Git. El perfil production de iOS ahora usa credentialsSource=local; Android conserva su configuración. El próximo build puede utilizar estos archivos sin iniciar sesión en Apple desde EAS CLI. Esto aún no configura el acceso para subir el resultado a App Store Connect ni crea su ficha pública.
+
 ## Producción en Expo
 
 Proyecto: @sevenawesomes-team/entre-dos-by-departamento-de-hogar-y-familia. Bundle ID: com.sevenawesome.entredos. Nombre visible: Amor que permanece. El perfil production usa distribution=store, environment=production, channel=production y EXPO_UPDATE_TARGET=native, conservando fingerprint y autoIncrement. Los ocho valores copiados a Expo production son exclusivamente identificadores públicos de Firebase/EAS y el selector native. Los secretos de Resend/Google permanecen en Cloudflare.
