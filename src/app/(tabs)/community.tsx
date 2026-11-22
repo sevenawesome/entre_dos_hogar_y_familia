@@ -1,16 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Text, View, type ScrollViewInstance } from "react-native";
-import {
-  collection,
-  getDocs,
-  limit,
-  query,
-  where,
-  startAfter,
-  type QueryDocumentSnapshot,
-} from "firebase/firestore";
 import { router } from "expo-router";
-import { db } from "../../services/firebase";
+import { loadCommunityPage } from "../../services/community-safety";
+import {
+  CommunitySafetyActions,
+  CommunitySafetyCenter,
+} from "../../components/CommunitySafety";
 import { useApp } from "../../store";
 import type { CommunityProfile } from "../../domain/types";
 import { getAnniversary, localDateISO } from "../../domain/anniversary";
@@ -70,7 +65,14 @@ const demoProfiles: CommunityProfile[] = [
   },
 ];
 export default function Community() {
-  const { uid, demo, family, communityProfile, anniversaryCatalog } = useApp(),
+  const {
+      uid,
+      demo,
+      family,
+      communityProfile,
+      anniversaryCatalog,
+      communityBlocks,
+    } = useApp(),
     now = useNow();
   const [section, setSection] = useState<"families" | "celebrate" | "sharing">(
     "families",
@@ -81,7 +83,7 @@ export default function Community() {
     scroll.current?.scrollTo({ y: 0, animated: false });
   }
   const [profiles, setProfiles] = useState<CommunityProfile[]>([]),
-    [cursor, setCursor] = useState<QueryDocumentSnapshot>(),
+    [cursor, setCursor] = useState<string | null>(null),
     [more, setMore] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -96,21 +98,19 @@ export default function Community() {
     setBusy(true);
     setError("");
     try {
-      const page = await getDocs(
-        query(
-          collection(db!, "community"),
-          where("visible", "==", true),
-          ...(append && cursor ? [startAfter(cursor)] : []),
-          limit(8),
-        ),
+      const page = await loadCommunityPage(
+        append ? (cursor ?? undefined) : undefined,
       );
       setProfiles((old) =>
         append
-          ? [...old, ...page.docs.map((d) => d.data() as CommunityProfile)]
-          : page.docs.map((d) => d.data() as CommunityProfile),
+          ? [
+              ...old,
+              ...page.profiles.filter((p) => !old.some((o) => o.uid === p.uid)),
+            ]
+          : page.profiles,
       );
-      setCursor(page.docs.at(-1));
-      setMore(page.size === 8);
+      setCursor(page.cursor);
+      setMore(!!page.cursor);
     } catch (e) {
       setError(friendlyError(e));
     } finally {
@@ -120,6 +120,9 @@ export default function Community() {
   useEffect(() => {
     void Promise.resolve().then(() => load()); // Fetch a page without synchronous state changes inside the effect.
   }, [uid, demo, communityProfile]); // eslint-disable-line react-hooks/exhaustive-deps
+  const safeProfiles = profiles.filter(
+    (p) => !communityBlocks.some((b) => b.uid === p.uid),
+  );
   return (
     <Screen scrollRef={scroll}>
       <Heading eyebrow="CRECER ACOMPAÑADOS" title="Nuestra comunidad" />
@@ -157,13 +160,14 @@ export default function Community() {
         <>
           <ProfileSharing />
           <FamilyPortraits />
+          <CommunitySafetyCenter />
         </>
       )}
       {!!error && <Notice error text={error} />}
       {section === "celebrate" && (
-        <CommunityCelebrations profiles={profiles} now={now} />
+        <CommunityCelebrations profiles={safeProfiles} now={now} />
       )}
-      {section === "families" && !busy && !profiles.length && (
+      {section === "families" && !busy && !safeProfiles.length && (
         <Card>
           <Text style={s.sectionTitle}>
             Las primeras historias están por llegar
@@ -175,7 +179,7 @@ export default function Community() {
         </Card>
       )}
       {section === "families" &&
-        profiles.map((profile) => {
+        safeProfiles.map((profile) => {
           const anniversary = profile.shareAnniversary
             ? getAnniversary(profile.marriageDate, profile.timezone, now)
             : null;
@@ -290,6 +294,11 @@ export default function Community() {
                   </Text>
                 </View>
               )}
+              <CommunitySafetyActions
+                targetUid={profile.uid}
+                label={profile.alias}
+                onChanged={() => load()}
+              />
             </Card>
           );
         })}

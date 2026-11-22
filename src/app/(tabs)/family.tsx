@@ -17,6 +17,7 @@ import { ProfileSharing } from "../../components/ProfileSharing";
 import { FamilyPortraits } from "../../components/FamilyPortraits";
 import { EmailVerificationCard } from "../../components/EmailVerificationCard";
 import { AccountSecurityCard } from "../../components/AccountSecurityCard";
+import { PermanentDeletionCard } from "../../components/PermanentDeletionCard";
 import { auth } from "../../services/firebase";
 import {
   disableDevice,
@@ -339,6 +340,7 @@ export default function FamilyScreen() {
         <>
           <EmailVerificationCard />
           <AccountSecurityCard key={uid} />
+          <PermanentDeletionCard />
           <Card>
             <Text style={s.sectionTitle}>Conectar a mi pareja</Text>
             <Text style={s.body}>

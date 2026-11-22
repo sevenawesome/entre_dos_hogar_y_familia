@@ -43,7 +43,7 @@ export default function Privacy() {
         <Text style={s.body}>
           La cuenta y los datos se procesan en Firebase de Google. Los avisos se
           programan localmente con Expo y los presenta el sistema del teléfono.
-          La demostración guarda su progreso únicamente en este dispositivo.
+          La demostración presenta ejemplos ficticios y no publica contenido.
         </Text>
         <Text style={s.sectionTitle}>Administración y soporte</Text>
         <Text style={s.body}>
@@ -56,12 +56,14 @@ export default function Privacy() {
         </Text>
         <Text style={s.sectionTitle}>Comunidad y foto</Text>
         <Text style={s.body}>
-          Participar es opcional y está desactivado inicialmente. Pueden
-          compartir un alias, su foto y, por separado, el aniversario o
-          contadores de retos y niveles. Compartir el aniversario publica la
-          fecha de matrimonio entre las cuentas registradas. Cada integrante
-          tiene un permiso independiente para mostrar su cumpleaños: al
-          autorizarlo se publican su nombre, foto, día y mes, incluidos los
+          Participar es opcional y está desactivado inicialmente. Para publicar
+          deben aceptar las normas. El equipo revisa nombres y fotos públicas
+          antes de aprobar su publicación; los cambios requieren una nueva
+          revisión. Pueden compartir un alias, su foto y, por separado, el
+          aniversario o contadores de retos y niveles. Compartir el aniversario
+          publica la fecha de matrimonio entre las cuentas registradas. Cada
+          integrante tiene un permiso independiente para mostrar su cumpleaños:
+          al autorizarlo se publican su nombre, foto, día y mes, incluidos los
           hijos que decidan compartir. El año de nacimiento, las edades,
           correos, notas y cuestionarios no se publican. Sin ese permiso, las
           fotos individuales quedan en la cuenta familiar. Las fotos se reducen
@@ -69,9 +71,15 @@ export default function Privacy() {
           aunque otras personas podrían conservar lo que ya vieron. El día de su
           aniversario, otras familias participantes con correo verificado pueden
           enviarles una felicitación por familia. Se conserva de forma privada
-          para la pareja y su remitente, asociada al aniversario de ese año. Al
-          eliminar una cuenta se eliminan también las felicitaciones enviadas y
-          recibidas y sus copias en las bandejas de la app.
+          para la pareja y su remitente, asociada al aniversario de ese año.
+          Pueden reportar perfiles o felicitaciones y bloquear familias desde
+          Comunidad y sus recuerdos. Los bloqueos impiden nuevas felicitaciones
+          entre ambas cuentas. El equipo autorizado recibe una copia del
+          contenido reportado y el motivo; puede retirarlo o suspender la
+          participación. No mostramos la identidad del reportante a la familia
+          reportada. Al eliminar una cuenta se eliminan también las
+          felicitaciones enviadas y recibidas y sus copias en las bandejas de la
+          app.
         </Text>
         <Text style={s.sectionTitle}>Correos opcionales</Text>
         <Text style={s.body}>
@@ -93,13 +101,20 @@ export default function Privacy() {
           de ambos y se oculta la familia. Sus datos y fotos quedan privados
           para que el propietario pueda restablecerla desde Administración. Tras
           la recuperación, la familia decide si vuelve a participar en
-          Comunidad. La eliminación total la realiza el propietario desde
-          Administración, con confirmación y auditoría: borra la cuenta, sus
-          fotos y datos sin recuperación. Las cuentas administrativas y la
-          propietaria quedan protegidas durante un reinicio de familias. Se
-          conservan registros técnicos mínimos para impedir que sesiones
-          antiguas vuelvan a crear datos. Ambas acciones necesitan conexión e
-          inicio de sesión reciente.
+          Comunidad. También pueden elegir «Eliminar cuenta y datos» en Nosotros
+          → Cuenta y acceso, confirmar la contraseña y escribir ELIMINAR MI
+          CUENTA. El borrado definitivo elimina el acceso de ambos, sus fotos,
+          notas, respuestas, progreso, mensajes y felicitaciones enviadas o
+          recibidas. No puede restablecerse. Si se interrumpe la limpieza, el
+          servicio la continúa automáticamente. La cuenta propietaria debe
+          transferir la propiedad a otro administrador activo y verificado antes
+          de eliminarse expresamente. El propietario también puede realizar
+          borrados administrativos; los reinicios siempre protegen su cuenta y
+          las de administradores. Se conservan únicamente identificadores y
+          registros técnicos mínimos para completar y auditar el proceso e
+          impedir que sesiones antiguas recreen datos. No podemos retirar copias
+          de correos o imágenes que otras personas hayan guardado fuera de la
+          app. Ambas acciones necesitan conexión e inicio de sesión reciente.
         </Text>
         <Text style={s.sectionTitle}>El bienestar va primero</Text>
         <Text style={s.body}>

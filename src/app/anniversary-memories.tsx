@@ -1,3 +1,4 @@
+import { CommunitySafetyActions } from "../components/CommunitySafety";
 import { useEffect, useState } from "react";
 import { Text } from "react-native";
 import { router } from "expo-router";
@@ -24,6 +25,8 @@ import {
   colors,
 } from "../components/ui";
 interface Greeting {
+  senderUid: string;
+  moderationRemoved?: boolean;
   id: string;
   anniversaryDate: string;
   years: number;
@@ -31,7 +34,7 @@ interface Greeting {
   body: string;
 }
 export default function AnniversaryMemories() {
-  const { uid, demo } = useApp();
+  const { uid, demo, communityBlocks, communitySafetyReady } = useApp();
   const [messages, setMessages] = useState<Greeting[]>([]),
     [cursor, setCursor] = useState<QueryDocumentSnapshot>(),
     [more, setMore] = useState(false),
@@ -71,6 +74,11 @@ export default function AnniversaryMemories() {
   useEffect(() => {
     void Promise.resolve().then(() => load());
   }, [uid, demo]); // eslint-disable-line react-hooks/exhaustive-deps
+  const safeMessages = messages.filter(
+    (m) =>
+      communitySafetyReady &&
+      !communityBlocks.some((b) => b.uid === m.senderUid),
+  );
   return (
     <Screen>
       <Button
@@ -87,7 +95,7 @@ export default function AnniversaryMemories() {
         <Notice text="Demostración · las felicitaciones reales aparecerán aquí al recibirlas. No se envían mensajes desde esta prueba." />
       )}
       {!!error && <Notice error text={error} />}
-      {!busy && !messages.length && (
+      {!busy && !safeMessages.length && (
         <Card style={{ backgroundColor: colors.champagne }}>
           <Text style={s.sectionTitle}>
             Aquí guardaremos sus felicitaciones
@@ -99,10 +107,10 @@ export default function AnniversaryMemories() {
           </Text>
         </Card>
       )}
-      {messages.map((message, index) => (
+      {safeMessages.map((message, index) => (
         <Card key={message.id}>
           {(index === 0 ||
-            messages[index - 1].anniversaryDate !==
+            safeMessages[index - 1].anniversaryDate !==
               message.anniversaryDate) && (
             <>
               <Text style={s.eyebrow}>
@@ -119,6 +127,13 @@ export default function AnniversaryMemories() {
             {message.senderAlias}
           </Text>
           <Text style={s.body}>{message.body}</Text>
+          <CommunitySafetyActions
+            targetUid={message.senderUid}
+            label={message.senderAlias}
+            targetType="greeting"
+            targetId={message.id}
+            onChanged={() => load()}
+          />
         </Card>
       ))}
       {more && (

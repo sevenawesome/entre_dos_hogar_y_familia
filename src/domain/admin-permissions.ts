@@ -6,6 +6,7 @@ export const adminPermissions = [
   "content.manage",
   "settings.manage",
   "roles.manage",
+  "community.moderate",
 ] as const;
 export type AdminPermission = (typeof adminPermissions)[number];
 export const permissionLabels: Record<AdminPermission, string> = {
@@ -16,6 +17,8 @@ export const permissionLabels: Record<AdminPermission, string> = {
   "content.manage": "Gestionar niveles y catálogo de bodas",
   "settings.manage": "Configurar la aplicación y los correos",
   "roles.manage": "Gestionar permisos de otros administradores",
+  "community.moderate":
+    "Revisar perfiles, reportes y suspensiones de Comunidad",
 };
 export interface RolePermissions {
   role?: unknown;
@@ -27,7 +30,8 @@ export function effectivePermissions(
   if (account.role === "owner") return [...adminPermissions];
   if (account.role !== "admin") return [];
   // Preserve existing grants until the owner explicitly edits them.
-  if (account.permissions === undefined) return [...adminPermissions];
+  if (account.permissions === undefined)
+    return adminPermissions.filter((p) => p !== "community.moderate");
   return Array.isArray(account.permissions)
     ? adminPermissions.filter((p) =>
         (account.permissions as unknown[]).includes(p),

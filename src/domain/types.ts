@@ -120,6 +120,7 @@ export interface FamilySummary {
   startedAt?: unknown;
 }
 export interface CommunityProfile {
+  moderationStatus?: import("./community-safety").ModerationStatus;
   uid: string;
   alias: string;
   visible: boolean;
@@ -134,6 +135,7 @@ export interface CommunityProfile {
   updatedAt?: unknown;
 }
 export interface FamilyMessage {
+  moderationRemoved?: boolean;
   id: string;
   title: string;
   body: string;

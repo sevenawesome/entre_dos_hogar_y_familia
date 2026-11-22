@@ -29,6 +29,7 @@ import {
   presentInbox,
   presentLevelNews,
   disableDevice,
+  clearAccountNotifications,
 } from "../services/notifications";
 import { AppState } from "react-native";
 import { syncPublicProfile } from "../services/spark";
@@ -49,6 +50,8 @@ function AppLayout() {
     settings,
     controls,
     inbox,
+    communitySafetyReady,
+    communityBlocks,
     catalogReady,
     progressReady,
     journey,
@@ -62,6 +65,14 @@ function AppLayout() {
   const [familyLoaded, setFamilyLoaded] = useState(false);
   const [pendingChallengeTap, setPendingChallengeTap] = useState(false);
   const segments = useSegments();
+  useEffect(() => {
+    if (!uid || demo || !db) return;
+    return onSnapshot(doc(db, "accountDeletion", uid), snap => {
+      if (snap.exists() && auth?.currentUser?.uid === uid) {
+        void clearAccountNotifications(uid).catch(() => {}).then(() => signOut(auth!)).catch(() => {});
+      }
+    });
+  }, [uid, demo]);
   useEffect(() => {
     if (!uid || demo || !db) return;
     return onSnapshot(doc(db, "accountSuspensions", uid), (snap) => {
@@ -267,8 +278,8 @@ function AppLayout() {
     if (uid && !demo && hasFamily) refreshDevice().catch(() => {});
   }, [uid, demo, hasFamily, reminderKey]);
   useEffect(() => {
-    if (uid && !demo) presentInbox(inbox).catch(() => {});
-  }, [uid, demo, inbox]);
+    if (uid && !demo && communitySafetyReady) presentInbox(inbox).catch(() => {});
+  }, [uid, demo, inbox, communitySafetyReady, communityBlocks]);
   const levelNewsKey = JSON.stringify({
     ids: levels.map((l) => l.id),
     levelNewsRead,

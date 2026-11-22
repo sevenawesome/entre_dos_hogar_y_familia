@@ -4,6 +4,11 @@ import { accountsHeaders } from "./account-admin";
 import type { Env } from "./google";
 import { MemberError, requireMember } from "./member-auth";
 import { verifyFirebaseToken } from "./firebase-token";
+import {
+  COMMUNITY_TERMS_VERSION,
+  acceptableCommunityText,
+} from "../../src/domain/community-safety";
+import { communityRelation, relationBlocked } from "./moderation";
 const uid = (v: unknown): v is string =>
   typeof v === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(v);
 export async function greetingId(
@@ -37,22 +42,55 @@ export async function sendAnniversaryGreeting(
       "Escribe una felicitación de hasta 1000 caracteres.",
     );
   const recipient = input.recipientUid;
-  const [from, to, deleted, sourceFamily, targetFamily] = await Promise.all([
-    repo.get(`community/${sender}`, ["visible", "alias"]),
-    repo.get(`community/${recipient}`, [
-      "visible",
-      "shareAnniversary",
-      "marriageDate",
-      "timezone",
-    ]),
+  if (!acceptableCommunityText(body))
+    throw new MemberError(
+      400,
+      "La felicitación contiene texto o enlaces no permitidos. Escríbanla con respeto y sin publicidad.",
+    );
+  const [relation, fromApproval, toApproval, consent] = await Promise.all([
+    communityRelation(repo, sender, recipient),
+    repo.get(`communityApprovals/${sender}`),
+    repo.get(`communityApprovals/${recipient}`),
+    repo.get(`communityConsents/${sender}`),
+  ]);
+  if (relationBlocked(relation))
+    throw new MemberError(
+      403,
+      "No se pueden enviar felicitaciones entre estas familias.",
+    );
+  if (
+    fromApproval?.data.state !== "approved" ||
+    toApproval?.data.state !== "approved" ||
+    consent?.data.version !== COMMUNITY_TERMS_VERSION
+  )
+    throw new MemberError(
+      403,
+      "Ambas familias deben tener un perfil aprobado y aceptar las normas de Comunidad.",
+    );
+  const [
+    from,
+    to,
+    deleted,
+    sourceFamily,
+    targetFamily,
+    senderDeleted,
+    senderSuspended,
+  ] = await Promise.all([
+    repo.get(`community/${sender}`),
+    repo.get(`community/${recipient}`),
     repo.get(`accountDeletion/${recipient}`, ["requestedAt"]),
     repo.get(`families/${sender}`, ["name"]),
     repo.get(`families/${recipient}`, ["name"]),
+    repo.get(`accountDeletion/${sender}`, ["requestedAt"]),
+    repo.get(`accountSuspensions/${sender}`, ["state"]),
   ]);
   if (
     !from?.data.visible ||
+    from.data.moderationStatus !== "approved" ||
     typeof from.data.alias !== "string" ||
-    !sourceFamily
+    !sourceFamily ||
+    senderDeleted ||
+    senderSuspended
   )
     throw new MemberError(
       403,
@@ -60,6 +98,7 @@ export async function sendAnniversaryGreeting(
     );
   if (
     !to?.data.visible ||
+    to.data.moderationStatus !== "approved" ||
     !to.data.shareAnniversary ||
     deleted ||
     !!(await repo.get(`accountSuspensions/${recipient}`)) ||
@@ -93,6 +132,19 @@ export async function sendAnniversaryGreeting(
     createdAt: now,
   };
   const saved = await repo.commit([
+    relation,
+    { path: from.path, version: from.version, data: from.data },
+    { path: to.path, version: to.version, data: to.data },
+    {
+      path: fromApproval.path,
+      version: fromApproval.version,
+      data: fromApproval.data,
+    },
+    {
+      path: toApproval.path,
+      version: toApproval.version,
+      data: toApproval.data,
+    },
     { path, version: null, data },
     {
       path: `families/${recipient}/inbox/anniversary-${id}`,

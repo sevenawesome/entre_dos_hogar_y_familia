@@ -128,6 +128,7 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={title}
       accessibilityState={{ disabled: !!disabled || !!busy }}
       disabled={disabled || busy}
       onPress={onPress}
@@ -135,7 +136,7 @@ export function Button({
         s.button,
         secondary && s.secondary,
         tone === "love" && !secondary && { backgroundColor: colors.love },
-        danger && { backgroundColor: "#A52D3D" },
+        danger && { backgroundColor: secondary ? "#FBE8E1" : "#A52D3D" },
         (disabled || busy) && { opacity: 0.45 },
         pressed && { opacity: 0.8 },
       ]}
@@ -148,10 +149,15 @@ export function Button({
             <Ionicons
               name={icon}
               size={19}
-              color={secondary ? colors.ink : "#fff"}
+              color={secondary ? (danger ? "#9E2438" : colors.ink) : "#fff"}
             />
           )}
-          <Text style={[s.buttonText, secondary && { color: colors.ink }]}>
+          <Text
+            style={[
+              s.buttonText,
+              secondary && { color: danger ? "#9E2438" : colors.ink },
+            ]}
+          >
             {title}
           </Text>
           {!secondary && (

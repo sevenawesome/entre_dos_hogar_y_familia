@@ -53,6 +53,10 @@ interface State {
   permissions: AdminPermission[];
   avatar: string | null;
   communityProfile: CommunityProfile | null;
+  communityTermsAccepted: boolean;
+  communityReview: { state: string; note: string } | null;
+  communityBlocks: { uid: string; label: string }[];
+  communitySafetyReady: boolean;
   inbox: FamilyMessage[];
   portraits: FamilyPortraits;
   journey: JourneyStart | null;
@@ -83,6 +87,10 @@ const initialState: State = {
   permissions: [],
   avatar: null,
   communityProfile: null,
+  communityTermsAccepted: false,
+  communityReview: null,
+  communityBlocks: [],
+  communitySafetyReady: false,
   inbox: [],
   portraits: {},
   journey: null,
@@ -126,6 +134,10 @@ const slice = createSlice({
       state.permissions = [];
       state.avatar = null;
       state.communityProfile = null;
+      state.communityTermsAccepted = false;
+      state.communityReview = null;
+      state.communityBlocks = [];
+      state.communitySafetyReady = !!action.payload.demo;
       state.inbox = [];
       state.portraits = {};
       state.journey = null;
@@ -178,6 +190,9 @@ const slice = createSlice({
     communityProfile(state, action: PayloadAction<CommunityProfile | null>) {
       state.communityProfile = action.payload;
     },
+    communityTermsAccepted(state, action: PayloadAction<boolean>) { state.communityTermsAccepted = action.payload; },
+    communityReview(state, action: PayloadAction<{ state: string; note: string } | null>) { state.communityReview = action.payload; },
+    communityBlocks(state, action: PayloadAction<{ uid: string; label: string }[]>) { state.communityBlocks = action.payload; state.communitySafetyReady = true; },
     inbox(state, action: PayloadAction<FamilyMessage[]>) {
       state.inbox = action.payload;
     },

@@ -10,10 +10,12 @@ import {
 import { Avatar } from "./Avatar";
 import { Card, Button, Field, Notice, s, colors } from "./ui";
 import { friendlyError } from "../services/api";
+import { communityRules } from "../domain/community-safety";
 export function ProfileSharing() {
-  const { uid, family, demo, avatar, communityProfile, progress, portraits } =
+  const { uid, family, demo, avatar, communityProfile, progress, portraits, communityTermsAccepted, communityReview } =
     useApp();
   const initial = communityProfile ?? communityDraft(uid!, family!);
+  const [accepted, setAccepted] = useState(communityTermsAccepted);
   const [alias, setAlias] = useState(initial.alias),
     [visible, setVisible] = useState(initial.visible),
     [shareAnniversary, setAnniversary] = useState(initial.shareAnniversary),
@@ -46,11 +48,12 @@ export function ProfileSharing() {
         await saveFamilySharing(
           { alias, visible, shareAnniversary, shareProgress },
           photo,
+          accepted || communityTermsAccepted,
         );
       }
       setMessage(
         visible
-          ? "Guardamos su perfil y lo que eligieron compartir."
+          ? "Perfil guardado. El equipo revisará los nombres y fotos antes de publicarlos en Comunidad."
           : "Perfil guardado. Su familia permanece fuera de la comunidad.",
       );
     } catch (e) {
@@ -115,6 +118,15 @@ export function ProfileSharing() {
         quienes aparecen.
       </Text>
       {toggle("Participar en la comunidad", visible, setVisible)}
+      {visible && <>
+        <Notice text={communityProfile?.moderationStatus === "approved" ? "Perfil aprobado. Los cambios de nombre o fotos requieren otra revisión antes de publicarse." : "Su perfil público está pendiente de revisión. Sus fotos privadas siguen disponibles en Nosotros."} />
+        {!!communityReview?.note && <Notice text={`Revisión del equipo: ${communityReview.note}`} />}
+        {communityReview?.state === "suspended" && <Notice error text="Su participación está suspendida. Contacten al equipo para solicitar una revisión." />}
+        {!communityTermsAccepted && <>
+          {communityRules.map(rule => <Text key={rule} style={s.small}>• {rule}</Text>)}
+          {toggle("Aceptamos las normas de Comunidad y tenemos autorización para compartir estas fotos y nombres", accepted, setAccepted)}
+        </>}
+      </>}
       {visible && (
         <View
           style={{
@@ -155,6 +167,7 @@ export function ProfileSharing() {
       <Button
         title="Guardar privacidad y perfil"
         busy={busy}
+        disabled={visible && !accepted && !communityTermsAccepted}
         onPress={() => save()}
       />
     </Card>

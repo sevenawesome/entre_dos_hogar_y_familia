@@ -46,7 +46,7 @@ test("explicit empty grants do not become legacy full access and content-only ad
     ),
     true,
   );
-  assert.deepEqual(effectivePermissions({ role: "admin" }), adminPermissions);
+  assert.deepEqual(effectivePermissions({ role: "admin" }), adminPermissions.filter(p => p !== "community.moderate"));
 });
 test("dependent permissions visibly include family access and reject unknown permissions", () => {
   assert.deepEqual(normalizePermissions(["messages.send"]), [

@@ -1,5 +1,6 @@
 import { hasPermission } from "../../domain/admin-permissions";
 import { AdminPermissionsEditor } from "../../components/AdminPermissionsEditor";
+import { AdminModeration } from "../../components/AdminModeration";
 import { AdminConfiguration } from "../../components/AdminConfiguration";
 import { AdminAccountManagement } from "../../components/AdminAccountManagement";
 import { AdminDeliveryCenter } from "../../components/AdminDeliveryCenter";
@@ -165,6 +166,7 @@ export default function Administration() {
     >
       {!!error && <Notice error text={error} />}
       {section === "accounts" && <AdminAccountManagement />}
+      {section === "moderation" && <AdminModeration />}
       {section === "roles" && canRoles && <AdminPermissionsEditor />}
       {section === "notifications" && (
         <AdminDeliveryCenter key="notifications" />

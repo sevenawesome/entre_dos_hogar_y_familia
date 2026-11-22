@@ -83,7 +83,7 @@ export async function suspendOwnAccount(
   uid: string,
   now = new Date(),
 ) {
-  const role = await repo.get(`roles/${uid}`, ["role"]);
+  const role = await repo.get(`roles/${uid}`);
   if (role?.data.role === "owner")
     throw new MemberError(
       403,
@@ -94,9 +94,23 @@ export async function suspendOwnAccount(
   const path = `accountSuspensions/${uid}`,
     old = await repo.get(path);
   if (!old) {
-    const profile = await repo.get(`community/${uid}`, ["visible"]);
+    const profile = await repo.get(`community/${uid}`);
     if (
       !(await repo.commit([
+        ...(profile
+          ? [
+              {
+                path: profile.path,
+                version: profile.version,
+                data: profile.data,
+              },
+            ]
+          : []),
+        {
+          path: `roles/${uid}`,
+          version: role?.version ?? null,
+          data: role?.data ?? { role: "member" },
+        },
         {
           path,
           version: null,
@@ -197,6 +211,7 @@ export async function suspensionCycle(
       )
     )[0];
   if (retry) await finishSuspension(repo, retry.path.split("/").at(-1)!, now);
+  return !!retry;
 }
 export async function selfAccountStateRequest(
   request: Request,

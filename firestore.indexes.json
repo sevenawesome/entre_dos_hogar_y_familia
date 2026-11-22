@@ -55,6 +55,38 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "community",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "visible",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "moderationStatus",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "uid",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "selfDeletionJobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "state",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "updatedAt",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [
@@ -102,6 +134,31 @@
       "collectionGroup": "emailQueue",
       "fieldPath": "attachments",
       "indexes": []
+    },
+    {
+      "collectionGroup": "communityReports",
+      "fieldPath": "snapshot",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "communityApprovals",
+      "fieldPath": "avatar",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "communityApprovals",
+      "fieldPath": "people",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "inbox",
+      "fieldPath": "senderUid",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
     }
   ]
 }

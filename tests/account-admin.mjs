@@ -459,6 +459,7 @@ test("large subcollections are purged in bounded pages without skipping records"
   const p = await queued(r);
   assert.equal((await stepDeletionJob(r, p.job.id, now)).processed, 0);
   assert.equal((await stepDeletionJob(r, p.job.id, now)).processed, 0);
+  assert.equal((await stepDeletionJob(r, p.job.id, now)).processed, 0);
   assert.equal((await stepDeletionJob(r, p.job.id, now)).state, "complete");
   assert.equal(
     [...r.docs.keys()].filter((x) => x.startsWith("families/a/progress/"))

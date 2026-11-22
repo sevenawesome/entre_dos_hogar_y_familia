@@ -2,6 +2,7 @@ import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { DevicePreferences, FamilyMessage } from "../domain/types";
 import { store } from "../store";
+import { clearTemporaryPhotoCache } from "./photo-cache";
 import { localReminderPlan } from "../domain/local-reminders";
 import { getJourney } from "../domain/journey";
 import { journeyStarted, journeyAvailableAt } from "../domain/journey-timing";
@@ -156,6 +157,45 @@ export async function disableDevice() {
   const p = await loadPreferences();
   await registerDevice({ ...p, enabled: false });
 }
+export async function clearAccountNotifications(uid: string) {
+  await AsyncStorage.setItem(
+    `@entre-dos/reminders-${uid}`,
+    JSON.stringify({ enabled: false, hour: 20, minute: 0, timezone: "UTC" }),
+  );
+  // Wait for work already queued by this session before clearing its local data.
+  await Promise.allSettled([pending, inboxPending, newsPending]);
+  if (store.getState().app.uid && store.getState().app.uid !== uid) return;
+  const n = await notifications();
+  if (n) {
+    await Promise.allSettled([
+      n.cancelAllScheduledNotificationsAsync(), n.dismissAllNotificationsAsync(), n.clearLastNotificationResponseAsync(),
+    ]);
+  }
+  await clearTemporaryPhotoCache().catch(() => {});
+  const keys = await AsyncStorage.getAllKeys();
+  const own = keys.filter(
+    (key) =>
+      key === `@entre-dos/reminders-${uid}` ||
+      ["messages-notified", "level-news-notified", "verification-sent"].some(
+        (kind) => key === `@entre-dos/${kind}/${uid}`,
+      ) ||
+      key.startsWith(`@entre-dos/anniversary-notified/${uid}/`) ||
+      key.startsWith(`@entre-dos/broadcast/${uid}/`),
+  );
+  if (own.length) await AsyncStorage.multiRemove(own);
+}
+export async function dismissBlockedCommunityNotifications(
+  uid: string,
+  senderUid: string,
+) {
+  if (store.getState().app.uid !== uid) return;
+  const n = await notifications();
+  if (!n) return;
+  const displayed = await n.getPresentedNotificationsAsync();
+  for (const item of displayed)
+    if (item.request.content.data?.senderUid === senderUid)
+      await n.dismissNotificationAsync(item.request.identifier);
+}
 let inboxPending = Promise.resolve();
 export function presentInbox(messages: FamilyMessage[]) {
   const uid = store.getState().app.uid;
@@ -195,6 +235,14 @@ async function showInbox(messages: FamilyMessage[]) {
   } catch {}
   if ((await n.getPermissionsAsync()).status !== "granted") return;
   for (const message of [...messages].reverse()) {
+    const current = store.getState().app;
+    if (
+      !current.communitySafetyReady ||
+      message.moderationRemoved ||
+      (message.kind === "anniversaryGreeting" &&
+        current.communityBlocks.some((b) => b.uid === message.senderUid))
+    )
+      continue;
     if (seen.includes(message.id) || !message.createdAt) continue;
     if (store.getState().app.uid !== state.uid) return;
     const age = Date.now() - Date.parse(String(message.createdAt));
@@ -204,6 +252,7 @@ async function showInbox(messages: FamilyMessage[]) {
           title: message.title,
           body: message.body,
           data: {
+            senderUid: message.senderUid,
             screen:
               message.kind === "anniversaryGreeting"
                 ? "anniversary-memories"

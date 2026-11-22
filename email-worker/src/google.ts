@@ -32,6 +32,8 @@ export interface Repository {
     filters: Filter[],
     limit: number,
     mask?: string[],
+    orderBy?: string,
+    allDescendants?: boolean,
   ): Promise<Document<T>[]>;
   commit(writes: Write[]): Promise<boolean>;
   account(
@@ -189,6 +191,8 @@ export async function googleRepository(
       filters: Filter[],
       limit: number,
       mask?: string[],
+      orderBy?: string,
+      allDescendants = false,
     ) {
       const fieldFilters = filters.map((f) => ({
         fieldFilter: {
@@ -201,8 +205,9 @@ export async function googleRepository(
         collectionId = split.pop()!,
         parent = split.length ? `/${split.join("/")}` : "";
       const structuredQuery = {
-        from: [{ collectionId }],
+        from: [{ collectionId, ...(allDescendants ? { allDescendants: true } : {}) }],
         limit,
+        ...(orderBy ? { orderBy: [{ field: { fieldPath: orderBy }, direction: "ASCENDING" }] } : {}),
         ...(mask
           ? { select: { fields: mask.map((fieldPath) => ({ fieldPath })) } }
           : {}),

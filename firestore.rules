@@ -6,9 +6,10 @@ service cloud.firestore {
   function deleting(uid) { return exists(/databases/$(database)/documents/accountDeletion/$(uid)); }
   function active(uid) { return self(uid) && !deleting(uid); }
   function admin() { return signed() && !deleting(request.auth.uid) && get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.role in ['owner','admin']; }
-  function allPermissions() { return ['families.view','families.edit','messages.send','emails.send','content.manage','settings.manage','roles.manage']; }
+  function legacyPermissions() { return ['families.view','families.edit','messages.send','emails.send','content.manage','settings.manage','roles.manage']; }
+  function allPermissions() { return legacyPermissions().concat(['community.moderate']); }
   function owner() { return admin() && get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.role=='owner'; }
-  function can(p) { return admin() && (owner() || p in get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.get('permissions',allPermissions())); }
+  function can(p) { return admin() && (owner() || p in get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.get('permissions',legacyPermissions())); }
   function auditAllowed(action) { return (action=='role.update' && can('roles.manage')) || (action=='message.send' && can('messages.send')) || (action in ['email.send','email.preferences.update'] && can('emails.send')) || (action in ['family.profile.update','family.reminders.update'] && can('families.edit')) || (action in ['level.save','catalog.seed'] && can('content.manage')) || (action in ['app.settings.update','branding.settings.update','email.pause','email.settings.update'] && can('settings.manage')); }
   function text(v,n) { return v is string && v.size() > 0 && v.size() <= n; }
   function date(d,k) { let value=d.get(k,null); return value==null || (value is string && value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')); }
@@ -146,6 +147,7 @@ service cloud.firestore {
     allow delete: if self(uid) && deleting(uid);
    }
    match /devices/{id} { allow read,delete: if self(uid); }
+   match /communityBlocks/{id} { allow read: if self(uid); }
    match /inbox/{id} {
     function deletingGreetingSender() {
      let messageId=id.replace('^anniversary-','');
@@ -230,13 +232,13 @@ service cloud.firestore {
   match /mailRuntime/{id} { allow read: if can('emails.send') || can('settings.manage'); }
   match /roles/{uid} {
    allow read: if self(uid) || can('roles.manage');
-   allow create,update: if can('roles.manage') && uid!=request.auth.uid && !deleting(uid) && exists(/databases/$(database)/documents/tracking/$(uid))
+   allow create,update: if can('roles.manage') && uid!=request.auth.uid && !deleting(uid) && !exists(/databases/$(database)/documents/accountSuspensions/$(uid)) && exists(/databases/$(database)/documents/tracking/$(uid))
     && (!exists(/databases/$(database)/documents/roles/$(uid)) || resource.data.role!='owner')
     && request.resource.data.keys().hasOnly(['role','permissions','updatedAt','updatedBy','auditId']) && request.resource.data.role in ['admin','member']
-    && request.resource.data.keys().hasAll(['permissions']) && request.resource.data.get('permissions',[]) is list && request.resource.data.get('permissions',[]).size()<=7 && request.resource.data.get('permissions',[]).hasOnly(allPermissions())
+    && request.resource.data.keys().hasAll(['permissions']) && request.resource.data.get('permissions',[]) is list && request.resource.data.get('permissions',[]).size()<=8 && request.resource.data.get('permissions',[]).hasOnly(allPermissions())
     && (request.resource.data.role=='admin' || request.resource.data.get('permissions',[]).size()==0)
     && (!request.resource.data.get('permissions',[]).hasAny(['families.edit','messages.send','emails.send','roles.manage']) || 'families.view' in request.resource.data.permissions)
-    && (owner() || (request.resource.data.get('permissions',[]).hasOnly(get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.get('permissions',allPermissions())) && (resource==null || resource.data.role=='member' || resource.data.get('permissions',allPermissions()).hasOnly(get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.get('permissions',allPermissions())))))
+    && (owner() || (request.resource.data.get('permissions',[]).hasOnly(get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.get('permissions',legacyPermissions())) && (resource==null || resource.data.role=='member' || resource.data.get('permissions',legacyPermissions()).hasOnly(get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.get('permissions',legacyPermissions())))))
     && request.resource.data.updatedAt==request.time && request.resource.data.updatedBy==request.auth.uid && audited(request.resource.data,'role.update',uid);
    allow delete: if self(uid) && deleting(uid) && resource.data.role!='owner';
   }
@@ -249,11 +251,29 @@ service cloud.firestore {
    allow read: if self(resource.data.recipientUid) || self(resource.data.senderUid);
    allow delete: if (self(resource.data.recipientUid) && deleting(resource.data.recipientUid)) || (self(resource.data.senderUid) && deleting(resource.data.senderUid));
   }
+  function communityBlocked(a,b) {
+   let p=/databases/$(database)/documents/families/$(a)/communityBlocks/$(b);
+   let q=/databases/$(database)/documents/families/$(b)/communityBlocks/$(a);
+   return (exists(p) && get(p).data.blocked) || (exists(q) && get(q).data.blocked);
+  }
+  function approvedCommunity(uid,d) {
+   let p=get(/databases/$(database)/documents/communityApprovals/$(uid)).data;
+   return p.state=='approved' && p.alias==d.alias && p.avatar==d.avatar && p.people==d.get('people',[])
+    && get(/databases/$(database)/documents/communityConsents/$(uid)).data.version==1;
+  }
+  match /communityConsents/{uid} {
+   allow read: if self(uid) || can('community.moderate');
+   allow create,update: if active(uid) && request.resource.data.keys().hasOnly(['version','acceptedAt']) && request.resource.data.version==1 && request.resource.data.acceptedAt==request.time;
+  }
+  match /communityApprovals/{uid} { allow read: if self(uid) || can('community.moderate'); }
   match /community/{uid} {
-   allow read: if self(uid) || (signed() && resource.data.visible==true);
+   allow get: if self(uid) || can('community.moderate') || (signed() && !deleting(uid) && !exists(/databases/$(database)/documents/accountSuspensions/$(uid)) && resource.data.visible==true && resource.data.get('moderationStatus','pending')=='approved' && !communityBlocked(request.auth.uid,uid));
+   allow list: if false;
    allow create,update: if active(uid)
-    && request.resource.data.keys().hasOnly(['uid','alias','visible','shareAnniversary','shareProgress','marriageDate','timezone','completedCount','finishedCount','avatar','updatedAt','people'])
+    && request.resource.data.keys().hasOnly(['uid','alias','visible','shareAnniversary','shareProgress','marriageDate','timezone','completedCount','finishedCount','avatar','updatedAt','people','moderationStatus'])
     && request.resource.data.uid==uid && text(request.resource.data.alias,60)
+    && request.resource.data.get('moderationStatus','pending') in ['private','pending','approved']
+    && (request.resource.data.get('moderationStatus','pending')!='approved' || approvedCommunity(uid,request.resource.data))
     && request.resource.data.get('people',[]) is list && request.resource.data.get('people',[]).size()<=12
     && (request.resource.data.visible || request.resource.data.get('people',[]).size()==0)
     && (request.resource.data.get('people',[]).size()==0 || request.resource.data.people==getAfter(/databases/$(database)/documents/portraits/$(uid)).data.publicPeople)
@@ -310,9 +330,7 @@ service cloud.firestore {
   match /catalogs/anniversaries { allow read: if signed(); allow create: if can('content.manage') && audited(request.resource.data,'catalog.seed','catalogs/anniversaries') && request.resource.data.milestones is list && request.resource.data.milestones.size()<=100; }
   match /accountDeletion/{uid} {
    allow read: if self(uid);
-   allow create: if self(uid) && request.auth.token.auth_time*1000>request.time.toMillis()-300000
-    && (!exists(/databases/$(database)/documents/roles/$(uid)) || get(/databases/$(database)/documents/roles/$(uid)).data.role!='owner')
-    && request.resource.data.keys().hasOnly(['requestedAt']) && request.resource.data.requestedAt==request.time;
+   allow create: if false;
   }
   match /accountSuspensions/{uid} {
    allow read: if (request.auth!=null && request.auth.uid==uid) || owner();

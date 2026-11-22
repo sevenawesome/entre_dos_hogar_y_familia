@@ -4,6 +4,23 @@ import { communityRequest } from "./community";
 import { brandedEmail } from "./email-brand";
 import { authEmailRequest } from "./auth-email";
 import { selfAccountStateRequest, suspensionCycle } from "./account-state";
+import { selfDeletionRequest, ownDeletionCycle } from "./account-delete";
+import { moderationRequest } from "./moderation";
+export {
+  selfDeletionRequest,
+  requestOwnDeletion,
+  stepOwnDeletion,
+  ownDeletionCycle,
+} from "./account-delete";
+export {
+  moderationRequest,
+  listSafeCommunity,
+  setCommunityBlock,
+  reportCommunityContent,
+  moderateCommunityProfile,
+  resolveCommunityReport,
+  communityRelation,
+} from "./moderation";
 import { validateAttachments } from "../../src/domain/attachments";
 export {
   suspendOwnAccount,
@@ -796,11 +813,34 @@ export async function runCycle(
 }
 export default {
   async scheduled(
-    _event: unknown,
+    event: { cron: string },
     env: Env,
     ctx: { waitUntil(p: Promise<unknown>): void },
   ) {
     if (!env.GOOGLE_SERVICE_ACCOUNT) return;
+    // Each invocation stays within Workers Free's 50 external subrequests.
+    // Cleanup runs separately from mail; handle at most one bounded cleanup page.
+    if (event.cron === "5-59/10 * * * *") {
+      ctx.waitUntil(
+        accountsRepository(env)
+          .then(async (repo) => {
+            const tasks = [
+              () => ownDeletionCycle(repo),
+              () => deletionCycle(repo, env),
+              () => suspensionCycle(repo),
+            ];
+            const start = Math.floor(Date.now() / 600000) % tasks.length;
+            for (let i = 0; i < tasks.length; i++)
+              if (await tasks[(start + i) % tasks.length]()) break;
+          })
+          .catch(() =>
+            console.error(
+              "Account cleanup needs attention. No account data logged.",
+            ),
+          ),
+      );
+      return;
+    }
     ctx.waitUntil(
       googleRepository(env)
         .then((repo) => runCycle(repo, env))
@@ -810,21 +850,39 @@ export default {
           ),
         ),
     );
-    if (env.ADMIN_ACCOUNTS_ENABLED === "true")
-      ctx.waitUntil(
-        accountsRepository(env)
-          .then(async (repo) => {
-            await deletionCycle(repo, env);
-            await suspensionCycle(repo);
-          })
-          .catch(() =>
-            console.error(
-              "Account cleanup needs attention. No account data logged.",
-            ),
-          ),
-      );
   },
   async fetch(request: Request, env: Env) {
+    const communitySafetyPaths = [
+      "/community/profiles",
+      "/community/block",
+      "/community/report",
+      "/community/moderation",
+      "/community/moderation/profile",
+      "/community/moderation/report",
+    ];
+    if (
+      new URL(request.url).pathname === "/account/delete" ||
+      communitySafetyPaths.includes(new URL(request.url).pathname)
+    ) {
+      if (request.method === "OPTIONS")
+        return new Response(null, { status: 204, headers: accountsHeaders });
+      if (!request.headers.get("Authorization"))
+        return Response.json(
+          { error: "Inicia sesión." },
+          { status: 401, headers: accountsHeaders },
+        );
+      try {
+        const repo = await accountsRepository(env);
+        return new URL(request.url).pathname === "/account/delete"
+          ? await selfDeletionRequest(request, env, repo)
+          : await moderationRequest(request, env, repo);
+      } catch {
+        return Response.json(
+          { error: "El servicio no está disponible. Vuelve a intentarlo." },
+          { status: 503, headers: accountsHeaders },
+        );
+      }
+    }
     if (new URL(request.url).pathname === "/account/deactivate") {
       if (request.method === "OPTIONS")
         return new Response(null, { status: 204, headers: accountsHeaders });

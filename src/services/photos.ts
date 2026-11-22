@@ -3,6 +3,7 @@ import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { doc, runTransaction, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { store, actions } from "../store";
+import { removeTemporaryPhotos } from "./photo-cache";
 import {
   publicProjection,
   publicProjectionFromSummary,
@@ -41,28 +42,34 @@ export async function pickPhoto(
   if (result.canceled) return null;
   const asset = result.assets[0],
     edge = Math.min(asset.width, asset.height);
-  const context = ImageManipulator.manipulate(asset.uri);
-  context
-    .crop({
-      originX: Math.round((asset.width - edge) / 2),
-      originY: Math.round((asset.height - edge) / 2),
-      width: edge,
-      height: edge,
-    })
-    .resize({ width: size, height: size });
-  const rendered = await context.renderAsync();
-  for (const compress of [0.65, 0.45, 0.25, 0.15]) {
-    const output = await rendered.saveAsync({
-      format: SaveFormat.JPEG,
-      compress,
-      base64: true,
-    });
-    const data = `data:image/jpeg;base64,${output.base64}`;
-    if (output.base64 && data.length <= maxLength) return data;
+  const temporary = [asset.uri];
+  try {
+    const context = ImageManipulator.manipulate(asset.uri);
+    context
+      .crop({
+        originX: Math.round((asset.width - edge) / 2),
+        originY: Math.round((asset.height - edge) / 2),
+        width: edge,
+        height: edge,
+      })
+      .resize({ width: size, height: size });
+    const rendered = await context.renderAsync();
+    for (const compress of [0.65, 0.45, 0.25, 0.15]) {
+      const output = await rendered.saveAsync({
+        format: SaveFormat.JPEG,
+        compress,
+        base64: true,
+      });
+      temporary.push(output.uri);
+      const data = `data:image/jpeg;base64,${output.base64}`;
+      if (output.base64 && data.length <= maxLength) return data;
+    }
+    throw new Error(
+      "La foto sigue siendo demasiado grande. Elige una imagen más sencilla.",
+    );
+  } finally {
+    await removeTemporaryPhotos(temporary).catch(() => {});
   }
-  throw new Error(
-    "La foto sigue siendo demasiado grande. Elige una imagen más sencilla.",
-  );
 }
 export async function savePersonPortrait(
   key: string,
@@ -153,6 +160,7 @@ export async function saveFamilySharing(
     "alias" | "visible" | "shareAnniversary" | "shareProgress"
   >,
   photo: string | null,
+  acceptedTerms = false,
 ) {
   if (!db || !auth?.currentUser)
     throw new Error("Inicia sesión para guardar el perfil.");
@@ -160,11 +168,14 @@ export async function saveFamilySharing(
     database = db;
   await runTransaction(database, async (tx) => {
     const photoRef = doc(database, "portraits", uid);
-    const [family, summary, portraits] = await Promise.all([
+    const [family, summary, portraits, consent] = await Promise.all([
       tx.get(doc(database, "families", uid)),
       tx.get(doc(database, "tracking", uid)),
       tx.get(photoRef),
+      tx.get(doc(database, "communityConsents", uid)),
     ]);
+    if (input.visible && !acceptedTerms && consent.data()?.version !== 1)
+      throw Error("Acepten las normas de Comunidad antes de participar.");
     if (!family.exists() || !summary.exists())
       throw new Error("Primero registren su familia.");
     const f = family.data() as Family,
@@ -186,6 +197,11 @@ export async function saveFamilySharing(
       },
       people,
     );
+    if (acceptedTerms && consent.data()?.version !== 1)
+      tx.set(doc(database, "communityConsents", uid), {
+        version: 1,
+        acceptedAt: serverTimestamp(),
+      });
     if (photo)
       tx.set(doc(database, "avatars", uid), {
         dataUri: photo,

@@ -1,3 +1,4 @@
+import { cleanAccountPage } from "./account-cleanup";
 import type { AccountsRepository, AuthAccount } from "./accounts-google";
 import { verifyFirebaseToken, type FirebaseClaims } from "./firebase-token";
 import type { Data, Document, Env, Write } from "./google";
@@ -249,9 +250,19 @@ export async function stepDeletionJob(
         const marker = await repo.get(`accountDeletion/${uid}`, [
           "requestedAt",
         ]);
+        const community = !marker ? await repo.get(`community/${uid}`) : null;
         if (
           !marker &&
           !(await repo.commit([
+            ...(community
+              ? [
+                  {
+                    path: community.path,
+                    version: community.version,
+                    data: community.data,
+                  },
+                ]
+              : []),
             {
               path: `accountDeletion/${uid}`,
               version: null,
@@ -271,60 +282,7 @@ export async function stepDeletionJob(
             ]);
         }
         if (!skip) {
-          await repo.deleteAuth(uid); // No Firestore data is removed if Auth deletion is denied.
-          const pages = await Promise.all([
-            ...["progress", "devices", "inbox", "levelNews"].map((c) =>
-              repo.query(`families/${uid}/${c}`, [], 25, ["__name__"]),
-            ),
-            ...["emailQueue", "mailJobs", "mailEvents"].map((c) =>
-              repo.query(c, [{ field: "uid", op: "EQUAL", value: uid }], 25, [
-                "__name__",
-              ]),
-            ),
-            ...["recipientUid", "senderUid"].map((field) =>
-              repo.query(
-                "anniversaryMessages",
-                [{ field, op: "EQUAL", value: uid }],
-                25,
-                ["recipientUid"],
-              ),
-            ),
-          ]);
-          const allLoaded = pages.every((p) => p.length < 25);
-          const paths = [
-            ...new Map(
-              pages
-                .flat()
-                .flatMap((d) => [
-                  { path: d.path },
-                  ...(d.path.startsWith("anniversaryMessages/") &&
-                  typeof d.data.recipientUid === "string"
-                    ? [
-                        {
-                          path: `families/${d.data.recipientUid}/inbox/anniversary-${d.path.split("/").at(-1)}`,
-                        },
-                      ]
-                    : []),
-                ])
-                .map((p) => [p.path, p]),
-            ).values(),
-          ];
-          if (allLoaded)
-            for (const root of [
-              "community",
-              "avatars",
-              "portraits",
-              "journeys",
-              "tracking",
-              "familyControls",
-              "emailPreferences",
-              "families",
-              "roles",
-              "accountSuspensions",
-            ])
-              paths.push({ path: `${root}/${uid}` });
-          if (!(await repo.removeDocuments(paths)))
-            throw Error("La limpieza necesita otro intento.");
+          const allLoaded = await cleanAccountPage(repo, uid);
           if (!allLoaded) {
             await repo.commit([
               {
@@ -388,7 +346,7 @@ export async function deletionCycle(
   env: Env,
   now = new Date(),
 ) {
-  if (env.ADMIN_ACCOUNTS_ENABLED !== "true") return;
+  if (env.ADMIN_ACCOUNTS_ENABLED !== "true") return false;
   const jobs = await repo.query<DeletionJob>(
     "adminDeletionJobs",
     [{ field: "state", op: "EQUAL", value: "queued" }],
@@ -396,6 +354,7 @@ export async function deletionCycle(
   );
   if (jobs[0])
     await stepDeletionJob(repo, jobs[0].path.split("/").at(-1)!, now);
+  return !!jobs[0];
 }
 export async function handleAccountsRequest(
   request: Request,

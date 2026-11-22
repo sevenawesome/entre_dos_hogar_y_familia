@@ -1,3 +1,4 @@
+import { CommunitySafetyActions } from "../components/CommunitySafety";
 import { useState } from "react";
 import { SectionTabs } from "../components/SectionTabs";
 import { DeliveryPreviewModal } from "../components/DeliveryPreviewModal";
@@ -7,7 +8,19 @@ import { router } from "expo-router";
 import { useApp } from "../store";
 import { Screen, Heading, Card, Button, Notice, s } from "../components/ui";
 export default function Inbox() {
-  const { inbox, demo, family } = useApp();
+  const {
+    inbox: allInbox,
+    demo,
+    family,
+    communityBlocks,
+    communitySafetyReady,
+  } = useApp();
+  const inbox = allInbox.filter(
+    (m) =>
+      m.kind !== "anniversaryGreeting" ||
+      (communitySafetyReady &&
+        !communityBlocks.some((b) => b.uid === m.senderUid)),
+  );
   const [section, setSection] = useState<"all" | "team" | "community">("all");
   const displayed = inbox.filter(
     (message) =>
@@ -17,6 +30,7 @@ export default function Inbox() {
         : message.kind !== "anniversaryGreeting"),
   );
   const [opened, setOpened] = useState<FamilyMessage | null>(null);
+  const currentOpened = inbox.find((m) => m.id === opened?.id);
   return (
     <Screen>
       <Button
@@ -101,15 +115,23 @@ export default function Inbox() {
                 onPress={() => router.push("/anniversary-memories")}
               />
             )}
+            {m.kind === "anniversaryGreeting" && (
+              <CommunitySafetyActions
+                targetUid={m.senderUid}
+                label="Familia remitente"
+                targetType="greeting"
+                targetId={m.id.replace(/^anniversary-/, "")}
+              />
+            )}
           </Card>
         ))
       )}
-      {opened && (
+      {currentOpened && (
         <DeliveryPreviewModal
           name={family?.name ?? "su familia"}
-          title={opened.title}
-          body={opened.body}
-          attachments={opened.attachments ?? []}
+          title={currentOpened.title}
+          body={currentOpened.body}
+          attachments={currentOpened.attachments ?? []}
           onClose={() => setOpened(null)}
         />
       )}

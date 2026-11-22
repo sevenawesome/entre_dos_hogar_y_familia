@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { Screen, Heading, Notice } from "../components/ui";
 import { FamilyForm } from "../components/FamilyForm";
 import { useApp } from "../store";
+import { PermanentDeletionCard } from "../components/PermanentDeletionCard";
 export default function Onboarding() {
   const { family } = useApp();
   return (
@@ -21,6 +22,7 @@ export default function Onboarding() {
       />
       <FamilyForm initial={family} onSaved={() => router.replace("/(tabs)")} />
       <Notice text="A su ritmo, con respeto y sin presiones. Cualquier actividad puede adaptarse a lo que ambos necesiten." />
+      <PermanentDeletionCard />
     </Screen>
   );
 }

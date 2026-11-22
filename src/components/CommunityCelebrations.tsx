@@ -6,6 +6,7 @@ import { upcomingCommunityBirthdays } from "../domain/people";
 import type { CommunityProfile } from "../domain/types";
 import { useApp } from "../store";
 import { AnniversaryGreeting } from "./AnniversaryGreeting";
+import { CommunitySafetyActions } from "./CommunitySafety";
 import { PhotoViewer } from "./PhotoViewer";
 import { Button, Card, Notice, Ring, colors, s } from "./ui";
 
@@ -155,6 +156,7 @@ export function CommunityCelebrations({
                   onPress={() => router.push("/anniversary-memories")}
                 />
               )}
+              <CommunitySafetyActions targetUid={profile.uid} label={profile.alias} />
             </Card>
           );
         })}
@@ -183,6 +185,7 @@ export function CommunityCelebrations({
                 </Text>
               </View>
             </View>
+            <CommunitySafetyActions targetUid={profile.uid} label={profile.alias} />
           </Card>
         ))}
       {kind === "anniversaries" && !anniversaries.length && (

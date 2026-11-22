@@ -1,5 +1,19 @@
 export const adminSections = [
   {
+    id: "moderation",
+    title: "Moderar Comunidad",
+    group: "Acompañar",
+    icon: "shield-outline",
+    permission: "community.moderate",
+    description: "Revisa perfiles y fotos, atiende reportes y cuida la convivencia.",
+    steps: [
+      "Abre un perfil pendiente y amplía todas las fotos. Comprueba nombres, contenido y las normas antes de aprobar su publicación.",
+      "En Reportes, revisa el contenido señalado y registra el resultado. Retira contenido o suspende la participación si incumple las normas.",
+      "Revisa este panel habitualmente, procurando atender reportes dentro de 24 horas. La suspensión de Comunidad no elimina la cuenta ni su progreso.",
+    ],
+    note: "Se requiere el permiso Moderar Comunidad. No permite consultar reflexiones privadas ni felicitaciones que no hayan sido reportadas. Los cambios de nombre o fotos necesitan nueva revisión.",
+  },
+  {
     id: "accounts",
     title: "Cuentas y reinicio",
     group: "Organizar",

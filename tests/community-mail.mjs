@@ -54,6 +54,8 @@ const setup = () => {
   const r = new Memory();
   for (const uid of ["a", "b"]) {
     r.seed(`community/${uid}`, {
+      uid,
+      moderationStatus: "approved",
       alias: `Familia ${uid}`,
       visible: true,
       shareAnniversary: true,
@@ -61,6 +63,8 @@ const setup = () => {
       timezone: "America/La_Paz",
     });
     r.seed(`families/${uid}`, { name: uid });
+    r.seed(`communityApprovals/${uid}`, { state: "approved" });
+    r.seed(`communityConsents/${uid}`, { version: 1 });
   }
   return r;
 };
@@ -175,6 +179,7 @@ test("greetings reject self, private profiles, deleted recipients, wrong dates a
 test("greeting uses recipient timezone and February 29 policy", async () => {
   const r = setup();
   r.seed("community/b", {
+    moderationStatus: "approved",
     visible: true,
     shareAnniversary: true,
     marriageDate: "2020-02-29",

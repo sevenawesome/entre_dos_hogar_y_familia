@@ -1,3 +1,4 @@
+import { samePublicContent } from "./community-safety";
 import type {
   CommunityProfile,
   Family,
@@ -77,6 +78,12 @@ export function publicProjectionFromSummary(
       profile.avatar.length > AVATAR_LIMIT)
   )
     throw new Error("La foto debe ser una miniatura JPEG de hasta 32 KB.");
+  const people = profile.visible ? publicBirthdayPeople(family, portraits) : [];
+  const sameContent = samePublicContent(profile, {
+    ...profile,
+    alias: profile.alias.trim(),
+    people,
+  });
   return {
     uid: profile.uid,
     alias: profile.alias.trim(),
@@ -93,7 +100,12 @@ export function publicProjectionFromSummary(
     finishedCount:
       profile.visible && profile.shareProgress ? counts.finishedCount : 0,
     avatar: profile.visible ? profile.avatar : null,
-    people: profile.visible ? publicBirthdayPeople(family, portraits) : [],
+    people,
+    moderationStatus: !profile.visible
+      ? "private"
+      : profile.moderationStatus === "approved" && sameContent
+        ? "approved"
+        : "pending",
   };
 }
 export function summaryFromProgress(

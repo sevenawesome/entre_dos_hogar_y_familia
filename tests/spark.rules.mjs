@@ -459,7 +459,7 @@ test("private community profile does not leak and public projection excludes int
       marriageDate: family.marriageDate,
     }),
   );
-  await assertSucceeds(
+  await assertFails(
     getDocs(
       query(collection(ctx("b"), "community"), where("visible", "==", true)),
     ),
@@ -550,9 +550,8 @@ test("deletion marker blocks future writes while allowing own cleanup", async ()
   await createFamily();
   await complete(ctx("a"));
   const db = ctx("a");
-  await assertSucceeds(
-    setDoc(doc(db, "accountDeletion", "a"), { requestedAt: serverTimestamp() }),
-  );
+  await assertFails(setDoc(doc(db, "accountDeletion", "a"), { requestedAt: serverTimestamp() }));
+  await seed("accountDeletion/a", { requestedAt: new Date(), source: "self" });
   await assertFails(setDoc(doc(db, "families", "a"), family));
   await assertSucceeds(
     deleteDoc(doc(db, "families", "a", "progress", "nivel-1")),
@@ -921,7 +920,7 @@ test("personal portraits are private even from administrators", async () => {
 });
 test("only individually authorized birthday details and photos can appear in community", async () => {
   await enableBirthday();
-  await assertSucceeds(getDoc(doc(ctx("b"), "community", "a")));
+  await assertFails(getDoc(doc(ctx("b"), "community", "a")));
   for (const item of [
     { ...person, name: "Otra persona" },
     { ...person, monthDay: "11-07" },
@@ -950,7 +949,7 @@ test("withdrawing an individual's consent must also remove the public birthday",
   batch.set(doc(db, "community", "a"), publicProfile());
   await assertSucceeds(batch.commit());
   assert.deepEqual(
-    (await getDoc(doc(ctx("b"), "community", "a"))).data().people,
+    (await getDoc(doc(ctx("a"), "community", "a"))).data().people,
     [],
   );
 });
@@ -1054,7 +1053,7 @@ test("twelve portraits and birthdays support individual activation, photo change
   withdraw.set(doc(db, "community", "a"), publicProfile(edited.slice(1)));
   await assertSucceeds(withdraw.commit());
   assert.equal(
-    (await getDoc(doc(ctx("b"), "community", "a"))).data().people.length,
+    (await getDoc(doc(ctx("a"), "community", "a"))).data().people.length,
     11,
   );
 });
@@ -1870,4 +1869,64 @@ test("notification attachments remain private and enforce the free size limit", 
       "a",
     ),
   );
+});
+
+async function approvePublic(uid = "a") {
+  const p = (await getDoc(doc(ctx(uid), "community", uid))).data();
+  await seed(`communityConsents/${uid}`, { version: 1, acceptedAt: new Date() });
+  await seed(`communityApprovals/${uid}`, { state: "approved", alias: p.alias, avatar: p.avatar, people: p.people ?? [] });
+  await seed(`community/${uid}`, { ...p, moderationStatus: "approved" });
+}
+test("only server-reviewed profiles are public; clients cannot forge approvals or replace approved photos", async () => {
+  await enableBirthday();
+  await assertFails(getDoc(doc(ctx("b"), "community", "a")));
+  await assertFails(updateDoc(doc(ctx("a"), "community", "a"), { moderationStatus: "approved", updatedAt: serverTimestamp() }));
+  await assertFails(setDoc(doc(ctx("a"), "communityApprovals", "a"), { state: "approved", alias: family.name, avatar: null, people: [person] }));
+  await approvePublic();
+  await assertSucceeds(getDoc(doc(ctx("b"), "community", "a")));
+  await assertFails(updateDoc(doc(ctx("a"), "community", "a"), { alias: "Unreviewed", updatedAt: serverTimestamp() }));
+  await assertSucceeds(updateDoc(doc(ctx("a"), "community", "a"), { alias: "New draft", moderationStatus: "pending", updatedAt: serverTimestamp() }));
+  await assertFails(getDoc(doc(ctx("b"), "community", "a")));
+  await assertFails(getDocs(query(collection(ctx("b"), "community"), where("visible", "==", true), where("moderationStatus", "==", "approved"))));
+});
+test("block mirrors prevent public profile reads in either direction and cannot be forged by clients", async () => {
+  await enableBirthday(); await approvePublic();
+  await seed("families/b/communityBlocks/a", { uid: "a", blocked: true, label: "Familia A" });
+  await assertFails(getDoc(doc(ctx("b"), "community", "a")));
+  await assertSucceeds(getDoc(doc(ctx("b"), "families/b/communityBlocks/a")));
+  await assertFails(setDoc(doc(ctx("b"), "families/b/communityBlocks/a"), { uid: "a", blocked: false }));
+  await assertFails(getDoc(doc(ctx("a"), "families/b/communityBlocks/a")));
+  await seed("families/a/communityBlocks/b", { uid: "b", blocked: true, label: "Familia B" });
+  await seed("families/b/communityBlocks/a", { uid: "a", blocked: false, label: "Familia A" });
+  await assertFails(getDoc(doc(ctx("b"), "community", "a")));
+});
+test("community consent belongs to the member and moderation permission does not expose private photos or memories", async () => {
+  await enableBirthday();
+  await assertSucceeds(setDoc(doc(ctx("a"), "communityConsents", "a"), { version: 1, acceptedAt: serverTimestamp() }));
+  await assertFails(setDoc(doc(ctx("b"), "communityConsents", "a"), { version: 1, acceptedAt: serverTimestamp() }));
+  await assertFails(setDoc(doc(ctx("a"), "communityConsents", "a"), { version: 2, acceptedAt: serverTimestamp() }));
+  await seed("roles/mod", { role: "admin", permissions: ["community.moderate"] });
+  await seed("anniversaryMessages/private", { recipientUid: "a", senderUid: "b", body: "private" });
+  await assertSucceeds(getDoc(doc(ctx("mod"), "community", "a")));
+  await assertFails(getDoc(doc(ctx("mod"), "portraits", "a")));
+  await assertFails(getDoc(doc(ctx("mod"), "families", "a")));
+  await assertFails(getDoc(doc(ctx("mod"), "anniversaryMessages", "private")));
+  await assertFails(getDocs(collection(ctx("mod"), "communityReports")));
+  await assertFails(getDoc(doc(ctx("administrator"), "community", "a")));
+});
+test("owner can grant all eight permissions; legacy admins cannot grant the new moderation permission", async () => {
+  await createFamily(); await seed("roles/owner", { role: "owner" });
+  const permissions = ["families.view", "families.edit", "messages.send", "emails.send", "content.manage", "settings.manage", "roles.manage", "community.moderate"];
+  const payload = { role: "admin", permissions, updatedAt: serverTimestamp(), updatedBy: "owner" };
+  await assertSucceeds(auditedWrite(ctx("owner"), "roles/a", payload, "role.update", "a", "owner"));
+  await assertFails(auditedWrite(ctx("administrator"), "roles/a", { ...payload, updatedBy: "administrator" }, "role.update", "a"));
+});
+
+test("deletion and suspension markers hide an approved target before bounded cleanup completes", async () => {
+  await enableBirthday(); await approvePublic();
+  await seed("accountDeletion/a", { requestedAt: new Date() });
+  await assertFails(getDoc(doc(ctx("b"), "community", "a")));
+  await env.withSecurityRulesDisabled(c => deleteDoc(doc(c.firestore(), "accountDeletion", "a")));
+  await seed("accountSuspensions/a", { state: "pending" });
+  await assertFails(getDoc(doc(ctx("b"), "community", "a")));
 });

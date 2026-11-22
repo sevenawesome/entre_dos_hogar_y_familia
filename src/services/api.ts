@@ -43,18 +43,56 @@ export function subscribeSettings(
   );
 }
 export function subscribeSocial(uid: string, onError: (e: Error) => void) {
+  const dispatch = (action: Parameters<typeof store.dispatch>[0]) => {
+    if (store.getState().app.uid === uid) store.dispatch(action);
+  };
   return [
+    onSnapshot(
+      doc(db!, "communityConsents", uid),
+      (snap) =>
+        dispatch(
+          actions.communityTermsAccepted(snap.data()?.version === 1),
+        ),
+      onError,
+    ),
+    onSnapshot(
+      doc(db!, "communityApprovals", uid),
+      (snap) =>
+        dispatch(
+          actions.communityReview(
+            snap.exists()
+              ? { state: snap.data().state, note: snap.data().note ?? "" }
+              : null,
+          ),
+        ),
+      onError,
+    ),
+    onSnapshot(
+      collection(db!, "families", uid, "communityBlocks"),
+      (snap) =>
+        dispatch(
+          actions.communityBlocks(
+            snap.docs
+              .filter((d) => d.data().blocked)
+              .map((d) => ({
+                uid: d.id,
+                label: String(d.data().label ?? "Familia bloqueada"),
+              })),
+          ),
+        ),
+      onError,
+    ),
     onSnapshot(
       collection(db!, "families", uid, "levelNews"),
       (snap) =>
-        store.dispatch(actions.levelNewsRead(snap.docs.map((d) => d.id))),
+        dispatch(actions.levelNewsRead(snap.docs.map((d) => d.id))),
       onError,
     ),
     onSnapshot(
       doc(db!, "config", "email"),
       (snap) => {
         const data = migrateEmailBrand(snap.data() ?? {});
-        store.dispatch(
+        dispatch(
           actions.emailService({
             ...emailServiceOff,
             ...data,
@@ -66,14 +104,14 @@ export function subscribeSocial(uid: string, onError: (e: Error) => void) {
     ),
     onSnapshot(
       doc(db!, "portraits", uid),
-      (snap) => store.dispatch(actions.portraits(snap.data()?.people ?? {})),
+      (snap) => dispatch(actions.portraits(snap.data()?.people ?? {})),
       onError,
     ),
     onSnapshot(
       doc(db!, "journeys", uid),
       (snap) => {
         const time = milliseconds(snap.data()?.startedAt);
-        store.dispatch(
+        dispatch(
           actions.journey(
             time === null
               ? null
@@ -90,25 +128,25 @@ export function subscribeSocial(uid: string, onError: (e: Error) => void) {
       doc(db!, "roles", uid),
       (snap) => {
         const data = snap.data() ?? { role: "member" };
-        store.dispatch(actions.role(data.role as AccountRole));
-        store.dispatch(actions.permissions(effectivePermissions(data)));
+        dispatch(actions.role(data.role as AccountRole));
+        dispatch(actions.permissions(effectivePermissions(data)));
       },
       onError,
     ),
     onSnapshot(
       doc(db!, "avatars", uid),
-      (snap) => store.dispatch(actions.avatar(snap.data()?.dataUri ?? null)),
+      (snap) => dispatch(actions.avatar(snap.data()?.dataUri ?? null)),
       onError,
     ),
     onSnapshot(
       doc(db!, "community", uid),
       (snap) => {
         if (!snap.exists()) {
-          store.dispatch(actions.communityProfile(null));
+          dispatch(actions.communityProfile(null));
           return;
         }
         const { updatedAt: _updated, ...data } = snap.data();
-        store.dispatch(actions.communityProfile(data as CommunityProfile));
+        dispatch(actions.communityProfile(data as CommunityProfile));
       },
       onError,
     ),
@@ -119,7 +157,7 @@ export function subscribeSocial(uid: string, onError: (e: Error) => void) {
         limit(30),
       ),
       (snap) =>
-        store.dispatch(
+        dispatch(
           actions.inbox(
             snap.docs.map(
               (d) =>
@@ -249,7 +287,8 @@ export async function callBackend(name: string, data: unknown) {
 export function friendlyError(error: unknown): string {
   const code = (error as { code?: string }).code;
   const messages: Record<string, string> = {
-    "auth/user-disabled": "Esta cuenta está desactivada. Contacta al Departamento de Hogar y Familia para solicitar su restablecimiento.",
+    "auth/user-disabled":
+      "Esta cuenta está desactivada. Contacta al Departamento de Hogar y Familia para solicitar su restablecimiento.",
     "auth/invalid-credential": "Revisa el correo y la contraseña.",
     "auth/email-already-in-use":
       "Este correo ya tiene una cuenta. Inicia sesión.",
