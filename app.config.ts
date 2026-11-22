@@ -51,6 +51,7 @@ const config: ExpoConfig = {
   plugins: [
     "expo-router",
     "expo-font",
+    ["expo-status-bar", { style: "dark", hidden: false }],
     "expo-sharing",
     [
       "expo-image-picker",

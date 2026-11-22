@@ -233,5 +233,36 @@
     "pruebasApp": 127,
     "pruebasWorker": 56,
     "nota": "Actualiza PUB-10; la auditoría original y sus restantes bloqueos de tiendas se conservan."
+  },
+  "seguimientoApple": {
+    "fecha": "2026-11-22",
+    "membresiaYAppStoreConnect": "El titular confirmó membresía activa y acceso; firma aún no configurada.",
+    "titularLegalConfirmado": "Salim Bencosme",
+    "paisYContactoPublico": "Pendientes de cotejar/confirmar.",
+    "expoProduction": {
+      "variables": 8,
+      "channel": "production",
+      "branch": "production",
+      "runtimePolicy": "fingerprint",
+      "buildNumberInicial": "1"
+    },
+    "validacion": {
+      "tipos": "correcto",
+      "lint": "correcto",
+      "pruebasApp": 132,
+      "expoDoctorCorrectas": 20,
+      "expoDoctorTotal": 20
+    },
+    "compilacionesIOS": 0,
+    "intentoBuild": "Detenido antes de subir el proyecto: Credentials are not set up. Run this command again in interactive mode.",
+    "subidoAApple": false,
+    "pendientesAppReview": [
+      "PUB-01: borrado definitivo desde la app",
+      "PUB-02: moderación de Comunidad",
+      "PUB-03: política pública y declaración de datos",
+      "PUB-06: prueba física de un binario firmado",
+      "PUB-07: ficha, capturas y cuenta de revisión"
+    ],
+    "nota": "Actualiza el estado de PUB-04, PUB-05 y los parches compatibles de PUB-08. Mantiene la auditoría histórica y los bloqueos públicos no resueltos. No se borraron familias, cambiaron roles ni enviaron correos de prueba."
   }
 }

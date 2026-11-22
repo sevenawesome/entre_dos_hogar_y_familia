@@ -23,7 +23,7 @@ Necesitamos Android e iPhone para probar notificaciones locales, selector/compre
 
 El 16 de noviembre se publicó la rama `expo-go-preview` para iOS y Android, con runtime `exposdk:58.0.0`. El propietario confirmó que abrió en su iPhone desde Expo Go. No requiere Metro ni la computadora encendida; sí Internet. El QR está en [expo-go-preview.png](expo-go-preview.png) y el enlace, identificadores y comando para futuras actualizaciones están en [EXPO_GO_PREVIEW.json](EXPO_GO_PREVIEW.json).
 
-El entorno Expo `preview` ya contiene siete variables públicas de Firebase/EAS y `EXPO_UPDATE_TARGET=expo-go`. No se copiaron claves privadas ni secretos de correo. Para builds propios se utiliza fingerprint; el perfil de build `preview` fuerza `EXPO_UPDATE_TARGET=native`. El entorno `production` sigue pendiente. No se publicaron builds en tiendas. Los correos se activaron posteriormente el 16 de noviembre.
+El entorno Expo `preview` ya contiene siete variables públicas de Firebase/EAS y `EXPO_UPDATE_TARGET=expo-go`. No se copiaron claves privadas ni secretos de correo. Para builds propios se utiliza fingerprint; el perfil de build `preview` fuerza `EXPO_UPDATE_TARGET=native`. El entorno `production` quedó configurado el 20 de noviembre con los siete identificadores públicos y `EXPO_UPDATE_TARGET=native`; su perfil usa el canal `production`. No se publicaron builds en tiendas. Los correos se activaron posteriormente el 16 de noviembre.
 
 Expo Go requiere SDK compatible y una cuenta que sea propietaria o miembro de la organización dueña del proyecto. Para probadores externos, añadirlos con el acceso mínimo necesario o utilizar posteriormente TestFlight/Google Play. La comprobación en Expo Go no sustituye las pruebas de un binario propio.
 
@@ -35,7 +35,7 @@ La fecha de matrimonio es obligatoria al registrar o editar una familia. Los per
 
 ## Publicación
 
-Faltan la identidad legal del responsable, país, correo de soporte/privacidad, política pública y página para solicitar eliminación; confirmar el contenido y modelo gratuito de la primera versión. Se necesitan Google Play Console y Apple Developer, correos de probadores y cuentas de firma. Las tiendas tienen requisitos/costos separados de Firebase Spark.
+El titular confirmó el nombre legal Salim Bencosme, la membresía Apple Developer activa y el acceso a App Store Connect. Falta cotejar el país, confirmar el correo público de soporte/privacidad y publicar la política y la página para solicitar eliminación. Google Play todavía necesita completar su inicialización. El intento de build iOS del 22 de noviembre se detuvo porque falta configurar la firma mediante un inicio de sesión interactivo de Apple; no hay un binario generado. Estado y procedimiento actualizados en [APPLE_PUBLICACION.md](APPLE_PUBLICACION.md). Las tiendas tienen requisitos/costos separados de Firebase Spark.
 
 No se han enviado builds a las tiendas. Las reglas de Firestore están desplegadas y el primer propietario real está habilitado y auditado. El acceso ofrece ahora una presentación con imágenes ficticias; explorarla no crea una sesión ni datos de demostración.
 
