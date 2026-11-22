@@ -255,7 +255,7 @@
     },
     "compilacionesIOS": 2,
     "intentoBuild": "First remote build failed importing modern PKCS12; repackaged with macOS-compatible algorithms and second build finished successfully.",
-    "subidoAApple": false,
+    "subidoAApple": true,
     "pendientesAppReview": [
       "PUB-01: borrado definitivo desde la app",
       "PUB-02: moderación de Comunidad",
@@ -274,6 +274,13 @@
       "buildNumber": "4",
       "referencia": "IOS_BUILD.json"
     },
-    "accesoApiApple": "Approved; team API key pending generation/download"
+    "accesoApiApple": "Approved; downloaded team API key authenticated successfully for this app",
+    "submissionId": "a8ad5532-ad4b-4a5b-9597-ecd3646bb893",
+    "appleProcessingState": "VALID",
+    "appReviewSubmitted": false,
+    "internalBuildState": "READY_FOR_BETA_TESTING",
+    "internalGroupPrepared": true,
+    "testerCount": 0,
+    "testInstructionsLocale": "es-MX"
   }
 }

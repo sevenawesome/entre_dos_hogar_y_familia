@@ -52,7 +52,15 @@ El segundo intento, ID `b98a56c2-2e1d-4fb4-b422-399b830c6bf9`, terminó correcta
 
 Se descargó e inspeccionó el IPA 1.0.0 (4): Bundle ID `com.sevenawesome.entredos`, nombre visible Amor que permanece, iOS mínimo 16.4 y soporte iPhone/iPad. Coincide el perfil embebido con el perfil local. Expo Update está habilitado con el endpoint del proyecto, canal production y runtime `684d35857bf35e13671ea2a0bebf8b2fb9409db4`, leído del recurso EXUpdates.bundle/fingerprint. Se verificaron los textos de permisos de cámara/galería y la ausencia de archivos privados de firma en el ZIP. SHA-256 del IPA: `f8036d072e57566b77d27c3c7622068f7513147f74285a20551e26194d1f1c98`. Esto comprueba el artefacto, no sustituye instalarlo en un teléfono ni valida la ficha pública. Resumen en IOS_BUILD.json.
 
-El titular creó la ficha de App Store Connect con Apple ID `6838059210`; la captura muestra español de México como idioma de la ficha. El ascAppId ya se añadió a submit.production.ios. Solicitó acceso a App Store Connect API y Apple lo aprobó, según su captura. Sigue pendiente generar/descargar la clave de equipo con rol App Manager y obtener su Key ID e Issuer ID para autenticar la subida desde Windows; no requiere Admin para este fin, porque ya se dispone de firma local. No se ha subido el IPA a Apple ni se ha enviado a App Review.
+El titular creó la ficha de App Store Connect con Apple ID `6838059210`; la captura muestra español de México como idioma de la ficha. El ascAppId ya se añadió a submit.production.ios. Solicitó acceso a App Store Connect API y Apple lo aprobó. Se descargó una clave de equipo con rol App Manager y se comprobó su autenticación mediante la API: devuelve el nombre, SKU, idioma e identificador de esta app. El archivo privado se conserva en .apple-credentials, excluido de Git; eas.json contiene únicamente la ruta local y los identificadores públicos de la clave.
+
+## Subida a App Store Connect
+
+La ejecución de `eas submit --platform ios --profile production --id b98a56c2-2e1d-4fb4-b422-399b830c6bf9 --non-interactive --wait` terminó correctamente. ID de envío Expo: `a8ad5532-ad4b-4a5b-9597-ecd3646bb893`. Después del procesamiento, la API de Apple confirmó el build `2ecf2642-6f92-40e5-88a7-2dcbf698f019`, versión 1.0.0 (4), con processingState=VALID, internalBuildState=READY_FOR_BETA_TESTING y usesNonExemptEncryption=false.
+
+Se creó el grupo interno Pruebas internas (ID `f497435e-ed92-41ab-b35d-317dfe08367c`) y se verificó que contiene este build. Tiene cero probadores: no se añadieron personas ni enviaron invitaciones. Se configuró What to Test en español de México con las pruebas de registro, correo, fotos, sincronización, retos y recordatorios. Para instalar, el titular debe entrar en TestFlight → Pruebas internas → Invite Testers, seleccionar su usuario de App Store Connect, pulsar Add y aceptar la invitación desde la app TestFlight en su iPhone. No necesita Expo Go ni un servidor local.
+
+No se envió la versión a App Review ni se publicó en la tienda. Tipos y lint pasaron después de configurar la subida. Sigue pendiente la prueba física del binario y los bloqueos de revisión pública indicados al final.
 
 ## Producción en Expo
 

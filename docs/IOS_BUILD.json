@@ -16,11 +16,25 @@
   "sizeBytes": 25159465,
   "sha256": "f8036d072e57566b77d27c3c7622068f7513147f74285a20551e26194d1f1c98",
   "appStoreConnectAppId": "6838059210",
-  "uploadedToApple": false,
+  "uploadedToApple": true,
   "buildUrl": "https://expo.dev/accounts/sevenawesomes-team/projects/entre-dos-by-departamento-de-hogar-y-familia/builds/b98a56c2-2e1d-4fb4-b422-399b830c6bf9",
   "sourceCommit": "26ea34093bdb2cc8e327e3477b7ae419b7dbcb2a",
   "completedAt": "2026-11-22T19:36:52Z",
   "physicalDeviceTested": false,
   "appReviewSubmitted": false,
-  "pending": "App Store Connect team API key and submission to TestFlight"
+  "pending": "Owner adds their App Store Connect user to the internal group and performs physical device tests; App Review blockers remain.",
+  "submissionId": "a8ad5532-ad4b-4a5b-9597-ecd3646bb893",
+  "submissionStatus": "FINISHED",
+  "testFlightUrl": "https://appstoreconnect.apple.com/apps/6838059210/testflight/ios",
+  "appleProcessingState": "VALID",
+  "appleBuildId": "2ecf2642-6f92-40e5-88a7-2dcbf698f019",
+  "internalBuildState": "READY_FOR_BETA_TESTING",
+  "internalGroup": {
+    "id": "f497435e-ed92-41ab-b35d-317dfe08367c",
+    "name": "Pruebas internas",
+    "buildLinked": true,
+    "testerCount": 0,
+    "invitationsSent": false
+  },
+  "testInstructionsLocale": "es-MX"
 }

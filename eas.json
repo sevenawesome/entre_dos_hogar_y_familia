@@ -34,7 +34,10 @@
   "submit": {
     "production": {
       "ios": {
-        "ascAppId": "6838059210"
+        "ascAppId": "6838059210",
+        "ascApiKeyPath": ".apple-credentials/AuthKey_TBW5U3MM53.p8",
+        "ascApiKeyId": "TBW5U3MM53",
+        "ascApiKeyIssuerId": "b0029c1f-ff38-456e-852d-0829e138259d"
       }
     }
   }
