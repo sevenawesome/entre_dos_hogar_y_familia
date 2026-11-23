@@ -287,12 +287,28 @@
   },
   "seguimientoBorradoYModeracion": {
     "fecha": "2026-11-22",
-    "estado": "Implementado; despliegue y publicación de la prueba en curso. Pendiente QA física.",
+    "estado": "Implementado y desplegado. Expo Go verificado para iOS/Android. iOS 1.0.0 (5) procesado por Apple y habilitado en el grupo interno. Pendiente prueba física antes de App Review.",
     "documentacion": "docs/MODERACION_Y_BORRADO.md",
     "pruebasApp": 135,
     "pruebasServicio": 74,
     "pruebasReglasYAuth": 65,
     "pruebasRealesDestructivas": 0,
-    "correosRealesDePrueba": 0
+    "correosRealesDePrueba": 0,
+    "workerVersion": "75591da4-d861-4e6a-8b85-121e87719903",
+    "sourceCommit": "1150799f41795d2efbbece5dbf1bfd79d8f846c8",
+    "previewGroup": "d0bb287b-6e6c-486d-b25d-657068e994e8",
+    "iosBuildId": "bed1ca5f-9560-440f-a063-0a13d7f0e069",
+    "recursoBorrado": "https://entre-dos-correo.sevenawesome-srl.workers.dev/eliminar-cuenta",
+    "indicesYPermisoAuthComprobados": true,
+    "fechaVerificacion": "2026-11-23",
+    "iosBuildNumber": "5",
+    "appleBuildId": "325f31f0-86cb-4732-b638-5b1e64f844c4",
+    "appleProcessingState": "VALID",
+    "internalBuildState": "IN_BETA_TESTING",
+    "submissionId": "f6d7844e-8bd1-413b-9b35-4ed468f6f7b0",
+    "submissionStatus": "FINISHED",
+    "testFlightUrl": "https://appstoreconnect.apple.com/apps/6838059210/testflight/ios",
+    "physicalDeviceTested": false,
+    "appReviewSubmitted": false
   }
 }

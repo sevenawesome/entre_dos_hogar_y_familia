@@ -105,3 +105,13 @@ La auditoría anterior sigue vigente para los puntos no resueltos. Esta preparac
 - https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app
 - https://developer.apple.com/help/app-review/guideline-reference/5-1-1-account-deletion
 - https://developer.apple.com/app-store/review/guidelines/#user-generated-content
+
+### Borrado definitivo y moderación — verificado el 23 de noviembre
+
+La compilación **1.0.0 (5)** terminó y fue subida a App Store Connect mediante la clave API existente, sin pedir un nuevo inicio de sesión. Apple la procesó como `VALID` y quedó `IN_BETA_TESTING`, vinculada a **Pruebas internas**. El grupo tiene un probador; no se enviaron invitaciones nuevas. Las instrucciones de prueba en es-MX incluyen cuentas ficticias, fotos, normas, aprobación, reportes, bloqueos y borrado definitivo.
+
+Se verificaron el identificador, versión, perfil de firma, canal production, ausencia de archivos privados de firma en el IPA y las funciones nuevas dentro del paquete JavaScript incorporado. SHA-256, runtime, IDs y estado figuran en [IOS_BUILD.json](IOS_BUILD.json). El código compilado corresponde a `1150799f41795d2efbbece5dbf1bfd79d8f846c8`.
+
+También se publicó y comprobó la actualización de Expo Go para iOS/Android, grupo `d0bb287b-6e6c-486d-b25d-657068e994e8`, usando el mismo QR. Servicio, reglas e índices están desplegados; el recurso web de solicitud de borrado responde correctamente. Procedimiento: [MODERACION_Y_BORRADO.md](MODERACION_Y_BORRADO.md).
+
+Queda la prueba física entre dos cuentas ficticias y completar la ficha pública y los datos pendientes de App Review. No se ha presentado esta versión a revisión pública.

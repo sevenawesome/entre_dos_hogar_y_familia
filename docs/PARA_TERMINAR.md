@@ -57,3 +57,5 @@ Actualización del 18 de noviembre: apartados y accesos directos ya publicados e
 
 
 Actualización del 22 de noviembre — borrado definitivo y moderación: añadidos el borrado propio con contraseña y limpieza reintentable, transferencia de propietario antes de su borrado expreso, revisión previa de perfiles/fotos, normas aceptadas, reportes, bloqueos bidireccionales y panel con permiso independiente. Se conserva la desactivación recuperable y la protección del propietario en reinicios. El recurso web de solicitud de borrado funciona sin reinstalar la app. Procedimiento y límites: [MODERACION_Y_BORRADO.md](MODERACION_Y_BORRADO.md). Las pruebas usan datos ficticios; falta verificar los flujos y cachés nativos entre dos teléfonos antes de App Review.
+
+Verificación del 23 de noviembre: iOS 1.0.0 (5) ya está procesado por Apple y habilitado en el grupo interno de TestFlight. La actualización de Expo Go también está publicada y comprobada para ambos sistemas con el mismo QR. Borrado definitivo y moderación están desplegados; quedan las pruebas físicas con cuentas ficticias y la ficha pública antes de App Review. Estado: [IOS_BUILD.json](IOS_BUILD.json).
