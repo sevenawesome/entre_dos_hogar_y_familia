@@ -30,7 +30,7 @@ Para comprobarlo en el teléfono: abrir la app instalada desde TestFlight, dejar
 
 ## Publicación comprobada
 
-TestFlight 5 recibe el grupo `1ca2bed8-edc9-4d15-adbd-3def9d6e35cf` por el canal production, con el runtime compatible. Se comprobó el manifiesto seleccionado por el canal, la descarga del paquete y su suma SHA-256. Evidencia: [TESTFLIGHT_UPDATE.json](TESTFLIGHT_UPDATE.json).
+TestFlight 5 recibe el grupo `79d58216-7488-498c-827f-9f3f924c6314` por el canal production, con el runtime compatible y el código `a6f8177`. Se comprobó el manifiesto seleccionado por el canal, la descarga del paquete y su suma SHA-256. Evidencia: [TESTFLIGHT_UPDATE.json](TESTFLIGHT_UPDATE.json).
 
 Expo Go conservó su QR de rama y recibió el grupo `f183f12f-6bd1-4267-b2d3-51861553d68d`, runtime `exposdk:58.0.0`. Se comprobaron ambos paquetes y las siete imágenes de demostración. El código de ambas publicaciones iniciales corresponde a `83d32a11548bd5d81c7ee404932d8b00fc50d99f`. La activación posterior de APNs solo cambió las credenciales y el servicio; no requirió otra actualización de JavaScript ni otra compilación. El usuario confirmó después que recibe avisos locales y administrativos.
 
@@ -39,3 +39,5 @@ Expo Go conservó su QR de rama y recibió el grupo `f183f12f-6bd1-4267-b2d3-518
 A petición del usuario, los avisos administrativos nuevos incluyen su título y cuerpo en vez de un aviso genérico. Se probaron mensajes cortos completos, Unicode extenso y caracteres escapados para mantener cada paquete por debajo de 3800 bytes sin modificar el texto guardado. No se enviaron mensajes de prueba reales. La ventana del mensaje abre automáticamente desde el identificador del aviso y sigue los cambios y el borrado del documento bajo los permisos de la cuenta receptora.
 
 La consulta de diagnóstico de solo lectura encontró un perfil con participación activada, normas aceptadas y estado pendiente, sin perfiles aprobados. No era un fallo de listado. La pantalla ahora muestra a la propia cuenta una tarjeta privada con su estado y un acceso directo a «Administración → Moderar Comunidad» para quien tenga ese permiso. No se aprobó ni publicó automáticamente ningún perfil. El propietario debe abrir la vista previa, revisar nombres y fotos, marcar la revisión y aprobar la publicación. Los cambios se verificaron en 390 × 844, sin errores ni desbordamiento.
+
+Expo Go también recibe este ajuste mediante el grupo `84db4ba5-fd74-4867-886d-ed9a969b95c7`; ambos paquetes y las siete imágenes de demostración están comprobados. Worker activo: `235a7b12-2215-4d13-ab62-0846fc086f51`. El QR se conserva. Falta confirmar físicamente el nuevo texto y la apertura directa; la recepción administrativa anterior ya fue confirmada por el usuario.
