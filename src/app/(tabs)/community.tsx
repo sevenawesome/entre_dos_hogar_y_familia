@@ -72,6 +72,9 @@ export default function Community() {
       communityProfile,
       anniversaryCatalog,
       communityBlocks,
+      communityReview,
+      communityTermsAccepted,
+      permissions,
     } = useApp(),
     now = useNow();
   const [section, setSection] = useState<"families" | "celebrate" | "sharing">(
@@ -156,6 +159,55 @@ export default function Community() {
       {demo && (
         <Notice text="Comunidad de ejemplo · familias ficticias. Nada se publica desde la demostración." />
       )}
+      {section === "families" &&
+        !demo &&
+        communityProfile?.visible &&
+        (communityProfile.moderationStatus !== "approved" ||
+          !communityTermsAccepted ||
+          communityReview?.state === "suspended") && (
+          <Card>
+            <Text style={s.sectionTitle}>Su familia en Comunidad</Text>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 14 }}
+            >
+              <PhotoViewer
+                uri={communityProfile.avatar}
+                name={communityProfile.alias}
+                size={64}
+              />
+              <Text style={[s.label, { flex: 1 }]}>
+                {communityProfile.alias}
+              </Text>
+            </View>
+            <Notice
+              text={
+                communityReview?.state === "suspended"
+                  ? "Su participación está suspendida. Revisen el motivo en Compartir."
+                  : communityProfile.moderationStatus === "removed"
+                    ? "Su perfil fue retirado de la comunidad. Revisen el motivo y los cambios necesarios en Compartir."
+                    : !communityTermsAccepted
+                      ? "Falta aceptar las normas de Comunidad en Compartir para solicitar la publicación."
+                      : "Participación activada · pendiente de revisión. Su familia aparecerá para los demás cuando Administración apruebe el nombre y las fotos. Esta vista solo la ve su cuenta."
+              }
+            />
+            <Button
+              secondary
+              title="Ver opciones de compartir"
+              onPress={() => selectSection("sharing")}
+            />
+            {permissions.includes("community.moderate") && (
+              <Button
+                title="Revisar perfiles en Administración"
+                onPress={() =>
+                  router.push({
+                    pathname: "/(tabs)/administration",
+                    params: { section: "moderation" },
+                  })
+                }
+              />
+            )}
+          </Card>
+        )}
       {section === "sharing" && family && (
         <>
           <ProfileSharing />
@@ -169,12 +221,10 @@ export default function Community() {
       )}
       {section === "families" && !busy && !safeProfiles.length && (
         <Card>
-          <Text style={s.sectionTitle}>
-            Las primeras historias están por llegar
-          </Text>
+          <Text style={s.sectionTitle}>Todavía no hay familias publicadas</Text>
           <Text style={s.body}>
-            La participación es voluntaria. Su familia puede ser una de las
-            primeras en compartir su aniversario.
+            Al activar Compartir se solicita una revisión del nombre y las
+            fotos. Los perfiles aparecen aquí cuando Administración los aprueba.
           </Text>
         </Card>
       )}
@@ -320,8 +370,9 @@ export default function Community() {
             onPress={() => load()}
           />
           <Text style={s.small}>
-            Solo se muestran perfiles que eligieron participar. Los datos se
-            actualizan cuando cada familia sincroniza la app.
+            Solo se muestran perfiles que eligieron participar y fueron
+            aprobados. Los datos se actualizan cuando cada familia sincroniza la
+            app.
           </Text>
         </>
       )}

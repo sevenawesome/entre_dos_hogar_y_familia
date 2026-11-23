@@ -67,9 +67,12 @@ function AppLayout() {
   const segments = useSegments();
   useEffect(() => {
     if (!uid || demo || !db) return;
-    return onSnapshot(doc(db, "accountDeletion", uid), snap => {
+    return onSnapshot(doc(db, "accountDeletion", uid), (snap) => {
       if (snap.exists() && auth?.currentUser?.uid === uid) {
-        void clearAccountNotifications(uid).catch(() => {}).then(() => signOut(auth!)).catch(() => {});
+        void clearAccountNotifications(uid)
+          .catch(() => {})
+          .then(() => signOut(auth!))
+          .catch(() => {});
       }
     });
   }, [uid, demo]);
@@ -203,28 +206,38 @@ function AppLayout() {
     const state = AppState.addEventListener("change", (status) => {
       if (status === "active") refreshDevice().catch(() => {});
     });
-    const listener = notificationResponseListener((screen, levelId) => {
-      if (screen === "challenge" || screen === "today") {
-        setPendingChallengeTap(true);
-        return;
-      }
-      if (
-        screen === "level-intro" &&
-        levelId &&
-        /^[a-zA-Z0-9_-]{1,100}$/.test(levelId)
-      )
-        router.push({ pathname: "/level-intro", params: { levelId } });
-      else
-        router.push(
-          screen === "anniversary-memories"
-            ? "/anniversary-memories"
-            : screen === "family"
-              ? "/(tabs)/family"
-              : screen === "inbox"
-                ? "/inbox"
-                : "/(tabs)",
-        );
-    });
+    const listener = notificationResponseListener(
+      (screen, levelId, messageId) => {
+        if (screen === "challenge" || screen === "today") {
+          setPendingChallengeTap(true);
+          return;
+        }
+        if (
+          screen === "inbox" &&
+          messageId &&
+          /^[A-Za-z0-9_-]{1,500}$/.test(messageId)
+        ) {
+          router.push({ pathname: "/inbox", params: { messageId } });
+          return;
+        }
+        if (
+          screen === "level-intro" &&
+          levelId &&
+          /^[a-zA-Z0-9_-]{1,100}$/.test(levelId)
+        )
+          router.push({ pathname: "/level-intro", params: { levelId } });
+        else
+          router.push(
+            screen === "anniversary-memories"
+              ? "/anniversary-memories"
+              : screen === "family"
+                ? "/(tabs)/family"
+                : screen === "inbox"
+                  ? "/inbox"
+                  : "/(tabs)",
+          );
+      },
+    );
     return () => {
       state.remove();
       listener?.remove();
@@ -278,7 +291,8 @@ function AppLayout() {
     if (uid && !demo && hasFamily) refreshDevice().catch(() => {});
   }, [uid, demo, hasFamily, reminderKey]);
   useEffect(() => {
-    if (uid && !demo && communitySafetyReady) presentInbox(inbox).catch(() => {});
+    if (uid && !demo && communitySafetyReady)
+      presentInbox(inbox).catch(() => {});
   }, [uid, demo, inbox, communitySafetyReady, communityBlocks]);
   const levelNewsKey = JSON.stringify({
     ids: levels.map((l) => l.id),

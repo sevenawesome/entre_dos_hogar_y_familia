@@ -34,12 +34,13 @@ test("device registration rejects unauthenticated, deleted and suspended account
   repo.docs.delete("accountDeletion/a"); repo.seed("accountSuspensions/a", { state: "suspended" });
   assert.equal((await pushDeviceRequest(req({ token, deviceId: "p", enabled: true }), env, repo, now, verify("a"))).status, 403);
 });
-test("remote dispatch preserves private inbox data, sends only generic text and deep links to the right account", async () => {
+test("remote dispatch shows the administrator's title and text, keeps attachments in the inbox and targets the right message", async () => {
   const repo = await setup(); let payload;
   await pushCycle(repo, env, async (_url, options) => { payload = JSON.parse(options.body); return sent(); }, now);
   const message = (await repo.get("families/a/inbox/msg")).data;
   assert.equal(message.pushState, "accepted"); assert.equal(message.body, "PRIVATE BODY"); assert.equal(message.attachments[0].base64, "SECRET");
-  assert.ok(!JSON.stringify(payload).includes("PRIVATE")); assert.equal(payload[0].data.accountUid, "a"); assert.equal(payload[0].data.screen, "inbox");
+  assert.equal(payload[0].title, "Private title"); assert.equal(payload[0].body, "PRIVATE BODY");
+  assert.ok(!JSON.stringify(payload).includes("SECRET")); assert.equal(payload[0].data.messageId, "msg"); assert.equal(payload[0].data.accountUid, "a"); assert.equal(payload[0].data.screen, "inbox");
   await pushCycle(repo, env, async () => { throw Error("must not resend"); }, now);
   assert.equal((await repo.get("families/a/inbox/msg")).data.pushState, "accepted");
 });
@@ -90,7 +91,7 @@ test("unconfigured Android is not advertised as active, and worst-case push work
       repo.seed(path, { uid, enabled: true, platform: "ios", deviceId: `${uid}-${i}`, token: `ExponentPushToken[${uid}-test-token-1234567890-${i}]`, expiresAt: new Date(+now + 86400000) });
       tickets.push({ path, deviceId: `${uid}-${i}`, id: `${uid}-${i}` });
     }
-    repo.seed(`families/${uid}/inbox/test`, { senderUid: "admin", createdAt: now, pushState: ["b", "c"].includes(uid) ? "accepted" : "pending", pushTickets: tickets, pushAttemptedAt: new Date(+now - 60000) });
+    repo.seed(`families/${uid}/inbox/test`, { title: "Aviso", body: "Texto", senderUid: "admin", createdAt: now, pushState: ["b", "c"].includes(uid) ? "accepted" : "pending", pushTickets: tickets, pushAttemptedAt: new Date(+now - 60000) });
   }
   repo.docs.delete("families/a/inbox/msg");
   for (let i = 0; i < 2; i++) repo.seed(`families/a/inbox/stale-${i}`, { pushState: "sending", pushAttemptedAt: new Date(+now - 700000) });
@@ -104,4 +105,18 @@ test("unconfigured Android is not advertised as active, and worst-case push work
   assert.ok(count <= 50, `Used ${count} external subrequests`);
   assert.equal((await repo.get("families/a/inbox/test")).data.pushState, "failed");
   assert.equal((await repo.get("families/d/inbox/test")).data.pushState, "failed");
+});
+test("oversized Unicode and escaped text fit the push payload limit without losing the full saved message", async () => {
+  for (const body of ["❤️🎉".repeat(400), "\u0001".repeat(1200), "Mensaje corto completo"]) {
+    const repo = await setup();
+    const original = (await repo.get("families/a/inbox/msg")).data;
+    repo.seed("families/a/inbox/msg", { ...original, body });
+    let payload;
+    await pushCycle(repo, env, async (_url, options) => { payload = JSON.parse(options.body)[0]; return sent(); }, now);
+    assert.ok(Buffer.byteLength(JSON.stringify(payload), "utf8") <= 3800);
+    assert.equal((await repo.get("families/a/inbox/msg")).data.body, body);
+    assert.ok(!payload.body.includes("\uFFFD"));
+    if (body === "Mensaje corto completo") assert.equal(payload.body, body);
+    else assert.ok(payload.body.endsWith("…"));
+  }
 });

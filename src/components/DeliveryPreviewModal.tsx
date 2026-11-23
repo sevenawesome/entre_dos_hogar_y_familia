@@ -17,6 +17,7 @@ export function DeliveryPreviewModal({
   onConfirm,
   confirmationLabel,
   recipientSummary,
+  closeLabel = "Cerrar vista previa",
 }: {
   email?: boolean;
   name: string;
@@ -31,6 +32,7 @@ export function DeliveryPreviewModal({
   onConfirm?: () => void;
   confirmationLabel?: string;
   recipientSummary?: string;
+  closeLabel?: string;
 }) {
   const app = useApp();
   return (
@@ -58,7 +60,7 @@ export function DeliveryPreviewModal({
           <Card>
             <Button
               secondary
-              title="Cerrar vista previa"
+              title={closeLabel}
               disabled={busy}
               onPress={onClose}
             />

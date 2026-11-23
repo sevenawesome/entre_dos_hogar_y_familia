@@ -171,6 +171,28 @@ export function subscribeSocial(uid: string, onError: (e: Error) => void) {
     ),
   ];
 }
+export function subscribeInboxMessage(
+  uid: string,
+  id: string,
+  callback: (message: FamilyMessage | null) => void,
+  onError: (error: Error) => void,
+) {
+  return onSnapshot(
+    doc(db!, "families", uid, "inbox", id),
+    (snap) =>
+      callback(
+        snap.exists()
+          ? ({
+              ...snap.data(),
+              id: snap.id,
+              createdAt:
+                snap.data()?.createdAt?.toDate?.().toISOString() ?? null,
+            } as FamilyMessage)
+          : null,
+      ),
+    onError,
+  );
+}
 export function subscribeControls(
   uid: string,
   callback: (controls: FamilyControls) => void,

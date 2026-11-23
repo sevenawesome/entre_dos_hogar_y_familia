@@ -1,21 +1,52 @@
 import { CommunitySafetyActions } from "../components/CommunitySafety";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SectionTabs } from "../components/SectionTabs";
 import { DeliveryPreviewModal } from "../components/DeliveryPreviewModal";
 import type { FamilyMessage } from "../domain/types";
 import { Text } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { friendlyError, subscribeInboxMessage } from "../services/api";
 import { useApp } from "../store";
 import { Screen, Heading, Card, Button, Notice, s } from "../components/ui";
 export default function Inbox() {
   const {
+    uid,
     inbox: allInbox,
     demo,
     family,
     communityBlocks,
     communitySafetyReady,
   } = useApp();
-  const inbox = allInbox.filter(
+  const { messageId: requested } = useLocalSearchParams<{
+    messageId?: string;
+  }>();
+  const messageId =
+    typeof requested === "string" && /^[A-Za-z0-9_-]{1,500}$/.test(requested)
+      ? requested
+      : null;
+  const [target, setTarget] = useState<{
+    uid: string;
+    id: string;
+    message: FamilyMessage | null;
+  } | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    if (!uid || demo || !messageId) return;
+    return subscribeInboxMessage(
+      uid,
+      messageId,
+      (message) => setTarget({ uid, id: messageId, message }),
+      (e) => setError(friendlyError(e)),
+    );
+  }, [uid, demo, messageId]);
+  const targetReady = target?.uid === uid && target?.id === messageId;
+  const messages = targetReady
+    ? [
+        ...allInbox.filter((m) => m.id !== messageId),
+        ...(target?.message ? [target.message] : []),
+      ]
+    : allInbox;
+  const inbox = messages.filter(
     (m) =>
       m.kind !== "anniversaryGreeting" ||
       (communitySafetyReady &&
@@ -29,8 +60,8 @@ export default function Inbox() {
         ? message.kind === "anniversaryGreeting"
         : message.kind !== "anniversaryGreeting"),
   );
-  const [opened, setOpened] = useState<FamilyMessage | null>(null);
-  const currentOpened = inbox.find((m) => m.id === opened?.id);
+  const [openedId, setOpenedId] = useState<string | null>(null);
+  const currentOpened = inbox.find((m) => m.id === (messageId ?? openedId));
   return (
     <Screen>
       <Button
@@ -44,6 +75,10 @@ export default function Inbox() {
         }
       />
       <Heading eyebrow="ACOMPAÑAR SU CAMINO" title="Mensajes para ustedes" />
+      {!!error && <Notice error text={error} />}
+      {messageId && targetReady && !currentOpened && (
+        <Notice text="Este mensaje ya no está disponible para su cuenta." />
+      )}
       <SectionTabs
         selected={section}
         options={[
@@ -72,7 +107,7 @@ export default function Inbox() {
         onSelect={setSection}
       />
       {demo && (
-        <Notice text="Bandeja de demostración. Los envíos reales requieren una cuenta y las reglas de Firebase desplegadas." />
+        <Notice text="Bandeja de demostración. Los mensajes de ejemplo no se envían." />
       )}
       {!displayed.length ? (
         <Card>
@@ -106,7 +141,7 @@ export default function Inbox() {
             <Button
               secondary
               title="Abrir mensaje"
-              onPress={() => setOpened(m)}
+              onPress={() => setOpenedId(m.id)}
             />
             {m.kind === "anniversaryGreeting" && (
               <Button
@@ -128,11 +163,15 @@ export default function Inbox() {
       )}
       {currentOpened && (
         <DeliveryPreviewModal
+          closeLabel="Cerrar mensaje"
           name={family?.name ?? "su familia"}
           title={currentOpened.title}
           body={currentOpened.body}
           attachments={currentOpened.attachments ?? []}
-          onClose={() => setOpened(null)}
+          onClose={() => {
+            setOpenedId(null);
+            router.setParams({ messageId: "" });
+          }}
         />
       )}
     </Screen>

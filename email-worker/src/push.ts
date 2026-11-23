@@ -97,6 +97,38 @@ const fields = [
   "kind",
   "moderationRemoved",
 ];
+const messageFields = [...fields, "title", "body"];
+function notificationPayload(message: Document, token: unknown, uid: string) {
+  const payload = {
+    to: token,
+    title: String(message.data.title),
+    body: String(message.data.body),
+    sound: "default",
+    channelId: "retos",
+    ttl: 3600,
+    data: {
+      screen: "inbox",
+      accountUid: uid,
+      messageId: message.path.split("/").at(-1),
+    },
+  };
+  // APNs limits the complete UTF-8 JSON payload, not the number of characters.
+  // Keep the full message in the inbox and shorten only oversized push previews.
+  const encoder = new TextEncoder();
+  if (encoder.encode(JSON.stringify(payload)).length > 3800) {
+    const points = Array.from(payload.body);
+    let low = 0,
+      high = points.length;
+    while (low < high) {
+      const middle = Math.ceil((low + high) / 2);
+      payload.body = points.slice(0, middle).join("") + "…";
+      if (encoder.encode(JSON.stringify(payload)).length <= 3800) low = middle;
+      else high = middle - 1;
+    }
+    payload.body = points.slice(0, low).join("") + "…";
+  }
+  return payload;
+}
 async function patch(repo: AccountsRepository, message: Document, data: Data) {
   return repo.commit([
     {
@@ -171,7 +203,7 @@ async function receiptCycle(
     });
   }
 }
-/** Bounded separately from mail/cleanup to fit Workers Free. No private message body leaves the inbox. */
+/** Bounded separately from mail/cleanup to fit Workers Free. Attachments stay in the inbox. */
 export async function pushCycle(
   repo: AccountsRepository,
   env: Env,
@@ -185,7 +217,7 @@ export async function pushCycle(
     "inbox",
     [{ field: "pushState", op: "EQUAL", value: "pending" }],
     2,
-    fields,
+    messageFields,
     undefined,
     true,
   );
@@ -196,6 +228,8 @@ export async function pushCycle(
     if (
       message.path.split("/").length !== 4 ||
       !sender ||
+      typeof message.data.title !== "string" ||
+      typeof message.data.body !== "string" ||
       message.data.kind === "anniversaryGreeting" ||
       message.data.moderationRemoved ||
       !Number.isFinite(age) ||
@@ -267,7 +301,7 @@ export async function pushCycle(
       }))
     )
       continue;
-    const claimed = await repo.get(message.path, fields);
+    const claimed = await repo.get(message.path, messageFields);
     if (!claimed) continue;
     try {
       const response = await fetcher("https://exp.host/--/api/v2/push/send", {
@@ -275,19 +309,7 @@ export async function pushCycle(
         headers: { "Content-Type": "application/json" },
         signal: AbortSignal.timeout(10000),
         body: JSON.stringify(
-          devices.map((d) => ({
-            to: d.data.token,
-            title: "Amor que permanece",
-            body: "Tienen un nuevo aviso de Administración. Abran la app para verlo.",
-            sound: "default",
-            channelId: "retos",
-            ttl: 3600,
-            data: {
-              screen: "inbox",
-              accountUid: uid,
-              messageId: message.path.split("/").at(-1),
-            },
-          })),
+          devices.map((d) => notificationPayload(claimed, d.data.token, uid)),
         ),
       });
       const result = (await response.json()) as {

@@ -349,6 +349,7 @@ async function showInbox(messages: FamilyMessage[]) {
           body: message.body,
           data: {
             senderUid: message.senderUid,
+            messageId: message.id,
             screen:
               message.kind === "anniversaryGreeting"
                 ? "anniversary-memories"
@@ -423,7 +424,7 @@ export function presentLevelNews() {
   return newsPending;
 }
 export function notificationResponseListener(
-  onTap: (screen?: string, levelId?: string) => void,
+  onTap: (screen?: string, levelId?: string, messageId?: string) => void,
 ): { remove(): void } {
   let removed = false;
   let subscription: { remove(): void } | undefined;
@@ -433,7 +434,11 @@ export function notificationResponseListener(
     const data = response.notification.request.content.data;
     if (data?.accountUid && data.accountUid !== store.getState().app.uid)
       return;
-    onTap(String(data?.screen ?? "today"), String(data?.levelId ?? ""));
+    onTap(
+      String(data?.screen ?? "today"),
+      String(data?.levelId ?? ""),
+      String(data?.messageId ?? ""),
+    );
   };
   notifications()
     .then(async (n) => {

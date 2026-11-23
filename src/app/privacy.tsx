@@ -40,8 +40,9 @@ export default function Privacy() {
           avisos desde Nosotros o desde los ajustes del teléfono. Para enviar
           avisos con la app cerrada guardamos un registro del teléfono vinculado
           a su cuenta, que desactivamos al cerrar sesión y eliminamos al borrar
-          definitivamente la cuenta. Los avisos de Administración en la pantalla
-          bloqueada solo indican que tienen un mensaje nuevo.
+          definitivamente la cuenta. Los avisos de Administración pueden mostrar
+          el título y el texto del mensaje en la pantalla bloqueada. Al tocarlos
+          pueden leerlo completo y ver sus adjuntos dentro de la app.
         </Text>
         <Text style={s.sectionTitle}>Su información, protegida</Text>
         <Text style={s.body}>
