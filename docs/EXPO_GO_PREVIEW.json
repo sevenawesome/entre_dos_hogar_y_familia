@@ -1,38 +1,38 @@
 {
   "projectId": "f9af2154-9d1b-49d6-bae8-588d83ce3ad7",
-  "group": "d0bb287b-6e6c-486d-b25d-657068e994e8",
+  "group": "f183f12f-6bd1-4267-b2d3-51861553d68d",
   "branchId": "01a1e6f4-31b1-73c3-9fbb-8f8b9a2d40af",
   "branch": "expo-go-preview",
   "runtimeVersion": "exposdk:58.0.0",
-  "createdAt": "2026-11-22T20:44:05.882Z",
-  "gitCommitHash": "1150799f41795d2efbbece5dbf1bfd79d8f846c8",
+  "createdAt": "2026-11-23T18:19:16.094Z",
+  "gitCommitHash": "83d32a11548bd5d81c7ee404932d8b00fc50d99f",
   "launchUrl": "exp://u.expo.dev/f9af2154-9d1b-49d6-bae8-588d83ce3ad7/branch/01a1e6f4-31b1-73c3-9fbb-8f8b9a2d40af",
   "qrService": "https://qr.expo.dev/eas-update?projectId=f9af2154-9d1b-49d6-bae8-588d83ce3ad7&branchId=01a1e6f4-31b1-73c3-9fbb-8f8b9a2d40af",
-  "dashboard": "https://expo.dev/accounts/sevenawesomes-team/projects/entre-dos-by-departamento-de-hogar-y-familia/updates/d0bb287b-6e6c-486d-b25d-657068e994e8",
+  "dashboard": "https://expo.dev/accounts/sevenawesomes-team/projects/entre-dos-by-departamento-de-hogar-y-familia/updates/f183f12f-6bd1-4267-b2d3-51861553d68d",
   "updates": [
     {
-      "id": "01a20500-757a-7616-942d-c1294642ac51",
-      "createdAt": "2026-11-22T20:44:05.882Z",
-      "group": "d0bb287b-6e6c-486d-b25d-657068e994e8",
+      "id": "01a209a2-38fe-7a5f-a061-0278101ae055",
+      "createdAt": "2026-11-23T18:19:16.094Z",
+      "group": "f183f12f-6bd1-4267-b2d3-51861553d68d",
       "branch": "expo-go-preview",
-      "message": "Borrado definitivo y moderación de Comunidad",
+      "message": "Avisos por teléfono, recuperación de acceso y privacidad clara",
       "runtimeVersion": "exposdk:58.0.0",
       "platform": "android",
-      "manifestPermalink": "https://u.expo.dev/update/01a20500-757a-7616-942d-c1294642ac51",
+      "manifestPermalink": "https://u.expo.dev/update/01a209a2-38fe-7a5f-a061-0278101ae055",
       "isRollBackToEmbedded": false,
-      "gitCommitHash": "1150799f41795d2efbbece5dbf1bfd79d8f846c8"
+      "gitCommitHash": "83d32a11548bd5d81c7ee404932d8b00fc50d99f"
     },
     {
-      "id": "01a20500-757a-74d0-a28b-70adb837b1e7",
-      "createdAt": "2026-11-22T20:44:05.882Z",
-      "group": "d0bb287b-6e6c-486d-b25d-657068e994e8",
+      "id": "01a209a2-38fe-73f7-bac5-9f14df39a122",
+      "createdAt": "2026-11-23T18:19:16.094Z",
+      "group": "f183f12f-6bd1-4267-b2d3-51861553d68d",
       "branch": "expo-go-preview",
-      "message": "Borrado definitivo y moderación de Comunidad",
+      "message": "Avisos por teléfono, recuperación de acceso y privacidad clara",
       "runtimeVersion": "exposdk:58.0.0",
       "platform": "ios",
-      "manifestPermalink": "https://u.expo.dev/update/01a20500-757a-74d0-a28b-70adb837b1e7",
+      "manifestPermalink": "https://u.expo.dev/update/01a209a2-38fe-73f7-bac5-9f14df39a122",
       "isRollBackToEmbedded": false,
-      "gitCommitHash": "1150799f41795d2efbbece5dbf1bfd79d8f846c8"
+      "gitCommitHash": "83d32a11548bd5d81c7ee404932d8b00fc50d99f"
     }
   ],
   "checks": [
@@ -40,7 +40,7 @@
       "platform": "android",
       "manifest": 200,
       "bundle": 200,
-      "bytes": 4383360,
+      "bytes": 4405600,
       "assets": 37,
       "galleryAssetsVerified": 7
     },
@@ -48,7 +48,7 @@
       "platform": "ios",
       "manifest": 200,
       "bundle": 200,
-      "bytes": 4388752,
+      "bytes": 4410768,
       "assets": 34,
       "galleryAssetsVerified": 7
     }

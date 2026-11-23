@@ -1,0 +1,37 @@
+{
+  "build": "1.0.0 (5)",
+  "channel": "production",
+  "projectId": "f9af2154-9d1b-49d6-bae8-588d83ce3ad7",
+  "group": "1ca2bed8-edc9-4d15-adbd-3def9d6e35cf",
+  "runtimeVersion": "b5f693e949a92c6f7c4ea3b2df2ac2e538f7e56c",
+  "createdAt": "2026-11-23T18:17:22.495Z",
+  "sourceCommit": "83d32a11548bd5d81c7ee404932d8b00fc50d99f",
+  "updates": [
+    {
+      "id": "01a209a0-7d3f-7345-90b0-06187fb6285c",
+      "createdAt": "2026-11-23T18:17:22.495Z",
+      "group": "1ca2bed8-edc9-4d15-adbd-3def9d6e35cf",
+      "branch": "production",
+      "message": "Avisos en TestFlight, recuperación de acceso y privacidad clara",
+      "runtimeVersion": "b5f693e949a92c6f7c4ea3b2df2ac2e538f7e56c",
+      "platform": "ios",
+      "manifestPermalink": "https://u.expo.dev/update/01a209a0-7d3f-7345-90b0-06187fb6285c",
+      "isRollBackToEmbedded": false,
+      "gitCommitHash": "83d32a11548bd5d81c7ee404932d8b00fc50d99f"
+    }
+  ],
+  "verification": {
+    "manifestStatus": 200,
+    "id": "01a209a0-7d3f-7345-90b0-06187fb6285c",
+    "runtimeVersion": "b5f693e949a92c6f7c4ea3b2df2ac2e538f7e56c",
+    "bundleStatus": 200,
+    "bytes": 4410768,
+    "assets": 34,
+    "sha256": "82RE1lt1wGsMXCGAtgmT_P2hlIgNu6s3B0_d1fuGi3A",
+    "checkedAt": "2026-11-23T18:18:35.396Z"
+  },
+  "workerVersion": "3fceff23-3488-4dd7-b636-df37b000f4c4",
+  "emailEnabled": true,
+  "remotePushEnabled": false,
+  "remaining": "Configure a separate Apple APNs key and confirm delivery on a real iPhone."
+}

@@ -27,3 +27,9 @@ La app ya incluye el módulo y el permiso nativo de notificaciones en TestFlight
 - Reglas e índices desplegados. El correo continúa activo. El registro remoto del teléfono y la entrega física quedan pendientes de configurar APNs y abrir la actualización en el iPhone.
 
 Para comprobarlo en el teléfono: abrir la app instalada desde TestFlight, dejar descargar la actualización y volver a abrirla. Iniciar sesión con una cuenta registrada, entrar en Nosotros → Avisos y pulsar «Activar y probar avisos». Permitir los avisos y salir a la pantalla de inicio. Revisar también Ajustes → Notificaciones y los modos de Concentración del iPhone. Después de habilitar APNs, probar un aviso administrativo nuevo a una sola cuenta antes de un envío colectivo.
+
+## Publicación comprobada
+
+TestFlight 5 recibe el grupo `1ca2bed8-edc9-4d15-adbd-3def9d6e35cf` por el canal production, con el runtime compatible. Se comprobó el manifiesto seleccionado por el canal, la descarga del paquete y su suma SHA-256. Evidencia: [TESTFLIGHT_UPDATE.json](TESTFLIGHT_UPDATE.json).
+
+Expo Go conserva su QR de rama y recibe el grupo `f183f12f-6bd1-4267-b2d3-51861553d68d`, runtime `exposdk:58.0.0`. Se comprobaron ambos paquetes y las siete imágenes de demostración. El código de ambas publicaciones corresponde a `83d32a11548bd5d81c7ee404932d8b00fc50d99f`. Ninguna de estas comprobaciones demuestra recepción física de un aviso remoto; sigue pendiente la clave APNs.
