@@ -11,11 +11,11 @@ Los correos se envían desde el servicio existente; no se activan en App Store C
 - El registro del teléfono se renueva al abrir la app, caduca a los 30 días y se revoca al cerrar sesión. Un token solo pertenece a una cuenta actual. El borrado definitivo elimina también estos registros. Los mensajes antiguos y las felicitaciones de Comunidad conservan el aviso local al sincronizar; no se convierten en envíos remotos retrospectivos.
 - La privacidad explica el uso de datos con lenguaje cotidiano, sin nombres de proveedores. Los límites de recuperación muestran una espera real, en lugar de afirmar que se envió un correo. El servicio gratuito de recuperación sigue como alternativa si el correo personalizado está apagado, sin cuota o temporalmente indisponible.
 
-## Credencial pendiente
+## Credencial configurada
 
-`PUSH_ENABLED=false` hasta instalar la clave APNs del equipo Apple `6DRBD9Z2VS` en las credenciales iOS de Expo. La clave App Store Connect `TBW5U3MM53` sirve para subir compilaciones y no es una clave APNs. No se deben intercambiar.
+La clave APNs `TR99B3T78J` del equipo Apple `6DRBD9Z2VS` quedó cargada y vinculada en Expo a `com.sevenawesome.entredos`. Se comprobó la asignación en una consulta independiente después de guardarla. `PUSH_ENABLED=true` está desplegado y el estado público confirma `pushEnabled=true`. La clave privada se conserva únicamente en las ubicaciones locales excluidas de Git y en las credenciales de Expo. No se incluye su contenido en archivos de evidencia ni en los registros.
 
-En Apple Developer → Certificates, Identifiers & Profiles → Keys, crear una clave de Apple Push Notifications (APNs), descargarla y cargarla mediante `npx eas-cli@latest credentials --platform ios` → production → Push Notifications → usar una clave existente. No imprimir ni versionar la clave. Después habilitar `PUSH_ENABLED=true` y desplegar el Worker. Android requiere su credencial FCM propia y `PUSH_ANDROID_ENABLED=true`; permanece desactivado mientras no esté configurado.
+La clave App Store Connect `TBW5U3MM53` sirve para subir compilaciones y no es una clave APNs. No se deben intercambiar. Android requiere su credencial FCM propia y `PUSH_ANDROID_ENABLED=true`; permanece desactivado mientras no esté configurado.
 
 La app ya incluye el módulo y el permiso nativo de notificaciones en TestFlight 1.0.0 (5). Esta corrección de JavaScript conserva el runtime `b5f693e949a92c6f7c4ea3b2df2ac2e538f7e56c`; no requiere recompilar para ese build.
 
@@ -24,7 +24,7 @@ La app ya incluye el módulo y el permiso nativo de notificaciones en TestFlight
 - TypeScript y lint correctos; 136 pruebas de app/dominio, 83 del servicio y 65 de reglas/Auth con emuladores.
 - Se probaron propiedad del registro del teléfono, autenticación, baja y suspensión, concurrencia, conservación del cuerpo y adjuntos, revocación y limpieza, errores/recibos del proveedor y el peor caso dentro de las 50 solicitudes externas de Workers Free. No se enviaron correos ni avisos reales durante estas pruebas.
 - Revisión visual de Nosotros → Avisos y Privacidad en 390 × 844, sin errores de página ni desbordamiento horizontal.
-- Reglas e índices desplegados. El correo continúa activo. El registro remoto del teléfono y la entrega física quedan pendientes de configurar APNs y abrir la actualización en el iPhone.
+- Reglas e índices desplegados. El correo y los avisos remotos iOS están activos. Se confirmó que el endpoint de registro rechaza solicitudes sin sesión (401). El registro del iPhone y la entrega física quedan pendientes de abrir la actualización, activar el permiso y realizar la prueba en ese teléfono. La aceptación de la clave en Expo no demuestra por sí sola la recepción en APNs ni en el iPhone.
 
 Para comprobarlo en el teléfono: abrir la app instalada desde TestFlight, dejar descargar la actualización y volver a abrirla. Iniciar sesión con una cuenta registrada, entrar en Nosotros → Avisos y pulsar «Activar y probar avisos». Permitir los avisos y salir a la pantalla de inicio. Revisar también Ajustes → Notificaciones y los modos de Concentración del iPhone. Después de habilitar APNs, probar un aviso administrativo nuevo a una sola cuenta antes de un envío colectivo.
 
@@ -32,4 +32,4 @@ Para comprobarlo en el teléfono: abrir la app instalada desde TestFlight, dejar
 
 TestFlight 5 recibe el grupo `1ca2bed8-edc9-4d15-adbd-3def9d6e35cf` por el canal production, con el runtime compatible. Se comprobó el manifiesto seleccionado por el canal, la descarga del paquete y su suma SHA-256. Evidencia: [TESTFLIGHT_UPDATE.json](TESTFLIGHT_UPDATE.json).
 
-Expo Go conserva su QR de rama y recibe el grupo `f183f12f-6bd1-4267-b2d3-51861553d68d`, runtime `exposdk:58.0.0`. Se comprobaron ambos paquetes y las siete imágenes de demostración. El código de ambas publicaciones corresponde a `83d32a11548bd5d81c7ee404932d8b00fc50d99f`. Ninguna de estas comprobaciones demuestra recepción física de un aviso remoto; sigue pendiente la clave APNs.
+Expo Go conserva su QR de rama y recibe el grupo `f183f12f-6bd1-4267-b2d3-51861553d68d`, runtime `exposdk:58.0.0`. Se comprobaron ambos paquetes y las siete imágenes de demostración. El código de ambas publicaciones corresponde a `83d32a11548bd5d81c7ee404932d8b00fc50d99f`. La activación posterior de APNs solo cambia las credenciales y el servicio; no requiere otra actualización de JavaScript ni otra compilación. Sigue pendiente comprobar la recepción física de un aviso remoto.

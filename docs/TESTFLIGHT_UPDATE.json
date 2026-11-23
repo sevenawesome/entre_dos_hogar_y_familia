@@ -30,8 +30,15 @@
     "sha256": "82RE1lt1wGsMXCGAtgmT_P2hlIgNu6s3B0_d1fuGi3A",
     "checkedAt": "2026-11-23T18:18:35.396Z"
   },
-  "workerVersion": "3fceff23-3488-4dd7-b636-df37b000f4c4",
+  "workerVersion": "27624205-0d5b-4a34-bb87-e2ebe9e44100",
   "emailEnabled": true,
-  "remotePushEnabled": false,
-  "remaining": "Configure a separate Apple APNs key and confirm delivery on a real iPhone."
+  "remotePushEnabled": true,
+  "remaining": "Register the updated TestFlight installation and confirm local and remote delivery on a real iPhone.",
+  "apns": {
+    "keyId": "TR99B3T78J",
+    "teamId": "6DRBD9Z2VS",
+    "bundleIdentifier": "com.sevenawesome.entredos",
+    "assigned": true,
+    "checkedAt": "2026-11-23T18:28:15.717Z"
+  }
 }
