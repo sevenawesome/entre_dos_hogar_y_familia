@@ -37,13 +37,18 @@ export default function Privacy() {
           nombre de quien cumple años. Al sincronizar también pueden mostrar
           mensajes de la administración o felicitaciones de otras familias.
           Nunca incluyen sus notas ni respuestas de los retos. Pueden pausar los
-          avisos desde Nosotros o desde los ajustes del teléfono.
+          avisos desde Nosotros o desde los ajustes del teléfono. Para enviar
+          avisos con la app cerrada guardamos un registro del teléfono vinculado
+          a su cuenta, que desactivamos al cerrar sesión y eliminamos al borrar
+          definitivamente la cuenta. Los avisos de Administración en la pantalla
+          bloqueada solo indican que tienen un mensaje nuevo.
         </Text>
-        <Text style={s.sectionTitle}>Sus datos en Firebase</Text>
+        <Text style={s.sectionTitle}>Su información, protegida</Text>
         <Text style={s.body}>
-          La cuenta y los datos se procesan en Firebase de Google. Los avisos se
-          programan localmente con Expo y los presenta el sistema del teléfono.
-          La demostración presenta ejemplos ficticios y no publica contenido.
+          Guardamos su cuenta y su información en servicios protegidos para que
+          puedan acceder desde ambos teléfonos. Los recordatorios se preparan en
+          cada dispositivo y requieren su permiso para aparecer. La demostración
+          utiliza ejemplos ficticios y no publica sus datos.
         </Text>
         <Text style={s.sectionTitle}>Administración y soporte</Text>
         <Text style={s.body}>
@@ -87,13 +92,16 @@ export default function Privacy() {
           bienvenida, una felicitación al conseguir cada nivel y avisos manuales
           del equipo sobre su cuenta o el programa. La administración configura
           estos envíos y sus límites. No se mandan correos diarios de retos,
-          cumpleaños ni aniversarios. Cloudflare prepara el envío; Resend recibe
-          su dirección y el mensaje. No se envían notas ni cuestionarios de
-          pareja. Los mensajes manuales pueden incluir los adjuntos que el
-          administrador elija. Cada correo incluye un enlace de baja que la
-          administración no puede anular. Los correos de verificación y
-          recuperación de Firebase siguen disponibles. Se conservan colas y
-          estados técnicos; un envío aceptado no confirma entrega ni lectura.
+          cumpleaños ni aniversarios. Para entregar los correos utilizamos un
+          servicio de envío que recibe su dirección y el contenido del mensaje.
+          No se envían notas ni cuestionarios de pareja. Los mensajes manuales
+          pueden incluir los adjuntos que el administrador elija. Cada correo
+          incluye un enlace de baja que la administración no puede anular. Los
+          correos de verificación y recuperación de contraseña siguen
+          disponibles aunque desactiven los correos opcionales. Guardamos un
+          registro de los envíos para evitar duplicados y atender problemas de
+          entrega. Que un correo se haya enviado no garantiza que llegue al
+          buzón ni que haya sido leído.
         </Text>
         <Text style={s.sectionTitle}>Eliminar la cuenta</Text>
         <Text style={s.body}>
@@ -110,11 +118,13 @@ export default function Privacy() {
           transferir la propiedad a otro administrador activo y verificado antes
           de eliminarse expresamente. El propietario también puede realizar
           borrados administrativos; los reinicios siempre protegen su cuenta y
-          las de administradores. Se conservan únicamente identificadores y
-          registros técnicos mínimos para completar y auditar el proceso e
-          impedir que sesiones antiguas recreen datos. No podemos retirar copias
-          de correos o imágenes que otras personas hayan guardado fuera de la
-          app. Ambas acciones necesitan conexión e inicio de sesión reciente.
+          las de administradores. Conservamos únicamente un registro mínimo de
+          la solicitud y del resultado del borrado, para completarlo e impedir
+          que una sesión anterior vuelva a crear sus datos. Ese registro no
+          contiene sus fotos ni el contenido de sus recuerdos. No podemos
+          retirar copias de correos o imágenes que otras personas hayan guardado
+          fuera de la app. Ambas acciones necesitan conexión e inicio de sesión
+          reciente.
         </Text>
         <Text style={s.sectionTitle}>El bienestar va primero</Text>
         <Text style={s.body}>

@@ -124,7 +124,9 @@ export function deliveryCommit(input: {
     body: str(input.body.trim()),
     senderUid: str(actor),
     auditId: str(auditId),
-    ...(channel === "email" ? { uid: str(uid), state: str("pending") } : {}),
+    ...(channel === "email"
+      ? { uid: str(uid), state: str("pending") }
+      : { pushState: str("pending") }),
     ...(attachments.length
       ? {
           attachments: {

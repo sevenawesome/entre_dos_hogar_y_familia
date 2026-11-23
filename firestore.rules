@@ -156,7 +156,7 @@ service cloud.firestore {
     }
     allow read: if self(uid);
     allow create: if can('messages.send') && !deleting(uid) && !exists(/databases/$(database)/documents/accountSuspensions/$(uid)) && exists(/databases/$(database)/documents/families/$(uid))
-      && request.resource.data.keys().hasOnly(['title','body','senderUid','createdAt','auditId','attachments']) && validAttachments(request.resource.data.get('attachments',[]))
+      && request.resource.data.keys().hasOnly(['title','body','senderUid','createdAt','auditId','attachments','pushState']) && request.resource.data.get('pushState','pending')=='pending' && validAttachments(request.resource.data.get('attachments',[]))
       && text(request.resource.data.title,100) && text(request.resource.data.body,1200)
       && request.resource.data.senderUid==request.auth.uid && request.resource.data.createdAt==request.time
       && audited(request.resource.data,'message.send',uid);

@@ -23,6 +23,8 @@ import {
   disableDevice,
   loadPreferences,
   registerDevice,
+  notificationStatus,
+  testNotifications,
 } from "../../services/notifications";
 import { callBackend, friendlyError } from "../../services/api";
 import type { DevicePreferences } from "../../domain/types";
@@ -51,6 +53,9 @@ export default function FamilyScreen() {
   const [selectedSection, setSection] = useState<
     "family" | "reminders" | "account"
   >("family");
+  const [noticeStatus, setNoticeStatus] = useState<Awaited<
+    ReturnType<typeof notificationStatus>
+  > | null>(null);
   const { edit } = useLocalSearchParams<{ edit?: string }>();
   const [editingManually, setEditing] = useState(false),
     [preferences, setPreferences] = useState<DevicePreferences>({
@@ -69,6 +74,9 @@ export default function FamilyScreen() {
     editingManually || edit === "marriage" || edit === "birthdays";
   const section = editing ? "family" : selectedSection;
   useEffect(() => {
+    void notificationStatus()
+      .then(setNoticeStatus)
+      .catch(() => {});
     loadPreferences()
       .then((p) => {
         setPreferences(p);
@@ -89,10 +97,31 @@ export default function FamilyScreen() {
     try {
       const [hour, minute] = time.split(":").map(Number);
       await registerDevice({ ...preferences, hour, minute }, true);
+      setNoticeStatus(await notificationStatus());
       setMessage(
         preferences.enabled
           ? "Listo. Recordaremos tus retos, aniversario y cumpleaños familiares en este horario."
           : "Pausamos los recordatorios en este teléfono.",
+      );
+    } catch (e) {
+      setError(friendlyError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function activateAndTest() {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))
+        throw Error("Usa un horario válido, por ejemplo 20:00.");
+      const [hour, minute] = time.split(":").map(Number);
+      await testNotifications({ ...preferences, hour, minute, enabled: true });
+      setPreferences({ ...preferences, hour, minute, enabled: true });
+      setNoticeStatus(await notificationStatus());
+      setMessage(
+        "Preparamos un aviso de prueba para dentro de cinco segundos. Puedes salir a la pantalla de inicio del teléfono para comprobarlo. Si no aparece, revisa sus ajustes de avisos y Concentración.",
       );
     } catch (e) {
       setError(friendlyError(e));
@@ -273,6 +302,41 @@ export default function FamilyScreen() {
       )}
       {!editing && section === "reminders" && (
         <>
+          <Card>
+            <Text style={s.sectionTitle}>Avisos en este teléfono</Text>
+            <Notice
+              text={
+                !noticeStatus?.available
+                  ? "Los avisos se configuran desde la app instalada en el teléfono."
+                  : !noticeStatus.permitted
+                    ? "Este teléfono todavía no tiene permitido mostrar los avisos de Amor que permanece."
+                    : !noticeStatus.enabled
+                      ? "El teléfono permite avisos, pero sus recordatorios aún están desactivados aquí."
+                      : "Los avisos están activados en este teléfono."
+              }
+            />
+            <Text style={s.body}>
+              Al instalar la app en otro teléfono o desde TestFlight, debes
+              volver a permitir los avisos. Cada instalación tiene sus propios
+              ajustes.
+            </Text>
+            <Button
+              title="Activar y probar avisos"
+              icon="notifications-outline"
+              busy={busy}
+              disabled={demo || Platform.OS === "web"}
+              onPress={activateAndTest}
+            />
+            <Text style={s.small}>
+              Los recordatorios de retos y fechas pueden aparecer con la app
+              cerrada.{" "}
+              {noticeStatus?.remote === "active"
+                ? "Este teléfono también está registrado para recibir avisos de Administración con la app cerrada. Pueden tardar unos minutos y siempre quedan guardados en su bandeja."
+                : noticeStatus?.remote === "error"
+                  ? "No pudimos conectar los avisos de Administración. Comprueben su conexión y vuelvan a pulsar Activar y probar avisos. Los mensajes siguen disponibles en su bandeja."
+                  : "Los avisos de Administración con la app cerrada todavía no están activos aquí. Sus mensajes siguen disponibles en la bandeja de la app."}
+            </Text>
+          </Card>
           {(!settings.notificationsEnabled || controls.remindersPaused) && (
             <Notice text="La administración ha pausado los avisos. Tu horario se conserva y puedes seguir haciendo retos." />
           )}

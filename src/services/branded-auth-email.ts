@@ -1,4 +1,5 @@
 import type { User } from "firebase/auth";
+export class AuthEmailLimitError extends Error {}
 /** Returns false to keep Firebase's built-in free service when custom mail is off or full. */
 export async function tryBrandedAuthEmail(
   kind: "verification" | "recovery",
@@ -21,9 +22,18 @@ export async function tryBrandedAuthEmail(
         signal: controller.signal,
       },
     );
+    if (r.status === 429) {
+      const data = await r.json().catch(() => null);
+      throw new AuthEmailLimitError(
+        typeof data?.error === "string"
+          ? data.error
+          : "Espera un momento antes de solicitar otro enlace.",
+      );
+    }
     if (!r.ok) return false;
     return (await r.json()).provider === "resend";
-  } catch {
+  } catch (error) {
+    if (error instanceof AuthEmailLimitError) throw error;
     return false;
   } finally {
     clearTimeout(timer);

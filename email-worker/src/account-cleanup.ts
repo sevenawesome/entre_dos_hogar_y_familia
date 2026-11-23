@@ -4,8 +4,23 @@ import type { AccountsRepository } from "./accounts-google";
 export async function cleanAccountPage(repo: AccountsRepository, uid: string) {
   await repo.deleteAuth(uid);
   const pages = await Promise.all([
-    repo.query("inbox", [{ field: "senderUid", op: "EQUAL", value: uid }], 20, ["__name__"], undefined, true),
-    repo.query("emailQueue", [{ field: "senderUid", op: "EQUAL", value: uid }], 20, ["__name__"]),
+    repo.query("pushTokens", [{ field: "uid", op: "EQUAL", value: uid }], 20, [
+      "__name__",
+    ]),
+    repo.query(
+      "inbox",
+      [{ field: "senderUid", op: "EQUAL", value: uid }],
+      20,
+      ["__name__"],
+      undefined,
+      true,
+    ),
+    repo.query(
+      "emailQueue",
+      [{ field: "senderUid", op: "EQUAL", value: uid }],
+      20,
+      ["__name__"],
+    ),
     ...["progress", "devices", "inbox", "levelNews", "communityBlocks"].map(
       (c) => repo.query(`families/${uid}/${c}`, [], 20, ["__name__"]),
     ),
@@ -43,7 +58,9 @@ export async function cleanAccountPage(repo: AccountsRepository, uid: string) {
         .flat()
         .flatMap((d) => [
           { path: d.path },
-          ...(d.path.startsWith("emailQueue/") ? [{ path: `mailJobs/admin-${d.path.split("/").at(-1)}` }] : []),
+          ...(d.path.startsWith("emailQueue/")
+            ? [{ path: `mailJobs/admin-${d.path.split("/").at(-1)}` }]
+            : []),
           ...(d.path.startsWith("anniversaryMessages/") &&
           typeof d.data.recipientUid === "string"
             ? [

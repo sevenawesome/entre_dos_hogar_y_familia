@@ -6,6 +6,8 @@ import { authEmailRequest } from "./auth-email";
 import { selfAccountStateRequest, suspensionCycle } from "./account-state";
 import { selfDeletionRequest, ownDeletionCycle } from "./account-delete";
 import { moderationRequest } from "./moderation";
+import { pushCycle, pushDeviceRequest } from "./push";
+export { pushCycle, pushDeviceRequest } from "./push";
 export {
   selfDeletionRequest,
   requestOwnDeletion,
@@ -818,6 +820,18 @@ export default {
     ctx: { waitUntil(p: Promise<unknown>): void },
   ) {
     if (!env.GOOGLE_SERVICE_ACCOUNT) return;
+    if (event.cron === "* * * * *") {
+      ctx.waitUntil(
+        accountsRepository(env)
+          .then((repo) => pushCycle(repo, env))
+          .catch(() =>
+            console.error(
+              "Push delivery needs attention. No account data logged.",
+            ),
+          ),
+      );
+      return;
+    }
     // Each invocation stays within Workers Free's 50 external subrequests.
     // Cleanup runs separately from mail; handle at most one bounded cleanup page.
     if (event.cron === "5-59/10 * * * *") {
@@ -852,6 +866,27 @@ export default {
     );
   },
   async fetch(request: Request, env: Env) {
+    if (new URL(request.url).pathname === "/notifications/device") {
+      if (request.method === "OPTIONS")
+        return new Response(null, { status: 204, headers: accountsHeaders });
+      if (!request.headers.get("Authorization"))
+        return Response.json(
+          { error: "Inicia sesión." },
+          { status: 401, headers: accountsHeaders },
+        );
+      try {
+        return await pushDeviceRequest(
+          request,
+          env,
+          await accountsRepository(env),
+        );
+      } catch {
+        return Response.json(
+          { error: "No pudimos registrar los avisos." },
+          { status: 503, headers: accountsHeaders },
+        );
+      }
+    }
     const communitySafetyPaths = [
       "/community/profiles",
       "/community/block",
@@ -982,6 +1017,7 @@ export default {
           service: "Amor que permanece correo",
           configured: ready(env),
           sending: ready(env) && env.SEND_ENABLED === "true",
+          pushEnabled: !!env.GOOGLE_SERVICE_ACCOUNT && env.PUSH_ENABLED === "true",
         },
         { headers: { "Cache-Control": "no-store" } },
       );

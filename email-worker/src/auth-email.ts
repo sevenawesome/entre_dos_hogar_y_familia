@@ -191,18 +191,47 @@ export async function authEmailRequest(
     )
       return fallback();
     stage = "quota";
-    const rate = await reserveAuthEmail(
-      repo,
-      await hash(email.toLowerCase(), env.UNSUBSCRIBE_SECRET),
-      await hash(
-        request.headers.get("CF-Connecting-IP") ?? "unknown",
-        env.UNSUBSCRIBE_SECRET,
-      ),
-      now,
-      settings,
+    const emailKey = await hash(email.toLowerCase(), env.UNSUBSCRIBE_SECRET);
+    const ipKey = await hash(
+      request.headers.get("CF-Connecting-IP") ?? "unknown",
+      env.UNSUBSCRIBE_SECRET,
     );
+    const rate = await reserveAuthEmail(repo, emailKey, ipKey, now, settings);
     if (rate === "quota") return fallback();
-    if (rate === "limited") return accepted(); // Same response for unknown and existing accounts.
+    if (rate === "limited") {
+      const [addressRate, networkRate] = await Promise.all([
+        repo.get(`authMailRate/email-${emailKey}`),
+        repo.get(`authMailRate/ip-${ipKey}`),
+      ]);
+      const day = now.toISOString().slice(0, 10);
+      const daily =
+        (addressRate?.data.day === day &&
+          Number(addressRate.data.count) >= 5) ||
+        (networkRate?.data.day === day && Number(networkRate.data.count) >= 10);
+      const retryAfter = daily
+        ? Math.max(
+            60,
+            Math.ceil(
+              (Date.parse(`${day}T00:00:00Z`) + 86400000 - now.getTime()) /
+                1000,
+            ),
+          )
+        : 60;
+      // Account-independent: never turn a deliberate limit into a false "sent" confirmation.
+      return Response.json(
+        {
+          ok: false,
+          retryAfter,
+          error: daily
+            ? "Alcanzaste el límite de solicitudes de hoy. Revisa el último correo recibido o vuelve a intentarlo mañana."
+            : "Ya solicitaste un enlace hace poco. Espera un minuto y revisa también Spam.",
+        },
+        {
+          status: 429,
+          headers: { ...accountsHeaders, "Retry-After": String(retryAfter) },
+        },
+      );
+    }
     stage = "action-link";
     const link = await deps.link(env, email, kind, deps.fetcher);
     if (!link) return accepted();

@@ -28,6 +28,11 @@ test('collective REST transport obeys Firebase user rules and retries atomically
  assert.equal(await commitDeliveryOnce(input,token,localFetch),'created');
  assert.equal(await commitDeliveryOnce(input,token,localFetch),'existing');
  const target=deliveryCommit(input).writes[0].update.name.split('/documents/')[1];
+ await rules.withSecurityRulesDisabled(async ctx=>assert.equal((await getDoc(doc(ctx.firestore(),target))).data().pushState,'pending'));
+ const forged=deliveryCommit({...input,operationId:'ABCDEFGHIJKLMNOPQRST'});forged.writes[0].update.fields.pushState={stringValue:'sent'};
+ const forbidden=await localFetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:commit`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(forged)});
+ assert.equal(forbidden.status,403);
+ await assertFails(setDoc(doc(rules.authenticatedContext(user.uid).firestore(),'pushTokens','forged'),{uid:'recipient',enabled:true,token:'fake'}));
  await assertFails(getDoc(doc(rules.authenticatedContext(user.uid).firestore(),target)));
  await rules.withSecurityRulesDisabled(async ctx=>assert.equal((await getDocs(collection(ctx.firestore(),'adminAudit'))).size,1));
  await assert.rejects(commitDeliveryOnce({...input,channel:'email'},token,localFetch));

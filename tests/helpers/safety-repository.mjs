@@ -10,7 +10,7 @@ export class SafetyRepository {
   async commit(writes) {
     if (this.beforeCommit) { const fn = this.beforeCommit; this.beforeCommit = null; await fn(writes); }
     if (writes.some(w => (this.docs.get(w.path)?.version ?? null) !== w.version)) return false;
-    writes.forEach(w => this.seed(w.path, w.data)); return true;
+    writes.forEach(w => this.seed(w.path, w.mask ? { ...this.docs.get(w.path)?.data, ...w.data } : w.data)); return true;
   }
   async accountInfo(uid) { return this.accounts.get(uid) ?? null; }
   async canDeleteAccounts() { return !this.denyAuth; }

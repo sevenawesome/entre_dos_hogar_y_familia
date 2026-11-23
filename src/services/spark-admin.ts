@@ -204,6 +204,7 @@ export async function sendFamilyMessage(
     senderUid: actor,
     createdAt: serverTimestamp(),
     auditId: audit.id,
+    pushState: "pending",
     ...(attachments.length ? { attachments } : {}),
   });
   batch.set(audit, auditData(actor, "message.send", uid));

@@ -8,6 +8,8 @@ export interface Env {
   SEND_ENABLED: string;
   ADMIN_ACCOUNTS_ENABLED?: string;
   AUTH_EMAIL_ENABLED?: string;
+  PUSH_ENABLED?: string;
+  PUSH_ANDROID_ENABLED?: string;
 }
 export type Data = Record<string, unknown>;
 export interface Document<T = Data> {
@@ -19,6 +21,7 @@ export interface Write {
   path: string;
   data: Data;
   version: string | null;
+  mask?: string[];
 }
 export interface Filter {
   field: string;
@@ -205,9 +208,17 @@ export async function googleRepository(
         collectionId = split.pop()!,
         parent = split.length ? `/${split.join("/")}` : "";
       const structuredQuery = {
-        from: [{ collectionId, ...(allDescendants ? { allDescendants: true } : {}) }],
+        from: [
+          { collectionId, ...(allDescendants ? { allDescendants: true } : {}) },
+        ],
         limit,
-        ...(orderBy ? { orderBy: [{ field: { fieldPath: orderBy }, direction: "ASCENDING" }] } : {}),
+        ...(orderBy
+          ? {
+              orderBy: [
+                { field: { fieldPath: orderBy }, direction: "ASCENDING" },
+              ],
+            }
+          : {}),
         ...(mask
           ? { select: { fields: mask.map((fieldPath) => ({ fieldPath })) } }
           : {}),
@@ -235,6 +246,7 @@ export async function googleRepository(
     async commit(writes: Write[]) {
       const body = {
         writes: writes.map((w) => ({
+          ...(w.mask ? { updateMask: { fieldPaths: w.mask } } : {}),
           update: {
             name: `${root}/${w.path}`,
             fields: toValue(w.data).mapValue!.fields,

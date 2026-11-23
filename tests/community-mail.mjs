@@ -381,3 +381,18 @@ test("security links are generated in memory only; response hides account existe
   ).json();
   assert.deepEqual(unknown, answer);
 });
+test("recovery cooldown and daily limits return 429 without claiming delivery or revealing account existence", async () => {
+  for (const known of [true, false]) {
+    const repo = setup(); let links = 0, sends = 0;
+    const deps = { verify, link: async () => { links++; return known ? "https://example.test/reset" : null; }, fetcher: async () => { sends++; return Response.json({ id: "mock" }); } };
+    const send = time => authEmailRequest(request("auth/email/recovery", { email: "a@example.com" }), env, repo, time, deps);
+    assert.equal((await send(now)).status, 200);
+    const limited = await send(now);
+    assert.equal(limited.status, 429); assert.equal(limited.headers.get("Retry-After"), "60");
+    assert.equal((await limited.json()).ok, false); assert.equal(links, 1); assert.equal(sends, known ? 1 : 0);
+    for (let i = 1; i < 5; i++) assert.equal((await send(new Date(+now + 60001 * i))).status, 200);
+    const daily = await send(new Date(+now + 600000));
+    assert.equal(daily.status, 429); assert.match((await daily.json()).error, /mañana/);
+    assert.equal(links, 5); assert.equal(sends, known ? 5 : 0);
+  }
+});

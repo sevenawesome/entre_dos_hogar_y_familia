@@ -50,9 +50,7 @@ export function subscribeSocial(uid: string, onError: (e: Error) => void) {
     onSnapshot(
       doc(db!, "communityConsents", uid),
       (snap) =>
-        dispatch(
-          actions.communityTermsAccepted(snap.data()?.version === 1),
-        ),
+        dispatch(actions.communityTermsAccepted(snap.data()?.version === 1)),
       onError,
     ),
     onSnapshot(
@@ -84,8 +82,7 @@ export function subscribeSocial(uid: string, onError: (e: Error) => void) {
     ),
     onSnapshot(
       collection(db!, "families", uid, "levelNews"),
-      (snap) =>
-        dispatch(actions.levelNewsRead(snap.docs.map((d) => d.id))),
+      (snap) => dispatch(actions.levelNewsRead(snap.docs.map((d) => d.id))),
       onError,
     ),
     onSnapshot(
@@ -304,7 +301,7 @@ export function friendlyError(error: unknown): string {
     "functions/unavailable":
       "No pudimos conectar. Comprueba tu conexión y vuelve a intentarlo.",
     "permission-denied":
-      "No pudimos acceder a los datos. Revisa la configuración de Firebase.",
+      "No pudimos acceder a esta información. Vuelve a iniciar sesión o contacta al equipo de soporte.",
   };
   return (
     messages[code ?? ""] ??

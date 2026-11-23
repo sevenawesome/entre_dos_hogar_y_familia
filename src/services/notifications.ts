@@ -8,8 +8,70 @@ import { getJourney } from "../domain/journey";
 import { journeyStarted, journeyAvailableAt } from "../domain/journey-timing";
 import { currentChallenge } from "../domain/progress";
 import { levelNewsNotice } from "../domain/level-news";
+import { remoteNoticeStatus, syncPushDevice } from "./push";
 async function notifications() {
   return Platform.OS === "web" ? null : import("expo-notifications");
+}
+type NativeNotifications = typeof import("expo-notifications");
+function permissionAllowed(
+  n: NativeNotifications,
+  permission: Awaited<ReturnType<NativeNotifications["getPermissionsAsync"]>>,
+) {
+  return (
+    permission.granted ||
+    permission.ios?.status === n.IosAuthorizationStatus.PROVISIONAL ||
+    permission.ios?.status === n.IosAuthorizationStatus.EPHEMERAL
+  );
+}
+export async function notificationStatus() {
+  const n = await notifications();
+  if (!n)
+    return {
+      available: false,
+      permitted: false,
+      enabled: false,
+      scheduled: 0,
+      remote: remoteNoticeStatus(null),
+    };
+  const [permission, preferences, scheduled] = await Promise.all([
+    n.getPermissionsAsync(),
+    loadPreferences(),
+    n.getAllScheduledNotificationsAsync(),
+  ]);
+  return {
+    available: true,
+    permitted: permissionAllowed(n, permission),
+    enabled: preferences.enabled,
+    scheduled: scheduled.length,
+    remote: remoteNoticeStatus(store.getState().app.uid),
+  };
+}
+export async function testNotifications(preferences: DevicePreferences) {
+  const state = store.getState().app,
+    uid = state.uid;
+  if (!uid || state.demo)
+    throw Error("Inicia sesión con tu cuenta para probar los avisos.");
+  if (!state.settings.notificationsEnabled || state.controls.remindersPaused)
+    throw Error("La administración ha pausado los avisos de esta cuenta.");
+  await registerDevice({ ...preferences, enabled: true }, true);
+  const n = await notifications();
+  if (!n) throw Error("Prueba los avisos desde la app de tu teléfono.");
+  if (store.getState().app.uid !== uid)
+    throw Error("La sesión cambió. Vuelve a intentarlo.");
+  await n.scheduleNotificationAsync({
+    identifier: `notification-test-${uid}`,
+    content: {
+      title: "Amor que permanece · Avisos activados",
+      body: "Este es su aviso de prueba. Sus recordatorios aparecerán en este teléfono.",
+      sound: "default",
+      data: { screen: "family", notificationTest: true },
+    },
+    trigger: {
+      type: n.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds: 5,
+      channelId: "retos",
+    },
+  });
 }
 export async function deviceId() {
   const key = "@entre-dos/device-id";
@@ -68,14 +130,24 @@ export function registerDevice(
         }),
       });
       let permission = await n.getPermissionsAsync();
-      if (askPermission && prefs.enabled && permission.status !== "granted")
-        permission = await n.requestPermissionsAsync();
-      if (prefs.enabled && permission.status !== "granted")
+      if (askPermission && prefs.enabled && !permissionAllowed(n, permission))
+        permission = await n.requestPermissionsAsync({
+          ios: { allowAlert: true, allowBadge: true, allowSound: true },
+        });
+      if (prefs.enabled && !permissionAllowed(n, permission))
         throw new Error(
           "Activa las notificaciones en los ajustes del teléfono.",
         );
       if (uid !== store.getState().app.uid) return;
-      await n.cancelAllScheduledNotificationsAsync();
+      if (!prefs.enabled) await n.cancelAllScheduledNotificationsAsync();
+      else {
+        const scheduled = await n.getAllScheduledNotificationsAsync();
+        await Promise.all(
+          scheduled
+            .filter((item) => item.content.data?.notificationTest !== true)
+            .map((item) => n.cancelScheduledNotificationAsync(item.identifier)),
+        );
+      }
       const enabled =
         prefs.enabled &&
         state.settings.notificationsEnabled &&
@@ -145,6 +217,10 @@ export function registerDevice(
         }
       }
       await AsyncStorage.setItem(prefKey(), JSON.stringify(prefs));
+      if (uid && !state.demo)
+        await syncPushDevice(uid, await deviceId(), enabled, askPermission);
+      if (prefs.enabled && state.communitySafetyReady)
+        void presentInbox(state.inbox).catch(() => {});
       void presentLevelNews().catch(() => {});
     });
   pending = work;
@@ -156,8 +232,11 @@ export async function refreshDevice() {
 export async function disableDevice() {
   const p = await loadPreferences();
   await registerDevice({ ...p, enabled: false });
+  const n = await notifications();
+  await n?.unregisterForNotificationsAsync().catch(() => {});
 }
 export async function clearAccountNotifications(uid: string) {
+  await syncPushDevice(uid, await deviceId(), false).catch(() => {});
   await AsyncStorage.setItem(
     `@entre-dos/reminders-${uid}`,
     JSON.stringify({ enabled: false, hour: 20, minute: 0, timezone: "UTC" }),
@@ -168,7 +247,10 @@ export async function clearAccountNotifications(uid: string) {
   const n = await notifications();
   if (n) {
     await Promise.allSettled([
-      n.cancelAllScheduledNotificationsAsync(), n.dismissAllNotificationsAsync(), n.clearLastNotificationResponseAsync(),
+      n.cancelAllScheduledNotificationsAsync(),
+      n.dismissAllNotificationsAsync(),
+      n.clearLastNotificationResponseAsync(),
+      n.unregisterForNotificationsAsync(),
     ]);
   }
   await clearTemporaryPhotoCache().catch(() => {});
@@ -233,7 +315,7 @@ async function showInbox(messages: FamilyMessage[]) {
     const value = JSON.parse((await AsyncStorage.getItem(key)) ?? "[]");
     if (Array.isArray(value)) seen = value.filter((v) => typeof v === "string");
   } catch {}
-  if ((await n.getPermissionsAsync()).status !== "granted") return;
+  if (!permissionAllowed(n, await n.getPermissionsAsync())) return;
   for (const message of [...messages].reverse()) {
     const current = store.getState().app;
     if (
@@ -244,6 +326,20 @@ async function showInbox(messages: FamilyMessage[]) {
     )
       continue;
     if (seen.includes(message.id) || !message.createdAt) continue;
+    if (
+      remoteNoticeStatus(state.uid) === "active" &&
+      ["pending", "sending", "accepted", "sent"].includes(
+        message.pushState ?? "",
+      )
+    ) {
+      if (message.pushState === "pending" || message.pushState === "sending")
+        continue;
+      if (message.pushDevices?.includes(await deviceId())) {
+        seen = [...seen, message.id].slice(-150);
+        await AsyncStorage.setItem(key, JSON.stringify(seen));
+        continue;
+      }
+    }
     if (store.getState().app.uid !== state.uid) return;
     const age = Date.now() - Date.parse(String(message.createdAt));
     if (age >= 0 && age < 86400000)
@@ -288,7 +384,7 @@ export function presentLevelNews() {
       const prefs = await loadPreferences();
       if (!prefs.enabled) return;
       const n = await notifications();
-      if (!n || (await n.getPermissionsAsync()).status !== "granted") return;
+      if (!n || !permissionAllowed(n, await n.getPermissionsAsync())) return;
       const key = `@entre-dos/level-news-notified/${uid}`;
       let notified: string[] = [];
       try {
@@ -331,21 +427,21 @@ export function notificationResponseListener(
 ): { remove(): void } {
   let removed = false;
   let subscription: { remove(): void } | undefined;
+  const open = (
+    response: import("expo-notifications").NotificationResponse,
+  ) => {
+    const data = response.notification.request.content.data;
+    if (data?.accountUid && data.accountUid !== store.getState().app.uid)
+      return;
+    onTap(String(data?.screen ?? "today"), String(data?.levelId ?? ""));
+  };
   notifications()
     .then(async (n) => {
       if (!n || removed) return;
-      subscription = n.addNotificationResponseReceivedListener((response) =>
-        onTap(
-          String(response.notification.request.content.data?.screen ?? "today"),
-          String(response.notification.request.content.data?.levelId ?? ""),
-        ),
-      );
+      subscription = n.addNotificationResponseReceivedListener(open);
       const last = await n.getLastNotificationResponseAsync();
       if (last && !removed) {
-        onTap(
-          String(last.notification.request.content.data?.screen ?? "today"),
-          String(last.notification.request.content.data?.levelId ?? ""),
-        );
+        open(last);
         await n.clearLastNotificationResponseAsync();
       }
     })

@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import "./push.mjs";
 import worker, {
   runCycle,
   reserveJob,

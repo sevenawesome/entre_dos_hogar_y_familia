@@ -135,6 +135,9 @@ export interface CommunityProfile {
   updatedAt?: unknown;
 }
 export interface FamilyMessage {
+  pushState?:
+    "pending" | "sending" | "accepted" | "sent" | "failed" | "skipped";
+  pushDevices?: string[];
   moderationRemoved?: boolean;
   id: string;
   title: string;
