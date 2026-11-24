@@ -1,0 +1,46 @@
+appId: com.sevenawesome.entredos
+---
+- launchApp:
+    clearState: false
+    permissions:
+      all: deny
+- extendedWaitUntil:
+    visible: "Ahora no · Ver después en Información"
+    timeout: 90000
+- tapOn: "Ahora no · Ver después en Información"
+- extendedWaitUntil:
+    visible: "Ir a Reto de hoy"
+    timeout: 90000
+- waitForAnimationToEnd
+- takeScreenshot: 02-hoy
+- tapOn: "Ir a Cumpleaños"
+- waitForAnimationToEnd
+- takeScreenshot: 03-cumpleanos
+- tapOn: "Volver al menú de Hoy"
+- waitForAnimationToEnd
+- tapOn: "Ir a Aniversario"
+- waitForAnimationToEnd
+- takeScreenshot: 04-aniversario
+- tapOn: ".*Camino.*"
+- extendedWaitUntil:
+    visible: "Nuestro camino"
+    timeout: 30000
+- waitForAnimationToEnd
+- takeScreenshot: 05-nuestro-camino
+- scrollUntilVisible:
+    element: "Continuar nuestro camino"
+    direction: DOWN
+    timeout: 30000
+- tapOn: "Continuar nuestro camino"
+- extendedWaitUntil:
+    visible: "Volver"
+    timeout: 30000
+- waitForAnimationToEnd
+- takeScreenshot: 06-reto
+- tapOn: "Volver"
+- tapOn: ".*Nosotros.*"
+- extendedWaitUntil:
+    visible: "Daniel y Carla"
+    timeout: 30000
+- waitForAnimationToEnd
+- takeScreenshot: 07-nosotros

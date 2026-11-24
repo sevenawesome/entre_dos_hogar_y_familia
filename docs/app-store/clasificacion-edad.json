@@ -1,0 +1,32 @@
+{
+  "reason": "Destinada a parejas adultas. Comunidad con perfiles compartidos y felicitaciones. No incluye citas ni emparejamiento.",
+  "answers": {
+    "advertising": false,
+    "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+    "contests": "NONE",
+    "datingAndRelationships": false,
+    "gambling": false,
+    "gamblingSimulated": "NONE",
+    "gunsOrOtherWeapons": "NONE",
+    "healthOrWellnessTopics": false,
+    "lootBox": false,
+    "medicalOrTreatmentInformation": "NONE",
+    "messagingAndChat": true,
+    "parentalControls": false,
+    "profanityOrCrudeHumor": "NONE",
+    "ageAssurance": false,
+    "sexualContentGraphicAndNudity": "NONE",
+    "sexualContentOrNudity": "NONE",
+    "sharedLocation": false,
+    "socialMedia": true,
+    "socialMediaAgeRestricted": false,
+    "horrorOrFearThemes": "NONE",
+    "matureOrSuggestiveThemes": "NONE",
+    "unrestrictedWebAccess": false,
+    "userGeneratedContent": true,
+    "violenceCartoonOrFantasy": "NONE",
+    "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+    "violenceRealistic": "NONE",
+    "ageRatingOverrideV2": "EIGHTEEN_PLUS"
+  }
+}

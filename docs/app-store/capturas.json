@@ -1,0 +1,103 @@
+{
+  "checkedAt": "2026-11-24T23:24:28.573Z",
+  "groups": [
+    {
+      "kind": "iphone",
+      "type": "APP_IPHONE_67",
+      "setId": "ba728dd1-a6f0-47e9-9344-74dc5d753cdd",
+      "images": [
+        {
+          "id": "dd400019-7948-80ca-803f-c1211638e03a",
+          "fileName": "iphone-02-hoy.png",
+          "width": 1320,
+          "height": 2868,
+          "state": "COMPLETE",
+          "sha256": "7fa0aa3ec1cafa0044e30dd8baf62ff58477ce20a10681e0f67f08e8f0230736"
+        },
+        {
+          "id": "a1000019-7948-80ca-8010-ab7f1208baaf",
+          "fileName": "iphone-06-reto.png",
+          "width": 1320,
+          "height": 2868,
+          "state": "COMPLETE",
+          "sha256": "6dcf2f4642a13af895a9a2b067601f1e0729d86a4d7011e56a9b3c3fc03df405"
+        },
+        {
+          "id": "c4400019-7948-80ca-8009-c16c7ddf3190",
+          "fileName": "iphone-05-nuestro-camino.png",
+          "width": 1320,
+          "height": 2868,
+          "state": "COMPLETE",
+          "sha256": "4892a52eda094a94cadb0cf70f4f5d700d99021d430dd97eec51e4c053ac6ad8"
+        },
+        {
+          "id": "8c400019-7948-80ca-802b-7f036b6710f0",
+          "fileName": "iphone-04-aniversario.png",
+          "width": 1320,
+          "height": 2868,
+          "state": "COMPLETE",
+          "sha256": "ce1a6e1be5686928f1fc5b77f7c0ef0bcaea57413b56eb628bc4a5c2b55e0707"
+        },
+        {
+          "id": "69400019-7948-80ca-8018-fa584e0e244a",
+          "fileName": "iphone-03-cumpleanos.png",
+          "width": 1320,
+          "height": 2868,
+          "state": "COMPLETE",
+          "sha256": "43a8e22fc6b835580b617eb70062dc3fb4c1e89f94104191a7fba5bd9bfca572"
+        }
+      ]
+    },
+    {
+      "kind": "ipad",
+      "type": "APP_IPAD_PRO_3GEN_129",
+      "setId": "1fbe0f3f-8159-4447-9633-ee452e21c7b1",
+      "images": [
+        {
+          "id": "22800019-7948-80ca-8029-b8e97637d6a2",
+          "fileName": "ipad-02-hoy.png",
+          "width": 2064,
+          "height": 2752,
+          "state": "COMPLETE",
+          "sha256": "42675e3fde3a5cc182c65bf28f8742ed6aace424ba539749f89cf23df8002297"
+        },
+        {
+          "id": "eb800019-7948-80ca-800b-3893522539e1",
+          "fileName": "ipad-06-reto.png",
+          "width": 2064,
+          "height": 2752,
+          "state": "COMPLETE",
+          "sha256": "3ab2529de19d5fdf283d0c87bf80841f7b52346423cd1481d324e421c7285e50"
+        },
+        {
+          "id": "63400019-7948-80ca-8013-16c8710069eb",
+          "fileName": "ipad-05-nuestro-camino.png",
+          "width": 2064,
+          "height": 2752,
+          "state": "COMPLETE",
+          "sha256": "41d1a995cec161bbda4a9b09f2ae6f5fdb486b1f6111f380b873ef4e9b2d786d"
+        },
+        {
+          "id": "cf000019-7948-80ca-803d-1268d21f8da8",
+          "fileName": "ipad-04-aniversario.png",
+          "width": 2064,
+          "height": 2752,
+          "state": "COMPLETE",
+          "sha256": "787870d59bd64ec278572d626aa24f19c7885fc9ff55a732f13a08e17ba5e8e3"
+        },
+        {
+          "id": "8a000019-7948-80ca-8022-4b7bb8dc42a5",
+          "fileName": "ipad-03-cumpleanos.png",
+          "width": 2064,
+          "height": 2752,
+          "state": "COMPLETE",
+          "sha256": "b33b51faa756e53add5f4ecd9efe3a42b9b7e1d84894033ba88510a5af01bd1e"
+        }
+      ]
+    }
+  ],
+  "nativeSimulatorBuildId": "12656d21-1b21-4047-aa98-6a7263afa7f5",
+  "nativeWorkflowId": "01a20fd8-7787-7cd2-b8b7-b1e6c044ad61",
+  "nativeWorkflowStatus": "SUCCESS",
+  "visualReviewCompleted": true
+}

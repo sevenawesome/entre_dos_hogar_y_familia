@@ -4,6 +4,18 @@
     "appVersionSource": "remote"
   },
   "build": {
+    "store-screenshots": {
+      "distribution": "internal",
+      "environment": "production",
+      "developmentClient": false,
+      "autoIncrement": false,
+      "env": {
+        "EXPO_UPDATE_TARGET": "native"
+      },
+      "ios": {
+        "simulator": true
+      }
+    },
     "development": {
       "developmentClient": true,
       "distribution": "internal"

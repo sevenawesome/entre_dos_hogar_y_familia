@@ -1,0 +1,29 @@
+name: Capturas nativas para App Store
+on:
+  workflow_dispatch:
+    inputs:
+      build_id:
+        type: string
+        required: true
+jobs:
+  screenshots:
+    name: iPhone y iPad con datos ficticios
+    runs_on: macos-medium
+    environment: production
+    steps:
+      - uses: eas/checkout
+      - uses: eas/download_build
+        id: simulator
+        with:
+          build_id: ${{ inputs.build_id }}
+          extensions: [app]
+      - name: Capturar la app instalada
+        run: |
+          export SIMULATOR_APP_PATH='${{ steps.simulator.outputs.artifact_path }}'
+          bash scripts/store-screenshots.sh
+      - uses: eas/upload_artifact
+        if: ${{ always() }}
+        with:
+          type: other
+          name: Capturas para App Store
+          path: .cache/store-captures/**/*.png

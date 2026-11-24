@@ -1,0 +1,15 @@
+{
+  "submittedAt": "2026-11-24T23:24:44.378Z",
+  "appId": "6838059210",
+  "version": "1.0.0",
+  "build": 6,
+  "submissionId": "76e49852-a6e8-496c-af3d-d447e8b736a8",
+  "submissionState": "WAITING_FOR_REVIEW",
+  "versionState": "WAITING_FOR_REVIEW",
+  "territories": [
+    "DOM"
+  ],
+  "price": "0.00",
+  "releaseType": "AFTER_APPROVAL",
+  "lastVerifiedAt": "2026-11-24T23:25:20.766Z"
+}

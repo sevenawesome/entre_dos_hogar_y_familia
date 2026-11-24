@@ -1,0 +1,15 @@
+Amor que permanece is a Spanish-language app for adult married couples and families. It is free with no advertising, in-app purchases or subscriptions.
+
+Use the verified test account provided below. It has fictitious private family information; it is a normal member account, not an administrator. The family account is shared by the couple.
+
+On the first signed-in launch, an introductory guide appears. Tap "Ahora no · Ver después en Información" to close it, or use "Siguiente" to read its five pages. It can be reopened from Info.
+
+Navigation: Hoy (Home), Camino (Levels), Comunidad (Community), Nosotros (Family/settings), and Info. Birthdays and anniversaries are available through Home shortcuts and Community celebrations. In Camino, open the first available challenge. The test journey is already started with no completed challenges. Subsequent challenges intentionally unlock 24 hours after the previous completion.
+
+Community sharing is optional and profiles/photos must be approved by an administrator before they appear. Members can report a profile and block another family. The test family is private. Birthday and anniversary greetings are limited to one per family per celebration.
+
+Push notifications require permission on a physical device. Email password recovery only sends a message for an existing registered address.
+
+Account deletion: Nosotros > Cuenta y acceso > Eliminar cuenta y datos. It deletes the authentication account and associated family information, photos, progress and messages. Please test this last, as the provided member account will no longer work after deletion. The administrator/owner account is not the supplied review account.
+
+The app offers educational relationship activities and Christian family guidance; it does not provide dating/matchmaking or medical treatment.

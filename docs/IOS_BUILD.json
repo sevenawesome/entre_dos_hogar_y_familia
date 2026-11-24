@@ -1,8 +1,8 @@
 {
-  "buildId": "bed1ca5f-9560-440f-a063-0a13d7f0e069",
+  "buildId": "94b2aadc-ff22-47da-9f26-2b39e60d7302",
   "status": "FINISHED",
   "version": "1.0.0",
-  "buildNumber": "5",
+  "buildNumber": "6",
   "bundleIdentifier": "com.sevenawesome.entredos",
   "displayName": "Amor que permanece",
   "minimumOSVersion": "16.4",
@@ -13,34 +13,50 @@
   "runtimeVersion": "b5f693e949a92c6f7c4ea3b2df2ac2e538f7e56c",
   "updateChannel": "production",
   "embeddedProfileMatched": true,
-  "sizeBytes": 25179630,
-  "sha256": "53de77967c06ab9cc2acf3df0cdab5114fd0c1aacbe9b2471e758968639ab689",
+  "sizeBytes": 25190856,
+  "sha256": "7242f8baa37b541342b218b8b27228de49e71304261e1e89d91a1ee2a2448a36",
   "appStoreConnectAppId": "6838059210",
   "uploadedToApple": true,
-  "submissionId": "f6d7844e-8bd1-413b-9b35-4ed468f6f7b0",
+  "submissionId": "935179b4-afb6-4477-bd5c-750c7b188def",
   "submissionStatus": "FINISHED",
   "appleProcessingState": "VALID",
-  "buildUrl": "https://expo.dev/accounts/sevenawesomes-team/projects/entre-dos-by-departamento-de-hogar-y-familia/builds/bed1ca5f-9560-440f-a063-0a13d7f0e069",
-  "sourceCommit": "1150799f41795d2efbbece5dbf1bfd79d8f846c8",
-  "completedAt": "2026-11-22T20:49:17.647Z",
-  "physicalDeviceTested": false,
-  "appReviewSubmitted": false,
+  "appleBuildId": "5015141e-5207-4d82-b3b3-e8cd09bd917b",
+  "buildUrl": "https://expo.dev/accounts/sevenawesomes-team/projects/entre-dos-by-departamento-de-hogar-y-familia/builds/94b2aadc-ff22-47da-9f26-2b39e60d7302",
+  "sourceCommit": "1b5323cb310814a1da17625124df7cfdf19101a5",
+  "completedAt": "2026-11-23T22:10:38.535Z",
+  "appReviewSubmitted": true,
+  "appStoreState": "WAITING_FOR_REVIEW",
+  "linkedToStoreVersion": "1.0.0",
+  "price": "0.00",
+  "territories": [
+    "DOM"
+  ],
+  "reviewContactSaved": true,
+  "dedicatedReviewAccountSaved": true,
+  "privacyDeclaration": "Published; verified in App Store Connect on 2026-11-24",
+  "screenshots": {
+    "iphone": 5,
+    "ipad": 5,
+    "appleProcessingState": "COMPLETE",
+    "nativeWorkflowId": "01a20fd8-7787-7cd2-b8b7-b1e6c044ad61",
+    "nativeWorkflowStatus": "SUCCESS"
+  },
   "testFlightUrl": "https://appstoreconnect.apple.com/apps/6838059210/testflight/ios",
   "previousBuild": {
-    "buildId": "b98a56c2-2e1d-4fb4-b422-399b830c6bf9",
-    "buildNumber": "4",
-    "appleBuildId": "2ecf2642-6f92-40e5-88a7-2dcbf698f019"
+    "buildId": "bed1ca5f-9560-440f-a063-0a13d7f0e069",
+    "buildNumber": "5",
+    "appleBuildId": "325f31f0-86cb-4732-b638-5b1e64f844c4"
   },
-  "pending": "Probar el borrado y la moderación con cuentas ficticias en dos teléfonos. Completar ficha, capturas, privacidad y datos de revisión antes de presentar la versión pública.",
-  "appleBuildId": "325f31f0-86cb-4732-b638-5b1e64f844c4",
+  "verifiedDate": "2026-11-24",
   "internalBuildState": "IN_BETA_TESTING",
   "internalGroup": {
     "id": "f497435e-ed92-41ab-b35d-317dfe08367c",
     "name": "Pruebas internas",
     "buildLinked": true,
-    "testerCount": 1,
-    "invitationsSent": false
+    "invitationsSent": false,
+    "autoNotifyEnabled": false
   },
-  "testInstructionsLocale": "es-MX",
-  "verifiedDate": "2026-11-23"
+  "appReviewSubmissionId": "76e49852-a6e8-496c-af3d-d447e8b736a8",
+  "appReviewSubmittedAt": "2026-11-24T23:24:44.378Z",
+  "publishedOnAppStore": false
 }
